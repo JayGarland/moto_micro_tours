@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("moto_micro_tours")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+10d50c8f3afc1bbc92d2e2df61714a6e49e1aac0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+6a677fc2092aa0172cfd6cce8e1ff6fba95f7170")]
 [assembly: System.Reflection.AssemblyProductAttribute("moto_micro_tours")]
 [assembly: System.Reflection.AssemblyTitleAttribute("moto_micro_tours")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
