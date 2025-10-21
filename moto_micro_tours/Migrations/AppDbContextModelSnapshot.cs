@@ -282,7 +282,7 @@ namespace moto_micro_tours.Migrations
 
                     b.HasIndex("TourMotardId");
 
-                    b.ToTable("Bookings");
+                    b.ToTable("Bookings", (string)null);
                 });
 
             modelBuilder.Entity("moto_micro_tours.Domain.Entities.BookingConversation", b =>
@@ -302,7 +302,7 @@ namespace moto_micro_tours.Migrations
                     b.HasIndex("BookingId")
                         .IsUnique();
 
-                    b.ToTable("BookingConversations");
+                    b.ToTable("BookingConversations", (string)null);
                 });
 
             modelBuilder.Entity("moto_micro_tours.Domain.Entities.Message", b =>
@@ -339,7 +339,7 @@ namespace moto_micro_tours.Migrations
 
                     b.HasIndex("SenderId");
 
-                    b.ToTable("Messages", t =>
+                    b.ToTable("Messages", null, t =>
                         {
                             t.HasCheckConstraint("CK_Message_XOR", "((PreBookingConversationId IS NOT NULL AND BookingConversationId IS NULL) OR (PreBookingConversationId IS NULL AND BookingConversationId IS NOT NULL))");
                         });
@@ -376,7 +376,7 @@ namespace moto_micro_tours.Migrations
                     b.HasIndex("UserId")
                         .IsUnique();
 
-                    b.ToTable("MotardProfiles");
+                    b.ToTable("MotardProfiles", (string)null);
                 });
 
             modelBuilder.Entity("moto_micro_tours.Domain.Entities.Payment", b =>
@@ -408,7 +408,7 @@ namespace moto_micro_tours.Migrations
                     b.HasIndex("BookingId")
                         .IsUnique();
 
-                    b.ToTable("Payments");
+                    b.ToTable("Payments", (string)null);
                 });
 
             modelBuilder.Entity("moto_micro_tours.Domain.Entities.PaymentKey", b =>
@@ -436,7 +436,7 @@ namespace moto_micro_tours.Migrations
 
                     b.HasIndex("PaymentId");
 
-                    b.ToTable("PaymentKey");
+                    b.ToTable("PaymentKey", (string)null);
                 });
 
             modelBuilder.Entity("moto_micro_tours.Domain.Entities.Payout", b =>
@@ -468,7 +468,7 @@ namespace moto_micro_tours.Migrations
                     b.HasIndex("BookingId")
                         .IsUnique();
 
-                    b.ToTable("Payouts");
+                    b.ToTable("Payouts", (string)null);
                 });
 
             modelBuilder.Entity("moto_micro_tours.Domain.Entities.PreBookingConversation", b =>
@@ -506,7 +506,7 @@ namespace moto_micro_tours.Migrations
                     b.HasIndex("TourId", "MotardUserId", "ParticipantUserId")
                         .IsUnique();
 
-                    b.ToTable("PreBookingConversations");
+                    b.ToTable("PreBookingConversations", (string)null);
                 });
 
             modelBuilder.Entity("moto_micro_tours.Domain.Entities.RateLimitCounter", b =>
@@ -535,7 +535,7 @@ namespace moto_micro_tours.Migrations
                     b.HasIndex("ParticipantUserId", "Date")
                         .IsUnique();
 
-                    b.ToTable("RateLimitCounters");
+                    b.ToTable("RateLimitCounters", (string)null);
                 });
 
             modelBuilder.Entity("moto_micro_tours.Domain.Entities.Review", b =>
@@ -579,7 +579,7 @@ namespace moto_micro_tours.Migrations
 
                     b.HasIndex("MotardId");
 
-                    b.ToTable("Reviews");
+                    b.ToTable("Reviews", (string)null);
                 });
 
             modelBuilder.Entity("moto_micro_tours.Domain.Entities.Tour", b =>
@@ -611,7 +611,7 @@ namespace moto_micro_tours.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Tours");
+                    b.ToTable("Tours", (string)null);
                 });
 
             modelBuilder.Entity("moto_micro_tours.Domain.Entities.TourMotard", b =>
@@ -658,7 +658,7 @@ namespace moto_micro_tours.Migrations
                     b.HasIndex("TourId", "MotardUserId")
                         .IsUnique();
 
-                    b.ToTable("TourMotards");
+                    b.ToTable("TourMotards", (string)null);
                 });
 
             modelBuilder.Entity("moto_micro_tours.Domain.Entities.UserRole", b =>
@@ -678,7 +678,7 @@ namespace moto_micro_tours.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("AppUserRoles");
+                    b.ToTable("AppUserRoles", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

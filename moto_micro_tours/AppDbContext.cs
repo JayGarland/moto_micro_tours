@@ -17,18 +17,24 @@ namespace moto_micro_tours
         public DbSet<PreBookingConversation> PreBookingConversations { get; set; }
         public DbSet<BookingConversation> BookingConversations { get; set; }
         public DbSet<Message> Messages { get; set; }
-    public DbSet<IdempotencyKey> IdempotencyKeys { get; set; }
+        public DbSet<IdempotencyKey> IdempotencyKeys { get; set; }
         public DbSet<Review> Reviews { get; set; }
-    public DbSet<UserRole> AppUserRoles { get; set; }
+        public DbSet<UserRole> AppUserRoles { get; set; }
         public DbSet<RateLimitCounter> RateLimitCounters { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
-            // TourMotard: Unique index on (TourId, MotardUserId)
+            // TourMotard: Unique index on (TourId, MotardUserId) and FK to AppUser
             modelBuilder.Entity<TourMotard>()
                 .HasIndex(x => new { x.TourId, x.MotardUserId }).IsUnique();
+
+            modelBuilder.Entity<TourMotard>()
+                .HasOne(tm => tm.Motard)
+                .WithMany()
+                .HasForeignKey(tm => tm.MotardUserId)
+                .IsRequired();
 
             // Booking: FKs, 1:1 with Payment and Payout
             modelBuilder.Entity<Booking>()
@@ -52,17 +58,29 @@ namespace moto_micro_tours
 
             // Message: XOR constraint (enforce in app/service layer if DB doesn't support)
             // Two optional FKs: PreBookingConversationId, BookingConversationId
-                // DB-level CHECK constraint for XOR (MySQL 8+)
-                modelBuilder.Entity<Message>()
-                    .ToTable(t => t.HasCheckConstraint(
-                        "CK_Message_XOR",
-                        "((PreBookingConversationId IS NOT NULL AND BookingConversationId IS NULL) OR (PreBookingConversationId IS NULL AND BookingConversationId IS NOT NULL))"
-                    ));
-                // If migration fails, enforce in service layer and leave a TODO.
+            // DB-level CHECK constraint for XOR (MySQL 8+)
+            modelBuilder.Entity<Message>()
+                .ToTable(t => t.HasCheckConstraint(
+                    "CK_Message_XOR",
+                    "((PreBookingConversationId IS NOT NULL AND BookingConversationId IS NULL) OR (PreBookingConversationId IS NULL AND BookingConversationId IS NOT NULL))"
+                ));
+            // If migration fails, enforce in service layer and leave a TODO.
 
-            // Review: Unique (BookingId), FK to MotardUserId
+            // Review: Unique (BookingId), FK to MotardUserId and AuthorUserId
             modelBuilder.Entity<Review>()
                 .HasIndex(x => x.BookingId).IsUnique();
+
+            modelBuilder.Entity<Review>()
+                .HasOne(r => r.Motard)
+                .WithMany()
+                .HasForeignKey(r => r.MotardUserId)
+                .IsRequired();
+
+            modelBuilder.Entity<Review>()
+                .HasOne(r => r.Author)
+                .WithMany()
+                .HasForeignKey(r => r.AuthorUserId)
+                .IsRequired();
 
             // RateLimitCounter: Unique (ParticipantUserId, Date)
             modelBuilder.Entity<RateLimitCounter>()
@@ -90,7 +108,7 @@ namespace moto_micro_tours
                     fk.DeleteBehavior = DeleteBehavior.Restrict;
                 }
             }
-                // Configure RowVersion concurrency tokens
+            // Configure RowVersion concurrency tokens
             modelBuilder.Entity<Booking>()
                 .Property(b => b.RowVersion)
                 .IsRowVersion()
