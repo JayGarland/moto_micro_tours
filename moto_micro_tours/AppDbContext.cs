@@ -82,6 +82,13 @@ namespace moto_micro_tours
                 .HasForeignKey(r => r.AuthorUserId)
                 .IsRequired();
 
+            // Booking FK configuration (explicit for Participant relationship)
+            modelBuilder.Entity<Booking>()
+                .HasOne(b => b.Participant)
+                .WithMany()
+                .HasForeignKey(b => b.ParticipantUserId)
+                .IsRequired();
+
             // RateLimitCounter: Unique (ParticipantUserId, Date)
             modelBuilder.Entity<RateLimitCounter>()
                 .HasIndex(x => new { x.ParticipantUserId, x.Date }).IsUnique();
