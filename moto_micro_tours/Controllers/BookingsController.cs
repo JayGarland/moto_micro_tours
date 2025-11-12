@@ -345,4 +345,49 @@ public class BookingsController : ControllerBase
             return StatusCode(500, new { error = "An error occurred while retrieving the booking" });
         }
     }
+
+    /// <summary>
+    /// Get all bookings (for demo/testing purposes)
+    /// </summary>
+    /// <returns>List of all bookings with summary information</returns>
+    [HttpGet]
+    public async Task<ActionResult<IEnumerable<BookingResponseDto>>> GetBookings()
+    {
+        try
+        {
+            _logger.LogInformation("Retrieving all bookings");
+
+            var bookings = await _context.Bookings
+                .Include(b => b.Tour)
+                .Include(b => b.TourMotard)
+                    .ThenInclude(tm => tm!.Motard)
+                .Include(b => b.Participant)
+                .OrderByDescending(b => b.CreatedAt)
+                .ToListAsync();
+
+            var response = bookings.Select(booking => new BookingResponseDto
+            {
+                BookingId = booking.Id,
+                TourId = booking.TourId,
+                TourTitle = booking.Tour?.Title ?? "Unknown",
+                TourMotardId = booking.TourMotardId,
+                MotardName = booking.TourMotard?.Motard?.UserName ?? "Unknown",
+                ParticipantId = Guid.Parse(booking.ParticipantUserId),
+                Status = booking.Status.ToString(),
+                CostSharingOptIn = booking.CostSharingOptIn,
+                EmergencyContact = booking.EmergencyContact ?? string.Empty,
+                CreatedAt = booking.CreatedAt,
+                ApprovedAt = booking.ApprovedAt,
+                ExpiresAt = booking.ExpiresAt
+            }).ToList();
+
+            _logger.LogInformation("Returning {Count} bookings", response.Count);
+            return Ok(response);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving bookings");
+            return StatusCode(500, new { error = "An error occurred while retrieving bookings" });
+        }
+    }
 }

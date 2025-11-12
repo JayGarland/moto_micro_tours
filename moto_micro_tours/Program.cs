@@ -20,6 +20,18 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddIdentity<AppUser, IdentityRole>()
     .AddEntityFrameworkStores<AppDbContext>();
 
+// Authorization: register conversation policies and handlers
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("CanAccessPreBookingConversation", policy =>
+        policy.Requirements.Add(new moto_micro_tours.Authorization.ConversationAccessRequirement()));
+    options.AddPolicy("CanAccessBookingConversation", policy =>
+        policy.Requirements.Add(new moto_micro_tours.Authorization.ConversationAccessRequirement()));
+});
+
+builder.Services.AddScoped<Microsoft.AspNetCore.Authorization.IAuthorizationHandler, moto_micro_tours.Authorization.PreBookingConversationHandler>();
+builder.Services.AddScoped<Microsoft.AspNetCore.Authorization.IAuthorizationHandler, moto_micro_tours.Authorization.BookingConversationHandler>();
+
 // Register application services
 builder.Services.AddScoped<moto_micro_tours.Services.IPaymentService, moto_micro_tours.Services.PaymentService>();
 builder.Services.AddScoped<moto_micro_tours.Services.IMessageService, moto_micro_tours.Services.MessageService>();
@@ -37,6 +49,12 @@ app.UseHttpsRedirection();
 
 // Add Idempotency middleware early in the pipeline
 app.UseMiddleware<moto_micro_tours.Middleware.IdempotencyKeyMiddleware>();
+
+// TODO(STAGE F): When enabling real authentication, call app.UseAuthentication() here
+// before app.UseAuthorization(), and add [Authorize] attributes to controllers/endpoints.
+// Example:
+// app.UseAuthentication();
+// app.UseAuthorization();
 
 app.UseAuthorization();
 
