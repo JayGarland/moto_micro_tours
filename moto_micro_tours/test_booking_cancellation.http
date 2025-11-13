@@ -1,0 +1,187 @@
+### Stage G - Test Booking Cancellation Flow
+### Prerequisites: Start app with `dotnet run`, database should be seeded
+
+@baseUrl = http://localhost:5256
+
+###########################################################
+# Step 0: Get Available Tours (MUST RUN THIS FIRST!)
+###########################################################
+
+### Get tours and their motards
+# @name getTours
+GET {{baseUrl}}/api/tours
+
+# IMPORTANT: Copy the tourId and one of the tourMotards[].id from the response
+# and update the variables below before continuing!
+
+###########################################################
+# Step 1: Login as participant1
+###########################################################
+
+### Login as participant1
+# @name login
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "participant1",
+  "password": "pass"
+}
+
+###########################################################
+# Step 2: Create a booking request
+###########################################################
+
+### Create booking request
+# IMPORTANT: Use the actual tourId and tourMotardId from Step 0!
+# @name createBooking
+POST {{baseUrl}}/api/bookings/request
+Content-Type: application/json
+
+{
+  "tourId": "08de22ba-5ebb-4451-837a-e5daca1bc210",
+  "tourMotardId": "08de22ba-5ec0-479c-8161-0da0d711864a",
+  "emergencyContact": "+33 6 12 34 56 78",
+  "costSharingOptIn": true
+}
+
+### Store booking ID for next requests
+@bookingId = {{createBooking.response.body.bookingId}}
+
+###########################################################
+# Step 3: Test Cancellation - Before Payment
+###########################################################
+
+### Cancel booking (PENDING status) - Should succeed
+# @name cancelPending
+POST {{baseUrl}}/api/bookings/{{bookingId}}/cancel
+Content-Type: application/json
+
+### Verify booking is cancelled
+GET {{baseUrl}}/api/bookings/{{bookingId}}
+
+###########################################################
+# Step 4: Test Cancellation - After Approval (Before Payment)
+###########################################################
+
+### Logout participant1
+POST {{baseUrl}}/api/auth/logout
+
+### Login as motard1 to approve
+# @name loginMotard
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "motard1",
+  "password": "pass"
+}
+
+### Create another booking (login as participant1 first)
+POST {{baseUrl}}/api/auth/logout
+
+### Login as participant1
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "participant1",
+  "password": "pass"
+}
+
+### Create second booking
+# IMPORTANT: Use the same tourId and tourMotardId as before
+# @name createBooking2
+POST {{baseUrl}}/api/bookings/request
+Content-Type: application/json
+
+{
+  "tourId": "08de22ba-5ebb-4451-837a-e5daca1bc210",
+  "tourMotardId": "08de22ba-5ec0-479c-8161-0da0d711864a",
+  "emergencyContact": "+33 6 12 34 56 78",
+  "costSharingOptIn": true
+}
+
+### Store booking ID for approval test
+@bookingId2 = af8e6224-cce0-4ddc-b80e-a91fd356b9f5
+
+### Logout and login as motard to approve
+POST {{baseUrl}}/api/auth/logout
+
+### Login as motard1
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "motard1",
+  "password": "pass"
+}
+
+### Approve the booking
+# @name approveBooking
+POST {{baseUrl}}/api/bookings/{{bookingId2}}/approve
+Content-Type: application/json
+
+### Logout and login back as participant
+POST {{baseUrl}}/api/auth/logout
+
+### Login as participant1
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "participant1",
+  "password": "pass"
+}
+
+### Cancel APPROVED booking (before payment) - Should succeed
+# @name cancelApproved
+POST {{baseUrl}}/api/bookings/{{bookingId2}}/cancel
+Content-Type: application/json
+
+### Verify booking is cancelled
+GET {{baseUrl}}/api/bookings/{{bookingId2}}
+
+###########################################################
+# Step 5: Test Authorization - Wrong User
+###########################################################
+
+### Create a booking as participant1
+# IMPORTANT: Use the same tourId and tourMotardId as before
+# @name createBooking3
+POST {{baseUrl}}/api/bookings/request
+Content-Type: application/json
+
+{
+  "tourId": "08de22ba-5ebb-4451-837a-e5daca1bc210",
+  "tourMotardId": "08de22ba-5ec0-479c-8161-0da0d711864a",
+  "emergencyContact": "+33 6 12 34 56 78",
+  "costSharingOptIn": true
+}
+
+### Store booking ID for authorization test
+@bookingId3 = 6cb3aa26-256f-4951-bbf2-3573c0320917
+
+### Logout and login as participant2
+POST {{baseUrl}}/api/auth/logout
+
+### Login as participant2
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "participant2",
+  "password": "pass"
+}
+
+### Try to cancel participant1's booking - Should return 403 Forbidden
+# @name cancelWrongUser
+POST {{baseUrl}}/api/bookings/{{bookingId3}}/cancel
+Content-Type: application/json
+
+###########################################################
+# Step 6: Cleanup - Logout
+###########################################################
+
+### Logout
+POST {{baseUrl}}/api/auth/logout

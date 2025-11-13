@@ -1,0 +1,233 @@
+### Stage G - Test Booking Refund Flow (Motard-initiated)
+### Prerequisites: Start app with `dotnet run`, database should be seeded
+
+@baseUrl = http://localhost:5256
+
+###########################################################
+# Step 0: Get Available Tours
+###########################################################
+
+### Get tours and their motards
+# @name getTours
+GET {{baseUrl}}/api/tours
+
+# Copy the tourId and tourMotardId from the response
+
+###########################################################
+# Step 1: Create and Pay for a Booking
+###########################################################
+
+### Login as participant1
+# @name loginParticipant
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "participant1",
+  "password": "pass"
+}
+
+### Create booking request
+# @name createBooking
+POST {{baseUrl}}/api/bookings/request
+Content-Type: application/json
+
+{
+  "tourId": "08de22ba-5ebb-4451-837a-e5daca1bc210",
+  "tourMotardId": "08de22ba-5ec0-479c-8161-0da0d711864a",
+  "emergencyContact": "+33 6 12 34 56 78",
+  "costSharingOptIn": true
+}
+
+### Store booking ID from response
+@bookingId = {{createBooking.response.body.bookingId}}
+
+### Logout participant
+POST {{baseUrl}}/api/auth/logout
+
+### Login as motard1 to approve
+# @name loginMotard
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "motard1",
+  "password": "pass"
+}
+
+### Approve the booking
+# @name approveBooking
+POST {{baseUrl}}/api/bookings/{{bookingId}}/approve
+
+### Logout motard
+POST {{baseUrl}}/api/auth/logout
+
+### Login as participant1 to pay
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "participant1",
+  "password": "pass"
+}
+
+### Pay for the booking
+# @name payBooking
+POST {{baseUrl}}/api/payments/pay/{{bookingId}}
+
+### Verify booking is now PAID
+GET {{baseUrl}}/api/bookings/{{bookingId}}
+
+###########################################################
+# Step 2: Test Motard Refund
+###########################################################
+
+### Logout participant
+POST {{baseUrl}}/api/auth/logout
+
+### Login as motard1 (who approved the booking)
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "motard1",
+  "password": "pass"
+}
+
+### Motard refunds the paid booking - Should succeed
+# @name refundBooking
+POST {{baseUrl}}/api/bookings/{{bookingId}}/refund
+
+### Verify booking status is REFUNDED
+GET {{baseUrl}}/api/bookings/{{bookingId}}
+
+###########################################################
+# Step 3: Test Authorization - Wrong Motard
+###########################################################
+
+### Logout motard1
+POST {{baseUrl}}/api/auth/logout
+
+### Login as participant1 to create another booking
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "participant1",
+  "password": "pass"
+}
+
+### Create another booking
+# @name createBooking2
+POST {{baseUrl}}/api/bookings/request
+Content-Type: application/json
+
+{
+  "tourId": "REPLACE_WITH_ACTUAL_TOUR_ID",
+  "tourMotardId": "REPLACE_WITH_ACTUAL_TOURMOTARD_ID",
+  "emergencyContact": "+33 6 12 34 56 78",
+  "costSharingOptIn": true
+}
+
+### Store second booking ID
+@bookingId2 = {{createBooking2.response.body.bookingId}}
+
+### Logout participant
+POST {{baseUrl}}/api/auth/logout
+
+### Login as motard1 to approve
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "motard1",
+  "password": "pass"
+}
+
+### Approve the second booking
+POST {{baseUrl}}/api/bookings/{{bookingId2}}/approve
+
+### Logout motard1
+POST {{baseUrl}}/api/auth/logout
+
+### Login as participant to pay
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "participant1",
+  "password": "pass"
+}
+
+### Pay for the second booking
+POST {{baseUrl}}/api/payments/pay/{{bookingId2}}
+
+### Logout participant
+POST {{baseUrl}}/api/auth/logout
+
+### Login as motard2 (WRONG motard - didn't approve this booking)
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "motard2",
+  "password": "pass"
+}
+
+### Try to refund another motard's booking - Should return 403 Forbidden
+# @name refundWrongMotard
+POST {{baseUrl}}/api/bookings/{{bookingId2}}/refund
+
+###########################################################
+# Step 4: Test Refund Non-Paid Booking (Should Fail)
+###########################################################
+
+### Logout motard2
+POST {{baseUrl}}/api/auth/logout
+
+### Login as participant to create a pending booking
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "participant1",
+  "password": "pass"
+}
+
+### Create a pending booking (don't approve or pay)
+# @name createBooking3
+POST {{baseUrl}}/api/bookings/request
+Content-Type: application/json
+
+{
+  "tourId": "REPLACE_WITH_ACTUAL_TOUR_ID",
+  "tourMotardId": "REPLACE_WITH_ACTUAL_TOURMOTARD_ID",
+  "emergencyContact": "+33 6 12 34 56 78",
+  "costSharingOptIn": true
+}
+
+### Store third booking ID
+@bookingId3 = {{createBooking3.response.body.bookingId}}
+
+### Logout participant
+POST {{baseUrl}}/api/auth/logout
+
+### Login as motard1
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "motard1",
+  "password": "pass"
+}
+
+### Try to refund PENDING booking - Should return 400 Bad Request
+# @name refundPending
+POST {{baseUrl}}/api/bookings/{{bookingId3}}/refund
+
+###########################################################
+# Step 5: Cleanup - Logout
+###########################################################
+
+### Logout
+POST {{baseUrl}}/api/auth/logout

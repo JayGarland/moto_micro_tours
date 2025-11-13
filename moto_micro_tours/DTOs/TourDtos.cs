@@ -154,3 +154,13 @@ public class CreateTourResponseDto
     public Guid CreatorTourMotardId { get; set; }
     public string Message { get; set; } = string.Empty;
 }
+
+/// <summary>
+/// Request to create a review for a motard
+/// </summary>
+public class CreateReviewDto
+{
+    public Guid BookingId { get; set; }
+    public int Rating { get; set; } // 1-5
+    public string? Comment { get; set; }
+}

@@ -374,21 +374,51 @@ public class BookingsController : ControllerBase
     }
 
     /// <summary>
-    /// Get all bookings (for demo/testing purposes)
+    /// Get bookings for the current authenticated user
+    /// Returns:
+    /// - For Participants: Bookings they created (as participant)
+    /// - For Motards: Bookings for tours they're assigned to (as motard)
     /// </summary>
-    /// <returns>List of all bookings with summary information</returns>
+    /// <returns>List of user's bookings with summary information</returns>
     [HttpGet]
+    [Authorize] // Must be authenticated
     public async Task<ActionResult<IEnumerable<BookingResponseDto>>> GetBookings()
     {
         try
         {
-            _logger.LogInformation("Retrieving all bookings");
+            // Get current user
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
+            {
+                return Unauthorized(new { error = "You must be logged in to view bookings" });
+            }
 
-            var bookings = await _context.Bookings
+            var roles = await _userManager.GetRolesAsync(currentUser);
+            var isMotard = roles.Contains("Motard");
+
+            _logger.LogInformation(
+                "Retrieving bookings for user {UserId} (isMotard: {IsMotard})",
+                currentUser.Id, isMotard);
+
+            IQueryable<Booking> query = _context.Bookings
                 .Include(b => b.Tour)
                 .Include(b => b.TourMotard)
                     .ThenInclude(tm => tm!.Motard)
-                .Include(b => b.Participant)
+                .Include(b => b.Participant);
+
+            // Filter based on user role
+            if (isMotard)
+            {
+                // Motards see bookings for tours they're assigned to
+                query = query.Where(b => b.TourMotard!.MotardUserId == currentUser.Id);
+            }
+            else
+            {
+                // Participants see their own bookings
+                query = query.Where(b => b.ParticipantUserId == currentUser.Id);
+            }
+
+            var bookings = await query
                 .OrderByDescending(b => b.CreatedAt)
                 .ToListAsync();
 
@@ -408,13 +438,295 @@ public class BookingsController : ControllerBase
                 ExpiresAt = booking.ExpiresAt
             }).ToList();
 
-            _logger.LogInformation("Returning {Count} bookings", response.Count);
+            _logger.LogInformation(
+                "Returning {Count} bookings for user {UserId}",
+                response.Count, currentUser.Id);
+
             return Ok(response);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving bookings");
             return StatusCode(500, new { error = "An error occurred while retrieving bookings" });
+        }
+    }
+
+    /// <summary>
+    /// Cancel a booking (Stage G: Participant only)
+    /// Rules:
+    /// - Before payment (Pending/Approved): Free cancellation
+    /// - After payment + >24h before tour: Full refund
+    /// - After payment + <24h before tour: Must request from motard (returns 400)
+    /// - Cancellation increases motard's available capacity
+    /// </summary>
+    /// <param name="id">Booking ID</param>
+    /// <returns>Updated booking with Cancelled status</returns>
+    [HttpPost("{id}/cancel")]
+    [Authorize] // Must be authenticated
+    public async Task<ActionResult<BookingResponseDto>> CancelBooking(Guid id)
+    {
+        try
+        {
+            _logger.LogInformation("Cancelling booking {BookingId}", id);
+
+            // Get current user
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
+            {
+                return Unauthorized(new { error = "You must be logged in to cancel bookings" });
+            }
+
+            // Load booking with related entities
+            var booking = await _context.Bookings
+                .Include(b => b.Tour)
+                .Include(b => b.TourMotard)
+                    .ThenInclude(tm => tm.Motard)
+                .Include(b => b.Participant)
+                .Include(b => b.Payment)
+                .FirstOrDefaultAsync(b => b.Id == id);
+
+            if (booking == null)
+            {
+                _logger.LogWarning("Booking {BookingId} not found", id);
+                return NotFound(new { error = $"Booking with ID {id} not found" });
+            }
+
+            // Rule: Only the participant can cancel their booking
+            if (booking.ParticipantUserId != currentUser.Id)
+            {
+                _logger.LogWarning(
+                    "User {UserId} attempted to cancel booking {BookingId} owned by {ParticipantUserId}",
+                    currentUser.Id, id, booking.ParticipantUserId);
+                return Forbid(); // 403 Forbidden
+            }
+
+            // Check if booking can be cancelled
+            if (booking.Status == BookingStatus.Cancelled)
+            {
+                return BadRequest(new { error = "Booking is already cancelled" });
+            }
+
+            if (booking.Status == BookingStatus.Refunded)
+            {
+                return BadRequest(new { error = "Booking is already refunded" });
+            }
+
+            // Rule: If booking is Paid, check if >24h before tour
+            bool needsRefund = false;
+            if (booking.Status == BookingStatus.Paid)
+            {
+                if (booking.Tour == null)
+                {
+                    return BadRequest(new { error = "Tour information not found" });
+                }
+
+                var hoursUntilTour = (booking.Tour.StartAt - DateTime.UtcNow).TotalHours;
+
+                if (hoursUntilTour < 24)
+                {
+                    _logger.LogWarning(
+                        "Booking {BookingId} cancellation denied: less than 24h before tour (hours: {Hours})",
+                        id, hoursUntilTour);
+                    return BadRequest(new
+                    {
+                        error = "Cannot cancel within 24 hours of tour start. Please contact the motard directly.",
+                        hoursUntilTour = Math.Round(hoursUntilTour, 1)
+                    });
+                }
+
+                needsRefund = true;
+                _logger.LogInformation(
+                    "Booking {BookingId} eligible for full refund (hours until tour: {Hours})",
+                    id, hoursUntilTour);
+            }
+
+            // Cancel the booking
+            booking.Status = BookingStatus.Cancelled;
+            booking.CancelledAt = DateTime.UtcNow;
+
+            // Increase motard's available capacity
+            if (booking.TourMotard != null)
+            {
+                booking.TourMotard.SeatsBooked -= 1;
+                _logger.LogInformation(
+                    "TourMotard {TourMotardId} capacity freed: {SeatsBooked}/{CapacitySeats}",
+                    booking.TourMotardId,
+                    booking.TourMotard.SeatsBooked,
+                    booking.TourMotard.CapacitySeats);
+            }
+
+            // Mock refund if needed
+            if (needsRefund && booking.Payment != null)
+            {
+                booking.Payment.Status = PaymentStatus.Refunded;
+                // Note: Payment entity doesn't have RefundedAt field - using PaidAt to track refund time
+                _logger.LogInformation(
+                    "Payment {PaymentId} marked as refunded (mock)",
+                    booking.Payment.Id);
+            }
+
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation(
+                "Booking {BookingId} cancelled successfully by participant {UserId}",
+                booking.Id, currentUser.Id);
+
+            var response = new BookingResponseDto
+            {
+                BookingId = booking.Id,
+                TourId = booking.TourId,
+                TourTitle = booking.Tour?.Title ?? "Unknown",
+                TourMotardId = booking.TourMotardId,
+                MotardName = booking.TourMotard?.Motard?.UserName ?? "Unknown",
+                ParticipantId = Guid.Parse(booking.ParticipantUserId),
+                Status = booking.Status.ToString(),
+                CostSharingOptIn = booking.CostSharingOptIn,
+                EmergencyContact = booking.EmergencyContact ?? string.Empty,
+                CreatedAt = booking.CreatedAt,
+                ApprovedAt = booking.ApprovedAt,
+                ExpiresAt = booking.ExpiresAt
+            };
+
+            return Ok(response);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error cancelling booking {BookingId}", id);
+            return StatusCode(500, new { error = "An error occurred while cancelling the booking" });
+        }
+    }
+
+    /// <summary>
+    /// Refund a paid booking (Stage G: Motard only)
+    /// Rules:
+    /// - Only the assigned motard can refund their own bookings
+    /// - Booking must be in Paid status
+    /// - Full refund (mock) is processed
+    /// - Booking status changes to Refunded (not Cancelled)
+    /// - Payout status changes to Failed
+    /// - Capacity is freed up
+    /// </summary>
+    /// <param name="id">Booking ID</param>
+    /// <returns>Updated booking with Refunded status</returns>
+    [HttpPost("{id}/refund")]
+    [Authorize(Roles = "Motard")] // Must be a Motard
+    public async Task<ActionResult<BookingResponseDto>> RefundBooking(Guid id)
+    {
+        try
+        {
+            _logger.LogInformation("Processing refund for booking {BookingId}", id);
+
+            // Get current user
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
+            {
+                return Unauthorized(new { error = "You must be logged in to refund bookings" });
+            }
+
+            // Load booking with all related entities
+            var booking = await _context.Bookings
+                .Include(b => b.Tour)
+                .Include(b => b.TourMotard)
+                    .ThenInclude(tm => tm!.Motard)
+                .Include(b => b.Participant)
+                .Include(b => b.Payment)
+                .Include(b => b.Payout)
+                .FirstOrDefaultAsync(b => b.Id == id);
+
+            if (booking == null)
+            {
+                _logger.LogWarning("Booking {BookingId} not found", id);
+                return NotFound(new { error = $"Booking with ID {id} not found" });
+            }
+
+            // Rule: Only the assigned motard can refund this booking
+            if (booking.TourMotard?.MotardUserId != currentUser.Id)
+            {
+                _logger.LogWarning(
+                    "User {UserId} attempted to refund booking {BookingId} assigned to motard {MotardUserId}",
+                    currentUser.Id, id, booking.TourMotard?.MotardUserId);
+                return Forbid(); // 403 Forbidden
+            }
+
+            // Rule: Can only refund Paid bookings
+            if (booking.Status != BookingStatus.Paid)
+            {
+                _logger.LogWarning(
+                    "Booking {BookingId} cannot be refunded (current status: {Status})",
+                    id, booking.Status);
+                return BadRequest(new
+                {
+                    error = $"Only paid bookings can be refunded. Current status: {booking.Status}"
+                });
+            }
+
+            // Check if already refunded
+            if (booking.Status == BookingStatus.Refunded)
+            {
+                return BadRequest(new { error = "Booking is already refunded" });
+            }
+
+            // Process refund
+            booking.Status = BookingStatus.Refunded;
+            booking.CancelledAt = DateTime.UtcNow;
+
+            // Mark payment as refunded (mock)
+            if (booking.Payment != null)
+            {
+                booking.Payment.Status = PaymentStatus.Refunded;
+                _logger.LogInformation(
+                    "Payment {PaymentId} marked as refunded (mock)",
+                    booking.Payment.Id);
+            }
+
+            // Update payout status to Failed
+            if (booking.Payout != null)
+            {
+                booking.Payout.Status = PayoutStatus.Failed;
+                _logger.LogInformation(
+                    "Payout {PayoutId} status changed to Failed",
+                    booking.Payout.Id);
+            }
+
+            // Free up capacity
+            if (booking.TourMotard != null)
+            {
+                booking.TourMotard.SeatsBooked -= 1;
+                _logger.LogInformation(
+                    "TourMotard {TourMotardId} capacity freed: {SeatsBooked}/{CapacitySeats}",
+                    booking.TourMotardId,
+                    booking.TourMotard.SeatsBooked,
+                    booking.TourMotard.CapacitySeats);
+            }
+
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation(
+                "Booking {BookingId} refunded successfully by motard {UserId}",
+                booking.Id, currentUser.Id);
+
+            var response = new BookingResponseDto
+            {
+                BookingId = booking.Id,
+                TourId = booking.TourId,
+                TourTitle = booking.Tour?.Title ?? "Unknown",
+                TourMotardId = booking.TourMotardId,
+                MotardName = booking.TourMotard?.Motard?.UserName ?? "Unknown",
+                ParticipantId = Guid.Parse(booking.ParticipantUserId),
+                Status = booking.Status.ToString(),
+                CostSharingOptIn = booking.CostSharingOptIn,
+                EmergencyContact = booking.EmergencyContact ?? string.Empty,
+                CreatedAt = booking.CreatedAt,
+                ApprovedAt = booking.ApprovedAt,
+                ExpiresAt = booking.ExpiresAt
+            };
+
+            return Ok(response);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error refunding booking {BookingId}", id);
+            return StatusCode(500, new { error = "An error occurred while refunding the booking" });
         }
     }
 }
