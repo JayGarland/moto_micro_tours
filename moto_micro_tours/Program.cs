@@ -17,8 +17,40 @@ builder.Services.AddDbContext<AppDbContext>(options =>
         ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("DefaultConnection"))
     )
 );
-builder.Services.AddIdentity<AppUser, IdentityRole>()
-    .AddEntityFrameworkStores<AppDbContext>();
+
+// Configure Identity with Cookie authentication
+builder.Services.AddIdentity<AppUser, IdentityRole>(options =>
+{
+    // For demo purposes, relax password requirements
+    options.Password.RequireDigit = false;
+    options.Password.RequireLowercase = false;
+    options.Password.RequireUppercase = false;
+    options.Password.RequireNonAlphanumeric = false;
+    options.Password.RequiredLength = 4;
+})
+.AddEntityFrameworkStores<AppDbContext>()
+.AddDefaultTokenProviders();
+
+// Configure cookie authentication
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.Cookie.HttpOnly = true;
+    options.Cookie.SameSite = SameSiteMode.Lax;
+    options.ExpireTimeSpan = TimeSpan.FromHours(24);
+    options.SlidingExpiration = true;
+
+    // Return 401 instead of redirecting to login page (for API)
+    options.Events.OnRedirectToLogin = context =>
+    {
+        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+        return Task.CompletedTask;
+    };
+    options.Events.OnRedirectToAccessDenied = context =>
+    {
+        context.Response.StatusCode = StatusCodes.Status403Forbidden;
+        return Task.CompletedTask;
+    };
+});
 
 // Authorization: register conversation policies and handlers
 builder.Services.AddAuthorization(options =>
@@ -50,12 +82,8 @@ app.UseHttpsRedirection();
 // Add Idempotency middleware early in the pipeline
 app.UseMiddleware<moto_micro_tours.Middleware.IdempotencyKeyMiddleware>();
 
-// TODO(STAGE F): When enabling real authentication, call app.UseAuthentication() here
-// before app.UseAuthorization(), and add [Authorize] attributes to controllers/endpoints.
-// Example:
-// app.UseAuthentication();
-// app.UseAuthorization();
-
+// Enable authentication and authorization (Stage F)
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

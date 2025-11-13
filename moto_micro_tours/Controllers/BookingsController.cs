@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using moto_micro_tours.DTOs;
@@ -11,20 +13,26 @@ namespace moto_micro_tours.Controllers;
 public class BookingsController : ControllerBase
 {
     private readonly AppDbContext _context;
+    private readonly UserManager<AppUser> _userManager;
     private readonly ILogger<BookingsController> _logger;
 
-    public BookingsController(AppDbContext context, ILogger<BookingsController> logger)
+    public BookingsController(
+        AppDbContext context,
+        UserManager<AppUser> userManager,
+        ILogger<BookingsController> logger)
     {
         _context = context;
+        _userManager = userManager;
         _logger = logger;
     }
 
     /// <summary>
-    /// Create a new booking request (Participant → chosen Motard)
+    /// Create a new booking request (Stage F: Authenticated users only, typically Participants)
     /// </summary>
     /// <param name="request">Booking request details</param>
     /// <returns>Created booking with Pending status</returns>
     [HttpPost("request")]
+    [Authorize] // Any authenticated user can create a booking request
     public async Task<ActionResult<BookingResponseDto>> CreateBookingRequest(
         [FromBody] CreateBookingRequestDto request)
     {
@@ -81,15 +89,17 @@ public class BookingsController : ControllerBase
                 return BadRequest(new { error = "No seats available for this motard" });
             }
 
-            // For MVP: use a hardcoded participant ID (in real app, get from authenticated user)
-            // TODO: Replace with actual user ID from authentication context
-            var participantUser = await _context.Users
-                .FirstOrDefaultAsync(u => u.Email == "participant@test");
-
-            if (participantUser == null)
+            // Stage F: Get the current authenticated user
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
             {
-                return BadRequest(new { error = "Participant user not found. Please authenticate." });
+                _logger.LogWarning("Booking request attempt without authentication");
+                return Unauthorized(new { error = "You must be logged in to create a booking" });
             }
+
+            _logger.LogInformation(
+                "User {UserId} ({Username}) creating booking request",
+                currentUser.Id, currentUser.UserName);
 
             // Create the booking
             var booking = new Booking
@@ -97,7 +107,7 @@ public class BookingsController : ControllerBase
                 Id = Guid.NewGuid(),
                 TourId = request.TourId,
                 TourMotardId = request.TourMotardId,
-                ParticipantUserId = participantUser.Id,
+                ParticipantUserId = currentUser.Id,
                 Status = BookingStatus.Pending,
                 EmergencyContact = request.EmergencyContact,
                 CostSharingOptIn = request.CostSharingOptIn,
@@ -118,7 +128,7 @@ public class BookingsController : ControllerBase
                 TourTitle = tour.Title,
                 TourMotardId = tourMotard.Id,
                 MotardName = tourMotard.Motard?.UserName ?? "Unknown",
-                ParticipantId = Guid.Parse(participantUser.Id),
+                ParticipantId = Guid.Parse(currentUser.Id),
                 Status = booking.Status.ToString(),
                 CostSharingOptIn = booking.CostSharingOptIn,
                 EmergencyContact = booking.EmergencyContact,
@@ -140,12 +150,13 @@ public class BookingsController : ControllerBase
     }
 
     /// <summary>
-    /// Approve a booking request (Motard only)
+    /// Approve a booking request (Stage F: Only the assigned motard can approve)
     /// Sets status to Approved and creates 6-hour payment window
     /// </summary>
     /// <param name="id">Booking ID</param>
     /// <returns>Updated booking with Approved status and expiry time</returns>
     [HttpPost("{id}/approve")]
+    [Authorize(Roles = "Motard")] // Must be a Motard, and specifically the one assigned to this booking
     public async Task<ActionResult<BookingResponseDto>> ApproveBooking(Guid id)
     {
         try
@@ -209,10 +220,26 @@ public class BookingsController : ControllerBase
                 });
             }
 
-            // TODO: Verify current user is the motard (requires authentication)
-            // For MVP: skip this check, but log a warning
-            _logger.LogWarning(
-                "Skipping motard authorization check (authentication not yet implemented)");
+            // Stage F - Step 3B: Verify current user is the assigned motard
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
+            {
+                _logger.LogWarning("Approval attempt without authentication for booking {BookingId}", id);
+                return Unauthorized(new { error = "You must be logged in to approve bookings" });
+            }
+
+            // Only the assigned motard can approve their own bookings
+            if (booking.TourMotard.MotardUserId != currentUser.Id)
+            {
+                _logger.LogWarning(
+                    "User {UserId} attempted to approve booking {BookingId} assigned to motard {MotardUserId}",
+                    currentUser.Id, id, booking.TourMotard.MotardUserId);
+                return Forbid(); // 403 Forbidden - user is authenticated but not authorized
+            }
+
+            _logger.LogInformation(
+                "Motard {MotardUserId} ({Username}) is authorized to approve booking {BookingId}",
+                currentUser.Id, currentUser.UserName, id);
 
             // Approve the booking
             booking.Status = BookingStatus.Approved;

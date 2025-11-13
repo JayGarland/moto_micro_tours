@@ -123,3 +123,34 @@ public class TourMotardDetailDto
     public int SeatsBooked { get; set; }
     public decimal PricePerSeat { get; set; }
 }
+
+/// <summary>
+/// DTO for creating a new tour (Stage F: Only Motards can create)
+/// </summary>
+public class CreateTourDto
+{
+    public string Title { get; set; } = string.Empty;
+    public DateTime StartAt { get; set; }
+    public string StartLocationText { get; set; } = string.Empty;
+    public string EndLocationText { get; set; } = string.Empty;
+    public string? Notes { get; set; }
+
+    // Creator's motard details for the tour
+    public int CapacitySeats { get; set; }
+    public decimal PricePerSeat { get; set; }
+
+    // Optional: Start as Published or Draft (default: Draft)
+    public bool PublishImmediately { get; set; } = false;
+}
+
+/// <summary>
+/// Response after creating a tour
+/// </summary>
+public class CreateTourResponseDto
+{
+    public Guid TourId { get; set; }
+    public string Title { get; set; } = string.Empty;
+    public string Status { get; set; } = string.Empty;
+    public Guid CreatorTourMotardId { get; set; }
+    public string Message { get; set; } = string.Empty;
+}

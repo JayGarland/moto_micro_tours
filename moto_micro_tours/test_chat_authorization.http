@@ -1,0 +1,233 @@
+### Step 3C: Test Chat Authorization
+### Tests: Only motard and participant in a conversation can access messages
+
+### ========================================
+### SETUP: Variables
+@baseUrl = http://localhost:5256
+@tourId = 08de221e-495c-495b-8444-af91535a20b0
+@motardUserId = 976a094e-da32-49c1-94b3-e59537c63496
+@conversationId = 6f73cb1a-a291-4e1a-b90b-f16286fc9873
+
+### ========================================
+### PREBOOKING CONVERSATION TESTS
+### ========================================
+
+### Test 1A: Ensure logged out (clear any existing session)
+POST {{baseUrl}}/api/auth/logout
+
+### Test 1B: Try to send prebooking message without authentication (should fail 401)
+POST {{baseUrl}}/api/chats/prebooking/send
+Content-Type: application/json
+
+{
+  "tourId": "{{tourId}}",
+  "motardUserId": "{{motardUserId}}",
+  "content": "Anonymous message attempt"
+}
+
+### Expected: 401 Unauthorized
+
+### ========================================
+### Test 2: Login as participant1 and create a prebooking conversation
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "participant1",
+  "password": "pass"
+}
+
+### Test 3: Send a prebooking message (as participant1)
+# This creates the conversation and saves the conversationId from response
+POST {{baseUrl}}/api/chats/prebooking/send
+Content-Type: application/json
+
+{
+  "tourId": "{{tourId}}",
+  "motardUserId": "{{motardUserId}}",
+  "content": "Hello motard1, I have a question about this tour"
+}
+
+### Expected: 201 Created with message details
+### Save the conversationId from the response location header
+
+### Test 3B: Get all my prebooking conversations (easier way to get conversationId)
+GET {{baseUrl}}/api/chats/prebooking/conversations
+
+### Expected: Array with conversationId for each conversation
+### Copy the conversationId and update the variable at the top
+
+### ========================================
+### Test 4: Get prebooking messages (as participant1, should work)
+GET {{baseUrl}}/api/chats/prebooking/{{conversationId}}/messages
+
+### Expected: 200 OK with messages array
+
+### ========================================
+### Test 5: Logout and try to get messages without authentication (should fail 401)
+POST {{baseUrl}}/api/auth/logout
+
+###
+GET {{baseUrl}}/api/chats/prebooking/{{conversationId}}/messages
+
+### Expected: 401 Unauthorized
+
+### ========================================
+### Test 6: Login as participant2 (different user, not in conversation)
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "participant2",
+  "password": "pass"
+}
+
+### Test 7: Try to access participant1's conversation (should fail 403)
+GET {{baseUrl}}/api/chats/prebooking/{{conversationId}}/messages
+
+### Expected: 403 Forbidden (not a participant in this conversation)
+
+### Test 8: Participant2 CAN create their own conversation with motard1 (this is allowed)
+POST {{baseUrl}}/api/chats/prebooking/send
+Content-Type: application/json
+
+{
+  "tourId": "{{tourId}}",
+  "motardUserId": "{{motardUserId}}",
+  "content": "This is participant2 creating their own conversation"
+}
+
+### Expected: 201 Created (this is correct behavior - creates a new separate conversation)
+
+### ========================================
+### Test 9: Login as motard1 (the assigned motard, should work)
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "motard1",
+  "password": "pass"
+}
+
+### list all prebooking conversations for motard1 (should include the one with participant1)
+GET {{baseUrl}}/api/chats/prebooking/conversations
+
+### Test 10: Get prebooking messages (as motard1, should work)
+GET {{baseUrl}}/api/chats/prebooking/{{conversationId}}/messages
+
+### Expected: 200 OK with messages array
+
+### Test 11: Send a reply (as motard1, should work)
+POST {{baseUrl}}/api/chats/prebooking/send
+Content-Type: application/json
+
+{
+  "tourId": "{{tourId}}",
+  "motardUserId": "{{motardUserId}}",
+  "content": "Hello participant1, happy to answer your questions!"
+}
+
+### Expected: 201 Created
+
+### ========================================
+### Test 12: Login as motard2 (different motard, should fail 403)
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "motard2",
+  "password": "pass"
+}
+
+### Test 13: Try to access the conversation (should fail 403)
+GET {{baseUrl}}/api/chats/prebooking/{{conversationId}}/messages
+
+### Expected: 403 Forbidden (not the motard in this conversation)
+
+### ========================================
+### BOOKING CONVERSATION TESTS
+### ========================================
+
+### Test 14: Login as participant1 and create a booking first
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "participant1",
+  "password": "pass"
+}
+
+###
+GET  {{baseUrl}}/api/bookings
+
+### Test 15: Create and approve a booking (setup for booking conversation)
+# First create booking as participant1
+POST {{baseUrl}}/api/bookings/request
+Content-Type: application/json
+
+{
+  "tourId": "08de221e-495c-495b-8444-af91535a20b0",
+  "tourMotardId": "08de221e-4962-4817-827e-7c7524ca98ff",
+  "costSharingOptIn": true,
+  "emergencyContact": "Jane Doe, 555-9999"
+}
+
+### Save the bookingId from response
+
+### Test 16: Login as motard1 and approve the booking
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "motard1",
+  "password": "pass"
+}
+
+
+###
+POST {{baseUrl}}/api/bookings/453d8277-9a41-42db-92f5-123912140da0/approve
+Content-Type: application/json
+
+{
+  "motardNotes": "Approved for chat testing"
+}
+
+### Test 17: Send a booking message (as motard1)
+POST {{baseUrl}}/api/chats/booking/send
+Content-Type: application/json
+
+{
+  "bookingId": "453d8277-9a41-42db-92f5-123912140da0",
+  "content": "Looking forward to the tour!"
+}
+
+### Expected: 201 Created
+### Save the conversationId from response
+
+### Test 18: Login as participant2 (not in this booking) and try to access
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "participant2",
+  "password": "pass"
+}
+
+###
+GET {{baseUrl}}/api/chats/booking/3001d794-7dd8-4a44-af9e-c563ec6f98d3/messages
+
+### Expected: 403 Forbidden
+
+### Test 19: Login back as participant1 (in the booking) and access messages
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "participant1",
+  "password": "pass"
+}
+
+###
+GET {{baseUrl}}/api/chats/booking/3001d794-7dd8-4a44-af9e-c563ec6f98d3/messages
+
+### Expected: 200 OK with messages

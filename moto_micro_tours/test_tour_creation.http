@@ -1,0 +1,165 @@
+### Stage F - Step 3A: Tour Creation Authorization Test
+###
+### HOW TO USE:
+### 1. Install "REST Client" extension by Huachao Mao in VS Code
+### 2. Start the application: dotnet run
+### 3. Run tests in order (top to bottom) by clicking "Send Request"
+### 4. Cookies persist across requests - no need to copy/paste tokens
+###
+### WHAT THIS TESTS:
+### - ❌ Anonymous users cannot create tours (401 Unauthorized)
+### - ❌ Participants cannot create tours (403 Forbidden)
+### - ✅ Motards CAN create tours (201 Created)
+### - ✅ Organizers CAN create tours (has Motard role)
+### - ✅ Validation: future dates, positive capacity, etc.
+
+@baseUrl = http://localhost:5256
+@contentType = application/json
+
+###############################################
+# 1. Try to create tour WITHOUT logging in (should fail with 401)
+###############################################
+POST {{baseUrl}}/api/tours
+Content-Type: {{contentType}}
+
+{
+  "title": "Test Tour - Should Fail",
+  "startAt": "2025-12-25T10:00:00Z",
+  "startLocationText": "Paris",
+  "endLocationText": "Lyon",
+  "notes": "This should fail - not authenticated",
+  "capacitySeats": 2,
+  "pricePerSeat": 15.00,
+  "publishImmediately": false
+}
+
+###############################################
+# 2. Login as PARTICIPANT (should NOT be able to create tours)
+###############################################
+POST {{baseUrl}}/api/auth/login
+Content-Type: {{contentType}}
+
+{
+  "username": "participant1",
+  "password": "pass"
+}
+
+###############################################
+# 3. Try to create tour as PARTICIPANT (should fail with 403 Forbidden)
+###############################################
+POST {{baseUrl}}/api/tours
+Content-Type: {{contentType}}
+
+{
+  "title": "Test Tour - Participant",
+  "startAt": "2025-12-25T10:00:00Z",
+  "startLocationText": "Paris",
+  "endLocationText": "Lyon",
+  "notes": "Participants cannot create tours",
+  "capacitySeats": 2,
+  "pricePerSeat": 15.00,
+  "publishImmediately": false
+}
+
+###############################################
+# 4. Logout
+###############################################
+POST {{baseUrl}}/api/auth/logout
+
+###############################################
+# 5. Login as MOTARD1 (should be able to create tours)
+###############################################
+POST {{baseUrl}}/api/auth/login
+Content-Type: {{contentType}}
+
+{
+  "username": "motard1",
+  "password": "pass"
+}
+
+###############################################
+# 6. Create tour as MOTARD (should succeed with 201 Created)
+###############################################
+POST {{baseUrl}}/api/tours
+Content-Type: {{contentType}}
+
+{
+  "title": "Alpine Adventure - Christmas Special",
+  "startAt": "2025-12-25T10:00:00Z",
+  "startLocationText": "Grenoble Central Station",
+  "endLocationText": "Chamonix Mont-Blanc",
+  "notes": "Scenic mountain route with stops at Col de la Croix de Fer. Perfect for experienced riders!",
+  "capacitySeats": 2,
+  "pricePerSeat": 45.00,
+  "publishImmediately": true
+}
+
+###############################################
+# 7. Create another tour as DRAFT
+###############################################
+POST {{baseUrl}}/api/tours
+Content-Type: {{contentType}}
+
+{
+  "title": "Provence Lavender Tour",
+  "startAt": "2026-06-15T09:00:00Z",
+  "startLocationText": "Avignon",
+  "endLocationText": "Valensole",
+  "notes": "Summer tour through lavender fields - still planning route",
+  "capacitySeats": 3,
+  "pricePerSeat": 30.00,
+  "publishImmediately": false
+}
+
+###############################################
+# 8. Verify tours were created - GET all tours
+###############################################
+GET {{baseUrl}}/api/tours
+
+###############################################
+# 9. Try to create tour with invalid data (past date)
+###############################################
+POST {{baseUrl}}/api/tours
+Content-Type: {{contentType}}
+
+{
+  "title": "Past Tour - Should Fail",
+  "startAt": "2020-01-01T10:00:00Z",
+  "startLocationText": "Paris",
+  "endLocationText": "Lyon",
+  "capacitySeats": 2,
+  "pricePerSeat": 15.00
+}
+
+###############################################
+# 10. Logout
+###############################################
+POST {{baseUrl}}/api/auth/logout
+
+###############################################
+# 11. Login as ORGANIZER (has both Organizer + Motard roles)
+###############################################
+POST {{baseUrl}}/api/auth/login
+Content-Type: {{contentType}}
+
+{
+  "username": "organizer1",
+  "password": "pass"
+}
+
+###############################################
+# 12. Create tour as ORGANIZER (should succeed - has Motard role)
+###############################################
+POST {{baseUrl}}/api/tours
+Content-Type: {{contentType}}
+
+{
+  "title": "New Year Celebration Ride",
+  "startAt": "2025-12-31T14:00:00Z",
+  "startLocationText": "Nice",
+  "endLocationText": "Monaco",
+  "notes": "Ring in the new year on the French Riviera!",
+  "capacitySeats": 1,
+  "pricePerSeat": 50.00,
+  "publishImmediately": true
+}

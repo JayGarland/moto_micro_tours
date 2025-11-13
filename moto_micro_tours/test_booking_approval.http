@@ -1,0 +1,122 @@
+### Step 3B: Test Booking Approval Authorization
+### Tests: only the assigned motard can approve their bookings
+
+### ========================================
+### SETUP: Variables
+@baseUrl = http://localhost:5256
+@bookingId = a2f88d65-4be5-413e-8428-ada827ba9374
+
+### ========================================
+### Test 1: Login as motard1 (tour creator/assigned motard)
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "motard1",
+  "password": "pass"
+}
+
+### ========================================
+### Test 2: Login as participant1 and create a booking request
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "participant1",
+  "password": "pass"
+}
+
+### Test 3: Create a booking request (as authenticated participant1)
+# After running this, manually copy the bookingId from the response
+# and update the @bookingId variable at the top of this file
+POST {{baseUrl}}/api/bookings/request
+Content-Type: application/json
+
+{
+  "tourId": "a6129bbd-a561-418e-a545-efa9cf269e0e",
+  "tourMotardId": "30a00ba8-4e70-4ccd-8d18-c31cca9ce263",
+  "costSharingOptIn": true,
+  "emergencyContact": "Jane Doe, 555-9999"
+}
+
+### ========================================
+### Test 4: Try to approve booking without authentication (should fail 401)
+POST {{baseUrl}}/api/auth/logout
+
+###
+POST {{baseUrl}}/api/bookings/{{bookingId}}/approve
+Content-Type: application/json
+
+{
+  "motardNotes": "Anonymous approval attempt"
+}
+
+### Expected: 401 Unauthorized
+
+### ========================================
+### Test 5: Login as participant1 and try to approve (should fail 403 - wrong role)
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "participant1",
+  "password": "pass"
+}
+
+###
+POST {{baseUrl}}/api/bookings/{{bookingId}}/approve
+Content-Type: application/json
+
+{
+  "motardNotes": "Participant trying to approve"
+}
+
+### Expected: 403 Forbidden (not a Motard)
+
+### ========================================
+### Test 6: Login as motard2 (different motard, not assigned to this booking)
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "motard2",
+  "password": "pass"
+}
+
+###
+POST {{baseUrl}}/api/bookings/{{bookingId}}/approve
+Content-Type: application/json
+
+{
+  "motardNotes": "Wrong motard trying to approve"
+}
+
+### Expected: 403 Forbidden (not the assigned motard)
+
+### ========================================
+### Test 7: Login as motard1 (correct assigned motard) and approve
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "motard1",
+  "password": "pass"
+}
+
+###
+POST {{baseUrl}}/api/bookings/{{bookingId}}/approve
+Content-Type: application/json
+
+{
+  "motardNotes": "Approved by assigned motard"
+}
+
+### Expected: 200 OK with approved booking
+
+### ========================================
+### Test 8: Verify the current authenticated user
+GET {{baseUrl}}/api/auth/me
+
+### ========================================
+### Test 9: Get all bookings to see the approved status
+GET {{baseUrl}}/api/bookings

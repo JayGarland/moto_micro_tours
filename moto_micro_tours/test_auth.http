@@ -1,0 +1,76 @@
+### Stage F Authentication Testing
+### 
+### HOW TO USE:
+### 1. Install "REST Client" extension by Huachao Mao in VS Code
+### 2. Start the application: dotnet run
+### 3. Click "Send Request" above any request below
+### 4. Cookies are automatically handled - login persists across requests
+###
+### Available test users:
+### - organizer1 / pass (Organizer + Motard roles)
+### - motard1 / pass (Motard role)
+### - motard2 / pass (Motard role)
+### - participant1 / pass (Participant role)
+### - participant2 / pass (Participant role)
+
+@baseUrl = http://localhost:5256
+@contentType = application/json
+
+###############################################
+# 1. Login as Organizer (can create tours)
+###############################################
+POST {{baseUrl}}/api/auth/login
+Content-Type: {{contentType}}
+
+{
+  "username": "organizer1",
+  "password": "pass"
+}
+
+###############################################
+# 2. Login as Motard (can join tours)
+###############################################
+POST {{baseUrl}}/api/auth/login
+Content-Type: {{contentType}}
+
+{
+  "username": "motard1",
+  "password": "pass"
+}
+
+###############################################
+# 3. Login as Participant (can book tours)
+###############################################
+POST {{baseUrl}}/api/auth/login
+Content-Type: {{contentType}}
+
+{
+  "username": "participant1",
+  "password": "pass"
+}
+
+###############################################
+# 4. Check who you're logged in as
+###############################################
+GET {{baseUrl}}/api/auth/me
+
+###############################################
+# 5. Logout
+###############################################
+POST {{baseUrl}}/api/auth/logout
+
+###############################################
+# 6. Test accessing tours (should work without auth for now)
+###############################################
+GET {{baseUrl}}/api/tours
+
+###############################################
+# 7. Test invalid login
+###############################################
+POST {{baseUrl}}/api/auth/login
+Content-Type: {{contentType}}
+
+{
+  "username": "wronguser",
+  "password": "wrongpass"
+}
