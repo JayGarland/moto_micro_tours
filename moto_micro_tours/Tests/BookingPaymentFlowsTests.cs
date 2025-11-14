@@ -7,7 +7,20 @@ using moto_micro_tours.Domain.Entities;
 using moto_micro_tours.Domain.Enums;
 using moto_micro_tours.Services;
 using Xunit;
+// The BookingPaymentFlowsTests.cs file contains tests for several manual flow scenarios, including:
 
+// Approve, Pay, and Confirm Flow:
+
+// Tests the approval, payment, and confirmation of a booking, ensuring the booking status transitions correctly and associated entities (e.g., payments, payouts) are updated.
+// Payment After Expiration:
+
+// Verifies that payments made after the ExpiresAt time are rejected, and no changes are made to the booking or related entities.
+// Motard Cancels After Payment:
+
+// Simulates a refund process when a motard cancels a booking after payment, ensuring the booking status is updated, seats are decremented, and payment/payout statuses are adjusted.
+// Tour Cancellation:
+
+// Tests the cascading effects of a tour cancellation, ensuring paid bookings are refunded, pending bookings are canceled, and associated entities are updated.
 public class BookingPaymentFlowsTests
 {
     private AppDbContext GetDbContext()
@@ -201,4 +214,10 @@ public class BookingPaymentFlowsTests
         Assert.Equal(BookingStatus.Refunded, b1.Status);
         Assert.Equal(BookingStatus.Cancelled, b2.Status);
     }
+
+    // TODO: Add (smoke test)tests to validate database integrity, including unique constraints, foreign keys, and relational key types.
+    // TODO: Implement smoke tests to:
+    // 1. Count rows in each table to verify seed data is present.
+    // 2. Ensure unique indexes exist (e.g., TourId, MotardUserId, PreBooking unique key).
+    // 3. Attempt to insert a Message with duplicate conversation IDs and verify it fails (constraint check).
 }

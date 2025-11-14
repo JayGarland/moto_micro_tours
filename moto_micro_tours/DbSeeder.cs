@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using moto_micro_tours.Domain.Entities;
 using moto_micro_tours.Domain.Enums;
-
+//TODO: write a summary
 namespace moto_micro_tours
 {
     /// <summary>

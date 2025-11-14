@@ -461,6 +461,7 @@ public class BookingsController : ControllerBase
     /// </summary>
     /// <param name="id">Booking ID</param>
     /// <returns>Updated booking with Cancelled status</returns>
+    //TODO: Implement auto-expire functionality for unpaid bookings after 6 hours. This should update the booking status to 'CancelledExpired'.
     [HttpPost("{id}/cancel")]
     [Authorize] // Must be authenticated
     public async Task<ActionResult<BookingResponseDto>> CancelBooking(Guid id)
@@ -729,4 +730,10 @@ public class BookingsController : ControllerBase
             return StatusCode(500, new { error = "An error occurred while refunding the booking" });
         }
     }
+
+    // TODO: Implement `POST /bookings/{id}/request-cancel` for participants to request cancellation, setting status to `CancelRequested`.
+    // TODO: Implement `POST /bookings/{id}/decide-cancel` for motards to approve or decline cancellation, updating status to `Refunded` or reverting to `Paid`.
+    // TODO: Implement logic to allow refunded bookings to leave reviews.
+    // TODO: Add logic to block new bookings and prevent payments for tours with status Cancelled.
+    // TODO: Implement logic to enforce rate limits using the RateLimitCounter entity.
 }

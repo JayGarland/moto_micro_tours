@@ -96,3 +96,6 @@ public class PaymentService : IPaymentService
         }
     }
 }
+
+// TODO: Consider implementing explicit FOR UPDATE locking for re-reading booking to ensure stronger consistency.
+// TODO: Ensure refund logic updates Payout status to Failed when applicable.
