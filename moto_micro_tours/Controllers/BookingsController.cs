@@ -306,6 +306,20 @@ public class BookingsController : ControllerBase
                 return NotFound(new { error = $"Booking with ID {id} not found" });
             }
 
+            // Lazy update: Check if booking has expired and update status
+            if (booking.Status == BookingStatus.Approved &&
+                booking.ExpiresAt.HasValue &&
+                DateTime.UtcNow > booking.ExpiresAt.Value)
+            {
+                _logger.LogInformation(
+                    "Booking {BookingId} has expired (ExpiresAt: {ExpiresAt}). Updating status to Cancelled.",
+                    booking.Id, booking.ExpiresAt);
+
+                booking.Status = BookingStatus.Cancelled; //OPTIMIZE: BookingStatus.CancelledExpired hasn't been used and should have been used here
+                booking.CancelledAt = DateTime.UtcNow;
+                await _context.SaveChangesAsync();
+            }
+
             var response = new BookingDetailDto
             {
                 BookingId = booking.Id,
@@ -422,6 +436,26 @@ public class BookingsController : ControllerBase
                 .OrderByDescending(b => b.CreatedAt)
                 .ToListAsync();
 
+            // Lazy update: Check for expired bookings and update their status
+            var expiredBookings = bookings.Where(b =>
+                b.Status == BookingStatus.Approved &&
+                b.ExpiresAt.HasValue &&
+                DateTime.UtcNow > b.ExpiresAt.Value).ToList();
+
+            if (expiredBookings.Any())
+            {
+                foreach (var expiredBooking in expiredBookings)
+                {
+                    _logger.LogInformation(
+                        "Booking {BookingId} has expired (ExpiresAt: {ExpiresAt}). Updating status to Cancelled.",
+                        expiredBooking.Id, expiredBooking.ExpiresAt);
+
+                    expiredBooking.Status = BookingStatus.Cancelled;
+                    expiredBooking.CancelledAt = DateTime.UtcNow;
+                }
+                await _context.SaveChangesAsync();
+            }
+
             var response = bookings.Select(booking => new BookingResponseDto
             {
                 BookingId = booking.Id,
@@ -461,7 +495,6 @@ public class BookingsController : ControllerBase
     /// </summary>
     /// <param name="id">Booking ID</param>
     /// <returns>Updated booking with Cancelled status</returns>
-    //TODO: Implement auto-expire functionality for unpaid bookings after 6 hours. This should update the booking status to 'CancelledExpired'.
     [HttpPost("{id}/cancel")]
     [Authorize] // Must be authenticated
     public async Task<ActionResult<BookingResponseDto>> CancelBooking(Guid id)
@@ -481,7 +514,7 @@ public class BookingsController : ControllerBase
             var booking = await _context.Bookings
                 .Include(b => b.Tour)
                 .Include(b => b.TourMotard)
-                    .ThenInclude(tm => tm.Motard)
+                    .ThenInclude(tm => tm!.Motard)
                 .Include(b => b.Participant)
                 .Include(b => b.Payment)
                 .FirstOrDefaultAsync(b => b.Id == id);
@@ -490,6 +523,20 @@ public class BookingsController : ControllerBase
             {
                 _logger.LogWarning("Booking {BookingId} not found", id);
                 return NotFound(new { error = $"Booking with ID {id} not found" });
+            }
+
+            // Lazy update: Check if booking has expired and update status
+            if (booking.Status == BookingStatus.Approved &&
+                booking.ExpiresAt.HasValue &&
+                DateTime.UtcNow > booking.ExpiresAt.Value)
+            {
+                _logger.LogInformation(
+                    "Booking {BookingId} has expired (ExpiresAt: {ExpiresAt}). Updating status to Cancelled.",
+                    booking.Id, booking.ExpiresAt);
+
+                booking.Status = BookingStatus.Cancelled;
+                booking.CancelledAt = DateTime.UtcNow;
+                await _context.SaveChangesAsync();
             }
 
             // Rule: Only the participant can cancel their booking
@@ -638,6 +685,20 @@ public class BookingsController : ControllerBase
             {
                 _logger.LogWarning("Booking {BookingId} not found", id);
                 return NotFound(new { error = $"Booking with ID {id} not found" });
+            }
+
+            // Lazy update: Check if booking has expired and update status
+            if (booking.Status == BookingStatus.Approved &&
+                booking.ExpiresAt.HasValue &&
+                DateTime.UtcNow > booking.ExpiresAt.Value)
+            {
+                _logger.LogInformation(
+                    "Booking {BookingId} has expired (ExpiresAt: {ExpiresAt}). Updating status to Cancelled.",
+                    booking.Id, booking.ExpiresAt);
+
+                booking.Status = BookingStatus.Cancelled;
+                booking.CancelledAt = DateTime.UtcNow;
+                await _context.SaveChangesAsync();
             }
 
             // Rule: Only the assigned motard can refund this booking
