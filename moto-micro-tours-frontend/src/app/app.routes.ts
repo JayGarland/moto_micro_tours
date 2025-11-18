@@ -1,0 +1,64 @@
+import { Routes } from '@angular/router';
+import { authGuard } from './core/guards/auth.guard';
+import { roleGuard } from './core/guards/role.guard';
+
+export const routes: Routes = [
+  {
+    path: '',
+    redirectTo: 'home',
+    pathMatch: 'full'
+  },
+  {
+    path: 'home',
+    loadComponent: () => import('./features/home/home.component').then(m => m.HomeComponent)
+  },
+  {
+    path: 'auth',
+    children: [
+      {
+        path: 'login',
+        loadComponent: () => import('./features/auth/login/login.component').then(m => m.LoginComponent)
+      },
+      {
+        path: 'register',
+        loadComponent: () => import('./features/auth/register/register.component').then(m => m.RegisterComponent)
+      }
+    ]
+  },
+  {
+    path: 'motard',
+    canActivate: [roleGuard('Motard')],
+    children: [
+      {
+        path: 'dashboard',
+        loadComponent: () => import('./features/motard/dashboard/dashboard.component').then(m => m.DashboardComponent)
+      },
+      {
+        path: 'tours',
+        loadComponent: () => import('./features/motard/tours/tours.component').then(m => m.ToursComponent)
+      }
+    ]
+  },
+  {
+    path: 'participant',
+    canActivate: [roleGuard('Participant')],
+    children: [
+      {
+        path: 'dashboard',
+        loadComponent: () => import('./features/participant/dashboard/dashboard.component').then(m => m.DashboardComponent)
+      },
+      {
+        path: 'tours',
+        loadComponent: () => import('./features/participant/tours/tours.component').then(m => m.ToursComponent)
+      }
+    ]
+  },
+  {
+    path: 'unauthorized',
+    loadComponent: () => import('./shared/components/unauthorized/unauthorized.component').then(m => m.UnauthorizedComponent)
+  },
+  {
+    path: '**',
+    redirectTo: 'home'
+  }
+];

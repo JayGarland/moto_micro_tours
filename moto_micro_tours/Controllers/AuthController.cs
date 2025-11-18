@@ -25,22 +25,29 @@ public class AuthController : ControllerBase
 
     /// <summary>
     /// Login endpoint for testing - creates a cookie-based session
+    /// Accepts either username or email as the identifier
     /// </summary>
     /// <param name="request">Login credentials</param>
     /// <returns>User information if successful</returns>
     [HttpPost("login")]
     public async Task<ActionResult<LoginResponseDto>> Login([FromBody] LoginRequestDto request)
     {
-        if (string.IsNullOrWhiteSpace(request.Username) || string.IsNullOrWhiteSpace(request.Password))
+        if (string.IsNullOrWhiteSpace(request.EmailOrUsername) || string.IsNullOrWhiteSpace(request.Password))
         {
-            return BadRequest(new { error = "Username and password are required" });
+            return BadRequest(new { error = "Email/Username and password are required" });
         }
 
-        var user = await _userManager.FindByNameAsync(request.Username);
+        // Try to find user by username first, then by email
+        var user = await _userManager.FindByNameAsync(request.EmailOrUsername);
         if (user == null)
         {
-            _logger.LogWarning("Login failed: user '{Username}' not found", request.Username);
-            return Unauthorized(new { error = "Invalid username or password" });
+            user = await _userManager.FindByEmailAsync(request.EmailOrUsername);
+        }
+
+        if (user == null)
+        {
+            _logger.LogWarning("Login failed: user '{Identifier}' not found", request.EmailOrUsername);
+            return Unauthorized(new { error = "Invalid email/username or password" });
         }
 
         var result = await _signInManager.PasswordSignInAsync(
@@ -51,14 +58,14 @@ public class AuthController : ControllerBase
 
         if (!result.Succeeded)
         {
-            _logger.LogWarning("Login failed for user '{Username}'", request.Username);
-            return Unauthorized(new { error = "Invalid username or password" });
+            _logger.LogWarning("Login failed for user '{Username}'", user.UserName);
+            return Unauthorized(new { error = "Invalid email/username or password" });
         }
 
         // Get user roles
         var roles = await _userManager.GetRolesAsync(user);
 
-        _logger.LogInformation("User '{Username}' logged in successfully", request.Username);
+        _logger.LogInformation("User '{Username}' logged in successfully", user.UserName);
 
         return Ok(new LoginResponseDto
         {
@@ -109,7 +116,7 @@ public class AuthController : ControllerBase
 // DTOs for Auth endpoints
 public record LoginRequestDto
 {
-    public string Username { get; init; } = null!;
+    public string EmailOrUsername { get; init; } = null!;
     public string Password { get; init; } = null!;
 }
 
