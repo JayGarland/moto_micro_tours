@@ -1,0 +1,275 @@
+.tour-detail-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.loading-container,
+.error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  gap: 1rem;
+
+  p {
+    color: #757575;
+  }
+}
+
+.error-message {
+  color: #f44336;
+  padding: 1rem;
+  background-color: #ffebee;
+  border-radius: 4px;
+}
+
+.back-btn {
+  margin-bottom: 1rem;
+}
+
+// Tour Header Card
+.tour-header-card {
+  margin-bottom: 2rem;
+  padding: 2rem;
+
+  .title-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1.5rem;
+
+    h1 {
+      margin: 0;
+      font-size: 2rem;
+      font-weight: 700;
+      color: #212121;
+    }
+  }
+
+  .date-time-section,
+  .route-section {
+    margin-bottom: 1rem;
+  }
+
+  .info-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+
+    mat-icon {
+      color: #1976D2;
+    }
+
+    span {
+      font-size: 1rem;
+      color: #424242;
+    }
+  }
+
+  .route-text {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    .location {
+      font-weight: 500;
+    }
+
+    .arrow {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+      color: #757575;
+    }
+  }
+
+  .notes-section {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #e0e0e0;
+
+    h3 {
+      margin: 0 0 0.75rem 0;
+      font-size: 1.25rem;
+      color: #212121;
+    }
+
+    p {
+      margin: 0;
+      color: #616161;
+      line-height: 1.6;
+    }
+  }
+}
+
+// Motards Section
+.motards-section {
+  h2 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: #212121;
+  }
+
+  .section-subtitle {
+    margin: 0 0 1.5rem 0;
+    color: #757575;
+  }
+}
+
+.motards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.5rem;
+}
+
+.motard-card {
+  padding: 1.5rem;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  transition: box-shadow 0.3s ease;
+
+  &:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  .motard-header {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+
+    .motard-avatar {
+      mat-icon {
+        font-size: 48px;
+        width: 48px;
+        height: 48px;
+        color: #1976D2;
+      }
+    }
+
+    .motard-info {
+      flex: 1;
+
+      h3 {
+        margin: 0 0 0.25rem 0;
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #212121;
+      }
+
+      .bike-model {
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #616161;
+        font-size: 0.875rem;
+
+        mat-icon {
+          font-size: 16px;
+          width: 16px;
+          height: 16px;
+        }
+      }
+    }
+  }
+
+  .motard-stats {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+
+    .stat-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.875rem;
+      color: #616161;
+
+      mat-icon {
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+        color: #ff9800;
+      }
+    }
+  }
+
+  .motard-bio {
+    flex: 1;
+    margin-bottom: 1rem;
+
+    p {
+      margin: 0;
+      font-size: 0.875rem;
+      color: #616161;
+      line-height: 1.5;
+    }
+  }
+
+  .motard-booking-info {
+    padding: 1rem;
+    background-color: #f5f5f5;
+    border-radius: 4px;
+    margin-bottom: 1rem;
+
+    .price-info,
+    .seats-info {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 0.5rem;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+
+      .label {
+        color: #757575;
+        font-size: 0.875rem;
+      }
+
+      .price {
+        font-weight: 700;
+        color: #1976D2;
+        font-size: 1.125rem;
+      }
+
+      .seats {
+        font-weight: 600;
+        color: #4caf50;
+
+        &.few-seats {
+          color: #ff9800;
+        }
+      }
+    }
+  }
+
+  .motard-actions {
+    button {
+      width: 100%;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .tour-header-card {
+    padding: 1.5rem;
+
+    .title-section {
+      flex-direction: column;
+      gap: 1rem;
+
+      h1 {
+        font-size: 1.5rem;
+      }
+    }
+  }
+
+  .motards-grid {
+    grid-template-columns: 1fr;
+  }
+}

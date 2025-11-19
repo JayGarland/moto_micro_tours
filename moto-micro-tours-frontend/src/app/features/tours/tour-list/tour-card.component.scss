@@ -1,0 +1,215 @@
+.tour-card {
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  overflow: hidden;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+
+  &:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transform: translateY(-4px);
+  }
+}
+
+// Header
+.card-header {
+  padding: 1rem;
+  border-bottom: 1px solid #f0f0f0;
+
+  .header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.5rem;
+  }
+
+  .tour-title {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #212121;
+    line-height: 1.4;
+    flex: 1;
+  }
+
+  .bookmark-btn {
+    flex-shrink: 0;
+    color: #757575;
+    
+    &.bookmarked {
+      color: #1976D2;
+    }
+
+    &:hover {
+      background-color: rgba(25, 118, 210, 0.1);
+    }
+  }
+}
+
+// Status Badges
+mat-chip-set {
+  mat-chip {
+    font-size: 0.75rem;
+    font-weight: 500;
+    height: 24px;
+    
+    &.status-available {
+      background-color: #4caf50;
+      color: white;
+    }
+
+    &.status-few {
+      background-color: #ff9800;
+      color: white;
+    }
+
+    &.status-full {
+      background-color: #f44336;
+      color: white;
+    }
+  }
+}
+
+// Body
+.card-body {
+  padding: 1rem;
+  flex: 1;
+
+  .info-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+
+    mat-icon {
+      color: #1976D2;
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+    }
+  }
+
+  .date-info {
+    .info-text {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    .date-primary {
+      font-weight: 500;
+      color: #212121;
+    }
+
+    .countdown-badge {
+      font-size: 0.875rem;
+      color: #1976D2;
+      font-weight: 600;
+    }
+  }
+
+  .route-info {
+    .route-text {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .location-start,
+    .location-end {
+      font-weight: 500;
+      color: #424242;
+    }
+
+    .arrow-icon {
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
+      color: #757575;
+    }
+  }
+
+  .tour-notes {
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid #f0f0f0;
+
+    p {
+      margin: 0;
+      font-size: 0.875rem;
+      color: #616161;
+      line-height: 1.5;
+    }
+  }
+}
+
+// Stats Bar Footer
+.stats-bar {
+  display: flex;
+  background-color: #fafafa;
+  border-top: 1px solid #e0e0e0;
+  padding: 0.75rem 1rem;
+
+  .stat-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex: 1;
+
+    mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+      color: #757575;
+    }
+
+    .stat-value {
+      font-weight: 600;
+      color: #212121;
+      font-size: 0.875rem;
+    }
+
+    .stat-label {
+      font-size: 0.75rem;
+      color: #757575;
+    }
+
+    &.stat-price {
+      .stat-value {
+        color: #1976D2;
+      }
+    }
+  }
+
+  .stat-divider {
+    width: 1px;
+    background-color: #e0e0e0;
+    margin: 0 0.5rem;
+  }
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .card-header {
+    .tour-title {
+      font-size: 1.125rem;
+    }
+  }
+
+  .stats-bar {
+    flex-direction: column;
+    gap: 0.5rem;
+
+    .stat-divider {
+      display: none;
+    }
+
+    .stat-item {
+      justify-content: space-between;
+    }
+  }
+}

@@ -26,6 +26,24 @@ export const routes: Routes = [
     ]
   },
   {
+    path: 'tours',
+    children: [
+      {
+        path: '',
+        loadComponent: () => import('./features/tours/tour-list/tour-list.component').then(m => m.TourListComponent)
+      },
+      {
+        path: 'create',
+        canActivate: [roleGuard('Motard')],
+        loadComponent: () => import('./features/tours/tour-create/tour-create.component').then(m => m.TourCreateComponent)
+      },
+      {
+        path: ':id',
+        loadComponent: () => import('./features/tours/tour-detail/tour-detail.component').then(m => m.TourDetailComponent)
+      }
+    ]
+  },
+  {
     path: 'motard',
     canActivate: [roleGuard('Motard')],
     children: [

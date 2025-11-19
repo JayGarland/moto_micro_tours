@@ -1,0 +1,80 @@
+.filter-container {
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.filter-bar {
+  width: 100%;
+}
+
+.filter-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.date-field {
+  flex: 1;
+  min-width: 200px;
+}
+
+.location-field {
+  flex: 1;
+  min-width: 200px;
+}
+
+.price-slider-group {
+  flex: 1;
+  min-width: 200px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+
+  .price-label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: rgba(0, 0, 0, 0.6);
+  }
+
+  mat-slider {
+    width: 100%;
+  }
+}
+
+.filter-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+
+  button {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .filter-form {
+    flex-direction: column;
+  }
+
+  .date-field,
+  .location-field,
+  .price-slider-group {
+    min-width: 100%;
+  }
+
+  .filter-actions {
+    width: 100%;
+    
+    button {
+      flex: 1;
+    }
+  }
+}

@@ -24,6 +24,90 @@ public class AuthController : ControllerBase
     }
 
     /// <summary>
+    /// Register a new user with the specified role (Motard or Participant)
+    /// </summary>
+    /// <param name="request">Registration details</param>
+    /// <returns>User information if successful</returns>
+    [HttpPost("register")]
+    public async Task<ActionResult<LoginResponseDto>> Register([FromBody] RegisterRequestDto request)
+    {
+        // Validate input
+        if (string.IsNullOrWhiteSpace(request.Username))
+        {
+            return BadRequest(new { message = "Username is required" });
+        }
+
+        if (string.IsNullOrWhiteSpace(request.Email))
+        {
+            return BadRequest(new { message = "Email is required" });
+        }
+
+        if (string.IsNullOrWhiteSpace(request.Password))
+        {
+            return BadRequest(new { message = "Password is required" });
+        }
+
+        if (string.IsNullOrWhiteSpace(request.Role) ||
+            (request.Role != "Motard" && request.Role != "Participant"))
+        {
+            return BadRequest(new { message = "Role must be either 'Motard' or 'Participant'" });
+        }
+
+        // Check if username already exists
+        var existingUser = await _userManager.FindByNameAsync(request.Username);
+        if (existingUser != null)
+        {
+            return BadRequest(new { message = "Username is already taken" });
+        }
+
+        // Check if email already exists
+        existingUser = await _userManager.FindByEmailAsync(request.Email);
+        if (existingUser != null)
+        {
+            return BadRequest(new { message = "Email is already registered" });
+        }
+
+        // Create new user
+        var user = new AppUser
+        {
+            UserName = request.Username,
+            Email = request.Email
+        };
+
+        var result = await _userManager.CreateAsync(user, request.Password);
+
+        if (!result.Succeeded)
+        {
+            var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+            _logger.LogWarning("User registration failed: {Errors}", errors);
+            return BadRequest(new { message = $"Registration failed: {errors}" });
+        }
+
+        // Assign role
+        var roleResult = await _userManager.AddToRoleAsync(user, request.Role);
+        if (!roleResult.Succeeded)
+        {
+            _logger.LogError("Failed to assign role '{Role}' to user '{Username}'", request.Role, user.UserName);
+            // Rollback user creation if role assignment fails
+            await _userManager.DeleteAsync(user);
+            return BadRequest(new { message = "Failed to assign role to user" });
+        }
+
+        _logger.LogInformation("User '{Username}' registered successfully with role '{Role}'", user.UserName, request.Role);
+
+        // Auto sign-in after registration
+        await _signInManager.SignInAsync(user, isPersistent: true);
+
+        return Ok(new LoginResponseDto
+        {
+            UserId = user.Id,
+            Username = user.UserName,
+            Email = user.Email,
+            Roles = new List<string> { request.Role }
+        });
+    }
+
+    /// <summary>
     /// Login endpoint for testing - creates a cookie-based session
     /// Accepts either username or email as the identifier
     /// </summary>
@@ -114,6 +198,14 @@ public class AuthController : ControllerBase
 }
 
 // DTOs for Auth endpoints
+public record RegisterRequestDto
+{
+    public string Username { get; init; } = null!;
+    public string Email { get; init; } = null!;
+    public string Password { get; init; } = null!;
+    public string Role { get; init; } = null!; // "Motard" or "Participant"
+}
+
 public record LoginRequestDto
 {
     public string EmailOrUsername { get; init; } = null!;

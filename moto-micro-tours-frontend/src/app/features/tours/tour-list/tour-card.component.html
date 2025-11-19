@@ -1,0 +1,75 @@
+<mat-card class="tour-card" [routerLink]="['/tours', tour.id]">
+  <!-- Card Header -->
+  <div class="card-header">
+    <div class="header-content">
+      <h3 class="tour-title">{{ tour.title }}</h3>
+      <button 
+        mat-icon-button 
+        class="bookmark-btn" 
+        (click)="toggleBookmark($event)"
+        [class.bookmarked]="isBookmarked"
+        matTooltip="Bookmark this tour">
+        <mat-icon>{{ isBookmarked ? 'bookmark' : 'bookmark_border' }}</mat-icon>
+      </button>
+    </div>
+    
+    <!-- Status Badge -->
+    <mat-chip-set>
+      <mat-chip [ngClass]="statusBadgeClass">
+        {{ statusText }}
+      </mat-chip>
+    </mat-chip-set>
+  </div>
+
+  <!-- Card Body -->
+  <mat-card-content class="card-body">
+    <!-- Date Info with Countdown -->
+    <div class="info-row date-info">
+      <mat-icon>event</mat-icon>
+      <div class="info-text">
+        <span class="date-primary">{{ formattedDate }} at {{ formattedTime }}</span>
+        <span class="countdown-badge">{{ countdownText }}</span>
+      </div>
+    </div>
+
+    <!-- Route Visualization -->
+    <div class="info-row route-info">
+      <mat-icon>route</mat-icon>
+      <div class="route-text">
+        <span class="location-start">{{ tour.startLocationText }}</span>
+        <mat-icon class="arrow-icon">arrow_forward</mat-icon>
+        <span class="location-end">{{ tour.endLocationText }}</span>
+      </div>
+    </div>
+
+    <!-- Tour Notes Preview -->
+    <div class="tour-notes" *ngIf="tour.notes">
+      <p>{{ tour.notes.length > 100 ? (tour.notes | slice:0:100) + '...' : tour.notes }}</p>
+    </div>
+  </mat-card-content>
+
+  <!-- Stats Bar Footer -->
+  <div class="stats-bar">
+    <div class="stat-item">
+      <mat-icon>group</mat-icon>
+      <span class="stat-value">{{ tour.motardCount }}</span>
+      <span class="stat-label">Motards</span>
+    </div>
+
+    <div class="stat-divider"></div>
+
+    <div class="stat-item">
+      <mat-icon>airline_seat_recline_normal</mat-icon>
+      <span class="stat-value">{{ availableSeats }}</span>
+      <span class="stat-label">Seats left</span>
+    </div>
+
+    <div class="stat-divider"></div>
+
+    <div class="stat-item stat-price">
+      <mat-icon>payments</mat-icon>
+      <span class="stat-value">From €{{ tour.minPrice }}</span>
+      <span class="stat-label">per seat</span>
+    </div>
+  </div>
+</mat-card>

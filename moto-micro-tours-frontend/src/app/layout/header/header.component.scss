@@ -1,0 +1,81 @@
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.header-container {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0 1rem;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  color: white;
+  font-size: 1.2rem;
+  font-weight: 500;
+  transition: opacity 0.3s;
+
+  &:hover {
+    opacity: 0.9;
+  }
+
+  mat-icon {
+    font-size: 28px;
+    width: 28px;
+    height: 28px;
+  }
+
+  .brand-text {
+    @media (max-width: 600px) {
+      display: none;
+    }
+  }
+}
+
+.spacer {
+  flex: 1 1 auto;
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  a {
+    color: white;
+    
+    &.active {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+  }
+
+  @media (max-width: 768px) {
+    gap: 0.25rem;
+  }
+}
+
+.user-menu {
+  .user-button {
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-transform: none;
+
+    .username {
+      @media (max-width: 768px) {
+        display: none;
+      }
+    }
+  }
+}

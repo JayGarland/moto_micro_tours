@@ -1,0 +1,35 @@
+<div class="tour-list-container">
+  <div class="page-header">
+    <h1>Discover Tours</h1>
+    <p class="subtitle">Find your next motorcycle adventure</p>
+  </div>
+
+  <!-- Filter Bar -->
+  <app-tour-filter (filterChange)="onFilterChange($event)"></app-tour-filter>
+
+  <!-- Loading State -->
+  <div class="loading-container" *ngIf="isLoading">
+    <mat-spinner></mat-spinner>
+    <p>Loading tours...</p>
+  </div>
+
+  <!-- Error State -->
+  <div class="error-container" *ngIf="error && !isLoading">
+    <p class="error-message">{{ error }}</p>
+  </div>
+
+  <!-- Tour Grid -->
+  <div class="tours-grid" *ngIf="!isLoading && !error">
+    <app-tour-card 
+      *ngFor="let tour of tours" 
+      [tour]="tour">
+    </app-tour-card>
+  </div>
+
+  <!-- Empty State -->
+  <div class="empty-state" *ngIf="!isLoading && !error && tours.length === 0">
+    <div class="empty-icon">🏍️</div>
+    <h2>No tours found</h2>
+    <p>Try adjusting your filters or check back later for new tours.</p>
+  </div>
+</div>

@@ -1,0 +1,41 @@
+<div class="filter-container">
+  <div class="filter-bar">
+    <form [formGroup]="filterForm" class="filter-form">
+      
+      <!-- Date Filter -->
+      <mat-form-field appearance="outline" class="date-field">
+        <mat-label>Tour Date (Starting From)</mat-label>
+        <input matInput [matDatepicker]="datePicker" formControlName="date">
+        <mat-datepicker-toggle matIconSuffix [for]="datePicker"></mat-datepicker-toggle>
+        <mat-datepicker #datePicker></mat-datepicker>
+      </mat-form-field>
+
+      <!-- Location Search -->
+      <mat-form-field appearance="outline" class="location-field">
+        <mat-label>Location / Area</mat-label>
+        <input matInput formControlName="area" placeholder="e.g., Paris, Alps">
+        <mat-icon matIconPrefix>location_on</mat-icon>
+      </mat-form-field>
+
+      <!-- Price Slider -->
+      <div class="price-slider-group">
+        <label class="price-label">Max Price: €{{ maxPriceValue }}</label>
+        <mat-slider min="0" max="1000" step="10" showTickMarks discrete>
+          <input matSliderThumb formControlName="priceMax" (input)="onPriceChange($event)">
+        </mat-slider>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="filter-actions">
+        <button mat-raised-button color="primary" type="button" (click)="onSearch()">
+          <mat-icon>search</mat-icon>
+          Search
+        </button>
+        <button mat-button type="button" (click)="onClear()">
+          <mat-icon>clear</mat-icon>
+          Clear
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

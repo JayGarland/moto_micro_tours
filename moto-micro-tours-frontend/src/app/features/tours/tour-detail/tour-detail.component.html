@@ -1,0 +1,117 @@
+<div class="tour-detail-container">
+  <!-- Loading State -->
+  <div class="loading-container" *ngIf="isLoading">
+    <mat-spinner></mat-spinner>
+    <p>Loading tour details...</p>
+  </div>
+
+  <!-- Error State -->
+  <div class="error-container" *ngIf="error && !isLoading">
+    <p class="error-message">{{ error }}</p>
+    <button mat-raised-button routerLink="/tours">Back to Tours</button>
+  </div>
+
+  <!-- Tour Detail Content -->
+  <div class="tour-content" *ngIf="tour && !isLoading">
+    <!-- Back Button -->
+    <button mat-button routerLink="/tours" class="back-btn">
+      <mat-icon>arrow_back</mat-icon>
+      Back to Tours
+    </button>
+
+    <!-- Tour Header -->
+    <mat-card class="tour-header-card">
+      <div class="header-content">
+        <div class="title-section">
+          <h1>{{ tour.title }}</h1>
+          <mat-chip-set>
+            <mat-chip>{{ tour.status }}</mat-chip>
+          </mat-chip-set>
+        </div>
+
+        <!-- Date & Time -->
+        <div class="date-time-section">
+          <div class="info-item">
+            <mat-icon>event</mat-icon>
+            <span>{{ formattedDate }} at {{ formattedTime }}</span>
+          </div>
+        </div>
+
+        <!-- Route -->
+        <div class="route-section">
+          <div class="info-item">
+            <mat-icon>route</mat-icon>
+            <div class="route-text">
+              <span class="location">{{ tour.startLocationText }}</span>
+              <mat-icon class="arrow">arrow_forward</mat-icon>
+              <span class="location">{{ tour.endLocationText }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Notes -->
+        <div class="notes-section" *ngIf="tour.notes">
+          <h3>Tour Details</h3>
+          <p>{{ tour.notes }}</p>
+        </div>
+      </div>
+    </mat-card>
+
+    <!-- Motards Section -->
+    <div class="motards-section">
+      <h2>Available Motards ({{ tour.motards.length }})</h2>
+      <p class="section-subtitle">Choose your preferred motard for this tour</p>
+
+      <div class="motards-grid">
+        <mat-card *ngFor="let motard of tour.motards" class="motard-card">
+          <div class="motard-header">
+            <div class="motard-avatar">
+              <mat-icon>account_circle</mat-icon>
+            </div>
+            <div class="motard-info">
+              <h3>{{ motard.motardName }}</h3>
+              <p class="bike-model" *ngIf="motard.bikeModel">
+                <mat-icon>two_wheeler</mat-icon>
+                {{ motard.bikeModel }}
+              </p>
+            </div>
+          </div>
+
+          <div class="motard-stats">
+            <div class="stat-row" *ngIf="motard.avgRating">
+              <mat-icon>star</mat-icon>
+              <span>{{ motard.avgRating | number:'1.1-1' }} / 5</span>
+            </div>
+            <div class="stat-row">
+              <mat-icon>tour</mat-icon>
+              <span>{{ motard.completedTours }} tours completed</span>
+            </div>
+          </div>
+
+          <div class="motard-bio" *ngIf="motard.motardBio">
+            <p>{{ motard.motardBio }}</p>
+          </div>
+
+          <div class="motard-booking-info">
+            <div class="price-info">
+              <span class="label">Price per seat:</span>
+              <span class="price">€{{ motard.pricePerSeat }}</span>
+            </div>
+            <div class="seats-info">
+              <span class="label">Available seats:</span>
+              <span class="seats" [class.few-seats]="getAvailableSeats(motard) <= 3">
+                {{ getAvailableSeats(motard) }} / {{ motard.capacitySeats }}
+              </span>
+            </div>
+          </div>
+
+          <div class="motard-actions">
+            <button mat-raised-button color="primary" [routerLink]="['/motards', motard.motardUserId]">
+              View Profile
+            </button>
+          </div>
+        </mat-card>
+      </div>
+    </div>
+  </div>
+</div>
