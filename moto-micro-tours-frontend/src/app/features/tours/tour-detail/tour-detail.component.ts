@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -31,7 +31,8 @@ export class TourDetailComponent implements OnInit {
 
   constructor(
     private route: ActivatedRoute,
-    private toursService: ToursService
+    private toursService: ToursService,
+    private location: Location
   ) {}
 
   ngOnInit(): void {
@@ -78,5 +79,9 @@ export class TourDetailComponent implements OnInit {
 
   getAvailableSeats(motard: any): number {
     return motard.capacitySeats - motard.seatsBooked;
+  }
+
+  goBack(): void {
+    this.location.back();
   }
 }

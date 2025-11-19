@@ -74,7 +74,7 @@ export class LoginComponent {
         console.error('Login error:', err);
         console.error('Error status:', err.status);
         console.error('Error message:', err.error);
-        this.error.set(err.error?.message || 'Login failed. Please try again.');
+        this.error.set(this.mapLoginError(err));
       }
     });
   }
@@ -82,4 +82,59 @@ export class LoginComponent {
   togglePasswordVisibility(): void {
     this.hidePassword.set(!this.hidePassword());
   }
+
+  // Map server / network errors to friendly, actionable messages for the user
+  private mapLoginError(err: any): string {
+    // Network or CORS issue
+    if (!err || err.status === 0) {
+      return 'Network error — please check your internet connection and try again.';
+    }
+
+    // If backend returned a structured error with a message, prefer it but map common cases
+    const serverMessage = err.error?.message || err.message;
+
+    if (err.status === 401) {
+      // Unauthorized — most likely bad credentials
+      return 'Invalid email/username or password. Please try again.';
+    }
+
+    if (err.status === 423 || (err.error?.code && err.error.code === 'ACCOUNT_LOCKED')) {
+      return 'Your account is locked. Check your email for unlock instructions or contact support.';
+    }
+
+    if (err.status >= 500) {
+      return 'Server error — please try again later.';
+    }
+
+    // If server provided field errors (e.g., validation), pick the first helpful message
+    const fieldErrors = err.error?.errors || err.error?.fieldErrors;
+    if (fieldErrors && typeof fieldErrors === 'object') {
+      // fieldErrors could be { fieldName: ['msg1', 'msg2'] }
+      for (const key of Object.keys(fieldErrors)) {
+        const val = fieldErrors[key];
+        if (Array.isArray(val) && val.length) {
+          return val[0];
+        }
+        if (typeof val === 'string' && val.length) {
+          return val;
+        }
+      }
+    }
+
+    // If backend gave a specific message, use it (but avoid leaking raw debug objects)
+    if (serverMessage && typeof serverMessage === 'string') {
+      // Map a few known backend messages to friendlier variants
+      const low = serverMessage.toLowerCase();
+      if (low.includes('invalid credentials') || low.includes('invalid username') || low.includes('invalid password')) {
+        return 'Invalid email/username or password. Please try again.';
+      }
+      return serverMessage;
+    }
+
+    // Generic fallback
+    return 'Login failed. Please try again.';
+  }
+// I can implement a lightweight HTTP error interceptor to centralize this mapping (recommended for consistency across the app). This would move mapLoginError logic to a shared place and let every component call a small helper.
+// I can sweep other components to replace literal routerLink="/..." back anchors with Location.back() handlers (or wire them to a future NavigationService).
+// I can update login.component.html to show field-level error messages derived from fieldErrors if you want more granular validation feedback.
 }

@@ -6,15 +6,15 @@
   </div>
 
   <!-- Error State -->
-  <div class="error-container" *ngIf="error && !isLoading">
+    <div class="error-container" *ngIf="error && !isLoading">
     <p class="error-message">{{ error }}</p>
-    <button mat-raised-button routerLink="/tours">Back to Tours</button>
+    <button mat-raised-button (click)="goBack()">Back to Tours</button>
   </div>
 
   <!-- Tour Detail Content -->
   <div class="tour-content" *ngIf="tour && !isLoading">
     <!-- Back Button -->
-    <button mat-button routerLink="/tours" class="back-btn">
+    <button mat-button (click)="goBack()" class="back-btn">
       <mat-icon>arrow_back</mat-icon>
       Back to Tours
     </button>
