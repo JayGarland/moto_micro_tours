@@ -29,21 +29,23 @@ public class ToursController : ControllerBase
     /// <summary>
     /// Get all tours with optional filters
     /// </summary>
-    /// <param name="date">Filter by start date (format: yyyy-MM-dd)</param>
+    /// <param name="startDate">Filter by start date (inclusive) (format: yyyy-MM-dd)</param>
+    /// <param name="endDate">Filter by end date (inclusive) (format: yyyy-MM-dd)</param>
     /// <param name="area">Filter by location text (case-insensitive contains)</param>
     /// <param name="priceMax">Filter by maximum price per seat</param>
     /// <returns>List of tours matching the criteria</returns>
     [HttpGet]
     public async Task<ActionResult<List<TourListDto>>> GetTours(
-        [FromQuery] DateTime? date = null,
+        [FromQuery] DateTime? startDate = null,
+        [FromQuery] DateTime? endDate = null,
         [FromQuery] string? area = null,
         [FromQuery] decimal? priceMax = null)
     {
         try
         {
             _logger.LogInformation(
-                "GetTours called with filters - Date: {Date}, Area: {Area}, PriceMax: {PriceMax}",
-                date, area, priceMax);
+                "GetTours called with filters - Date: {startDate}, {endDate}, Area: {Area}, PriceMax: {PriceMax}",
+                startDate, endDate, area, priceMax);
 
             // Start with Published tours only (for public API)
             var query = _context.Tours
@@ -52,12 +54,29 @@ public class ToursController : ControllerBase
                     .ThenInclude(u => u.MotardProfile)
                 .Where(t => t.Status == TourStatus.Published);
 
-            // Apply date filter (tours starting on or after the specified date)
-            if (date.HasValue)
+            // Apply date range filter
+            // If both startDate and endDate provided, filter inclusive between dates (end of day inclusive)
+            // If only startDate provided, behave like existing single-day (start of day to next day)
+            // If only endDate provided, include any tours up to endOfDay
+            if (startDate.HasValue || endDate.HasValue)
             {
-                var startOfDay = date.Value.Date;
-                var endOfDay = startOfDay.AddDays(1);
-                query = query.Where(t => t.StartAt >= startOfDay && t.StartAt < endOfDay);
+                if (startDate.HasValue && endDate.HasValue)
+                {
+                    var start = startDate.Value.Date;
+                    var end = endDate.Value.Date.AddDays(1); // exclusive upper bound
+                    query = query.Where(t => t.StartAt >= start && t.StartAt < end);
+                }
+                else if (startDate.HasValue)
+                {
+                    var start = startDate.Value.Date;
+                    var end = start.AddDays(1);
+                    query = query.Where(t => t.StartAt >= start && t.StartAt < end);
+                }
+                else // only endDate has value
+                {
+                    var end = endDate.Value.Date.AddDays(1);
+                    query = query.Where(t => t.StartAt < end);
+                }
             }
 
             // Apply area filter (simple text search in start or end location)

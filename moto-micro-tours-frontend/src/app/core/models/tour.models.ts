@@ -75,7 +75,10 @@ export interface CreateTourResponseDto {
 
 // Filter interface for tour list
 export interface TourFilters {
-  date?: string; // Single date filter (yyyy-MM-dd)
+  // Prefer using startDate/endDate to filter a range. Keep `date` for backward compatibility.
+  startDate?: string; // yyyy-MM-dd (inclusive)
+  endDate?: string;   // yyyy-MM-dd (inclusive)
+  date?: string; // DEPRECATED: Single date filter (yyyy-MM-dd)
   area?: string; // Location search
   priceMax?: number; // Maximum price per seat
   status?: string;

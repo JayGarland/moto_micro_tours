@@ -31,13 +31,14 @@ export class TourFilterComponent {
   @Output() filterChange = new EventEmitter<TourFilters>();
 
   filterForm: FormGroup;
-  maxPriceValue = 500;
+  maxPriceValue = 50;
 
   constructor(private fb: FormBuilder) {
     this.filterForm = this.fb.group({
-      date: [null],
+      startDate: [null],
+      endDate: [null],
       area: [''],
-      priceMax: [500]
+      priceMax: [50]
     });
   }
 
@@ -45,10 +46,14 @@ export class TourFilterComponent {
     const formValue = this.filterForm.value;
     const filters: TourFilters = {};
 
-    // Format date as yyyy-MM-dd if provided
-    if (formValue.date) {
-      const date = new Date(formValue.date);
-      filters.date = date.toISOString().split('T')[0];
+    // Format start/end dates as yyyy-MM-dd if provided
+    if (formValue.startDate) {
+      const sd = new Date(formValue.startDate);
+      filters.startDate = sd.toISOString().split('T')[0];
+    }
+    if (formValue.endDate) {
+      const ed = new Date(formValue.endDate);
+      filters.endDate = ed.toISOString().split('T')[0];
     }
 
     if (formValue.area?.trim()) {
@@ -64,15 +69,16 @@ export class TourFilterComponent {
 
   onClear(): void {
     this.filterForm.reset({
-      date: null,
+      startDate: null,
+      endDate: null,
       area: '',
-      priceMax: 500
+      priceMax: 50
     });
-    this.maxPriceValue = 500;
+    this.maxPriceValue = 50;
     this.filterChange.emit({});
   }
 
   onPriceChange(event: any): void {
-    this.maxPriceValue = event.value;
+    this.maxPriceValue = event.target?.value || this.filterForm.get('priceMax')?.value || 50;
   }
 }

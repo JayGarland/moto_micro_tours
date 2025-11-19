@@ -16,8 +16,14 @@ export class ToursService {
    */
   getTours(filters?: TourFilters): Observable<TourListDto[]> {
     const params: any = {};
-
-    if (filters?.date) {
+    // Prefer sending startDate/endDate; fall back to deprecated single date if provided
+    if (filters?.startDate) {
+      params.startDate = filters.startDate;
+    }
+    if (filters?.endDate) {
+      params.endDate = filters.endDate;
+    }
+    else if (filters?.date) {
       params.date = filters.date;
     }
     if (filters?.area) {
