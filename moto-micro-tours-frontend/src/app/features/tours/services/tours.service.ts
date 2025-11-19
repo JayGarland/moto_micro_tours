@@ -16,7 +16,7 @@ export class ToursService {
    */
   getTours(filters?: TourFilters): Observable<TourListDto[]> {
     const params: any = {};
-    
+
     if (filters?.date) {
       params.date = filters.date;
     }

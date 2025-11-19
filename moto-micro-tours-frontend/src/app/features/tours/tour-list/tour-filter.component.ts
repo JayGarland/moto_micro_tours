@@ -29,7 +29,7 @@ import { TourFilters } from '../../../core/models/tour.models';
 })
 export class TourFilterComponent {
   @Output() filterChange = new EventEmitter<TourFilters>();
-  
+
   filterForm: FormGroup;
   maxPriceValue = 500;
 
@@ -44,21 +44,21 @@ export class TourFilterComponent {
   onSearch(): void {
     const formValue = this.filterForm.value;
     const filters: TourFilters = {};
-    
+
     // Format date as yyyy-MM-dd if provided
     if (formValue.date) {
       const date = new Date(formValue.date);
       filters.date = date.toISOString().split('T')[0];
     }
-    
+
     if (formValue.area?.trim()) {
       filters.area = formValue.area.trim();
     }
-    
+
     if (formValue.priceMax) {
       filters.priceMax = formValue.priceMax;
     }
-    
+
     this.filterChange.emit(filters);
   }
 

@@ -27,7 +27,7 @@ export class ApiService {
         }
       });
     }
-    
+
     return this.http.get<T>(`${this.baseUrl}/${endpoint}`, {
       ...this.httpOptions,
       params: httpParams

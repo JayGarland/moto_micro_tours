@@ -10,6 +10,17 @@
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
 <body>
+  <!-- Global pre-bootstrap loader shown until Angular bootstraps -->
+  <div id="global-loader" style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background-color:#fff;z-index:9999;">
+    <div style="text-align:center;">
+      <div style="width:64px;height:64px;border-radius:50%;border:6px solid #e0e0e0;border-top-color:#0D47A1;animation:spin 1s linear infinite;margin:0 auto 12px"></div>
+      <div style="font-family: Roboto, Arial, sans-serif;color:#333;font-weight:500">Loading MotoMicroTours…</div>
+    </div>
+  </div>
   <app-root></app-root>
+
+  <style>
+    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+  </style>
 </body>
 </html>

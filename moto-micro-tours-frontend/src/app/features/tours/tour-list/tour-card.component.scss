@@ -38,7 +38,7 @@
   .bookmark-btn {
     flex-shrink: 0;
     color: #757575;
-    
+
     &.bookmarked {
       color: #1976D2;
     }
@@ -55,7 +55,7 @@ mat-chip-set {
     font-size: 0.75rem;
     font-weight: 500;
     height: 24px;
-    
+
     &.status-available {
       background-color: #4caf50;
       color: white;

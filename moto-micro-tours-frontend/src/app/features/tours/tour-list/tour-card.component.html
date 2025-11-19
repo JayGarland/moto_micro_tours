@@ -3,16 +3,16 @@
   <div class="card-header">
     <div class="header-content">
       <h3 class="tour-title">{{ tour.title }}</h3>
-      <button 
-        mat-icon-button 
-        class="bookmark-btn" 
+      <button
+        mat-icon-button
+        class="bookmark-btn"
         (click)="toggleBookmark($event)"
         [class.bookmarked]="isBookmarked"
         matTooltip="Bookmark this tour">
         <mat-icon>{{ isBookmarked ? 'bookmark' : 'bookmark_border' }}</mat-icon>
       </button>
     </div>
-    
+
     <!-- Status Badge -->
     <mat-chip-set>
       <mat-chip [ngClass]="statusBadgeClass">

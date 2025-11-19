@@ -20,8 +20,8 @@
 
   <!-- Tour Grid -->
   <div class="tours-grid" *ngIf="!isLoading && !error">
-    <app-tour-card 
-      *ngFor="let tour of tours" 
+    <app-tour-card
+      *ngFor="let tour of tours"
       [tour]="tour">
     </app-tour-card>
   </div>

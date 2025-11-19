@@ -8,14 +8,14 @@ export interface TourListDto {
   endLocationText: string;
   status: string;
   notes?: string;
-  
+
   // Aggregated info
   totalCapacity: number;
   totalSeatsBooked: number;
   minPrice: number;
   maxPrice: number;
   motardCount: number;
-  
+
   motards: TourMotardSummaryDto[];
 }
 
@@ -36,7 +36,7 @@ export interface TourDetailDto {
   endLocationText: string;
   status: string;
   notes?: string;
-  
+
   motards: TourMotardDetailDto[];
 }
 
@@ -48,7 +48,7 @@ export interface TourMotardDetailDto {
   bikeModel?: string;
   avgRating?: number;
   completedTours: number;
-  
+
   capacitySeats: number;
   seatsBooked: number;
   pricePerSeat: number;

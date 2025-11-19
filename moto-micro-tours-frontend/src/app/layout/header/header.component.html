@@ -13,12 +13,12 @@
     @if (authService.getIsAuthenticated()) {
       <nav class="nav-links">
         <a mat-button routerLink="/tours" routerLinkActive="active">Tours</a>
-        
+
         @if (authService.getIsMotard()) {
           <a mat-button routerLink="/dashboard/motard" routerLinkActive="active">Dashboard</a>
           <a mat-button routerLink="/tours/create" routerLinkActive="active">Create Tour</a>
         }
-        
+
         @if (authService.getIsParticipant()) {
           <a mat-button routerLink="/dashboard/participant" routerLinkActive="active">Dashboard</a>
         }
