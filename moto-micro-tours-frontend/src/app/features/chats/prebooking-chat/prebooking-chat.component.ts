@@ -10,7 +10,7 @@ import { MessageInputComponent } from '../components/message-input/message-input
 /**
  * PrebookingChatComponent - Smart/Container Component
  * Stage F5: Pre-booking chat between participant and motard
- * 
+ *
  * Responsibilities:
  * - Manage chat state (loading, sending, errors)
  * - Fetch messages from API via ChatService
@@ -18,7 +18,7 @@ import { MessageInputComponent } from '../components/message-input/message-input
  * - Subscribe to message stream (single source of truth)
  * - Handle polling for new messages (auto-refresh)
  * - Navigate to booking request
- * 
+ *
  * Presentation handled by:
  * - MessageListComponent (dumb)
  * - MessageInputComponent (dumb)
@@ -44,7 +44,7 @@ export class PrebookingChatComponent implements OnInit, OnChanges, OnDestroy {
   @Input() motardUserId?: string;
   @Input() chatWithName?: string; // Name of the person you're chatting with (role-agnostic)
   @Input() conversationId?: string;
-  
+
   // Tour details for context bar
   @Input() tourTitle?: string;
   @Input() motardRating?: number; // e.g., 4.8
@@ -90,7 +90,7 @@ export class PrebookingChatComponent implements OnInit, OnChanges, OnDestroy {
     if (this.conversationId) {
       this.chatService.stopPolling(this.conversationId);
     }
-    
+
     this.destroy$.next();
     this.destroy$.complete();
   }
@@ -99,7 +99,7 @@ export class PrebookingChatComponent implements OnInit, OnChanges, OnDestroy {
    * Load messages from API and subscribe to the stream
    * If conversationId exists, load that conversation and subscribe to updates
    * Otherwise, messages will be empty until first message is sent
-   * 
+   *
    * This establishes the single source of truth: the service's BehaviorSubject
    * Also starts polling for new messages
    */
@@ -128,10 +128,10 @@ export class PrebookingChatComponent implements OnInit, OnChanges, OnDestroy {
         next: (messages) => {
           this.messages.set(messages);
           this.loading.set(false);
-          
+
           // Now subscribe to the stream for live updates
           this.subscribeToMessageStream();
-          
+
           // Start polling for new messages
           this.chatService.startPolling(this.conversationId!, 'prebooking');
         },
@@ -197,7 +197,7 @@ export class PrebookingChatComponent implements OnInit, OnChanges, OnDestroy {
             // Start polling for new messages
             this.chatService.startPolling(this.conversationId, 'prebooking');
           }
-          
+
           // Clear input on success
           this.messageInput?.clearInput();
           this.sending.set(false);
@@ -208,7 +208,7 @@ export class PrebookingChatComponent implements OnInit, OnChanges, OnDestroy {
           const errorMsg = error?.error?.error || 'Failed to send message. Please try again.';
           this.sendError.set(errorMsg);
           this.sending.set(false);
-          
+
           // Keep draft in input - don't clear
         }
       });
@@ -218,13 +218,30 @@ export class PrebookingChatComponent implements OnInit, OnChanges, OnDestroy {
    * Navigate to booking request flow
    */
   onRequestBooking(): void {
-    // TODO: Navigate to booking request page with tour/motard context
-    // For now, just log
-    console.log('Request booking for tour:', this.tourId, 'motard:', this.motardUserId);
-    
-    // Future: this.router.navigate(['/bookings/request'], { 
-    //   queryParams: { tourId: this.tourId, motardId: this.motardUserId } 
-    // });
+    if (!this.tourId || !this.motardUserId) {
+      console.error('Cannot request booking: missing tourId or motardUserId');
+      return;
+    }
+
+    // Navigate to booking request with tour context
+    this.router.navigate(['/bookings/request'], {
+      state: {
+        tourId: this.tourId,
+        tourMotardId: this.motardUserId,
+        tourSummary: {
+          title: this.tourTitle || 'Tour',
+          startLocation: this.startingCity || '',
+          endLocation: '', // Not available in chat context
+          date: this.tripDate || '',
+          price: 0, // Not available in chat context
+          motardName: this.chatWithName || 'Motard',
+        }
+      },
+      queryParams: {
+        tourId: this.tourId,
+        tourMotardId: this.motardUserId
+      }
+    });
   }
 
   /**

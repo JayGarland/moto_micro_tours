@@ -1,0 +1,167 @@
+<div class="booking-request-container">
+  <div class="booking-request-content">
+
+    <!-- Header -->
+    <div class="page-header">
+      <h1>Request Booking</h1>
+      <p class="subtitle">Complete the form below to request your booking</p>
+    </div>
+
+    <!-- Error Message -->
+    @if (errorMessage()) {
+      <mat-card class="error-card">
+        <mat-icon>error</mat-icon>
+        <span>{{ errorMessage() }}</span>
+      </mat-card>
+    }
+
+    <!-- Tour Summary Card -->
+    @if (tourSummary(); as tour) {
+      <mat-card class="tour-summary-card">
+        <mat-card-header>
+          <mat-icon mat-card-avatar>two_wheeler</mat-icon>
+          <mat-card-title>{{ tour.title }}</mat-card-title>
+          <mat-card-subtitle>{{ formatDate(tour.startAt) }}</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="tour-info">
+            <div class="tour-info-row">
+              <mat-icon>location_on</mat-icon>
+              <span>{{ tour.startLocationText }} → {{ tour.endLocationText }}</span>
+            </div>
+            <div class="tour-info-row">
+              <mat-icon>person</mat-icon>
+              <span>Motard: {{ tour.motardName }}</span>
+            </div>
+            <div class="tour-info-row price">
+              <mat-icon>payments</mat-icon>
+              <span class="price-amount">€{{ tour.pricePerSeat }} per seat</span>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Booking Request Form -->
+      <form [formGroup]="bookingForm" (ngSubmit)="onSubmit()" class="booking-form">
+
+        <!-- Safety & Emergency Section -->
+        <mat-card class="form-section">
+          <mat-card-header>
+            <mat-icon mat-card-avatar>health_and_safety</mat-icon>
+            <mat-card-title>Safety & Emergency Contact</mat-card-title>
+            <mat-card-subtitle>Required for all bookings</mat-card-subtitle>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="form-fields">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Emergency Contact Name</mat-label>
+                <input matInput
+                       formControlName="emergencyContact"
+                       placeholder="e.g., John Doe"
+                       required>
+                <mat-icon matPrefix>person</mat-icon>
+                @if (hasError('emergencyContact', 'required') || hasError('emergencyContact', 'minlength')) {
+                  <mat-error>{{ getErrorMessage('emergencyContact') }}</mat-error>
+                }
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Emergency Contact Phone</mat-label>
+                <input matInput
+                       formControlName="emergencyPhone"
+                       placeholder="e.g., +33 6 12 34 56 78"
+                       required>
+                <mat-icon matPrefix>phone</mat-icon>
+                @if (hasError('emergencyPhone', 'required') || hasError('emergencyPhone', 'pattern')) {
+                  <mat-error>{{ getErrorMessage('emergencyPhone') }}</mat-error>
+                }
+              </mat-form-field>
+
+              <div class="safety-rules-section">
+                <mat-checkbox formControlName="acceptSafetyRules" color="primary">
+                  I accept the safety rules and guidelines
+                </mat-checkbox>
+                <button type="button"
+                        mat-button
+                        color="primary"
+                        class="view-rules-btn"
+                        (click)="openSafetyRulesModal()">
+                  <mat-icon>info</mat-icon>
+                  View Safety Rules
+                </button>
+                @if (hasError('acceptSafetyRules', 'required')) {
+                  <div class="validation-error">
+                    You must accept the safety rules to continue
+                  </div>
+                }
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <!-- Additional Details Section -->
+        <mat-card class="form-section">
+          <mat-card-header>
+            <mat-icon mat-card-avatar>more_horiz</mat-icon>
+            <mat-card-title>Additional Details</mat-card-title>
+            <mat-card-subtitle>Optional information</mat-card-subtitle>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="form-fields">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Message to Motard (Optional)</mat-label>
+                <textarea matInput
+                          formControlName="messageToMotard"
+                          rows="4"
+                          placeholder="Any questions or special requests?"></textarea>
+                <mat-icon matPrefix>message</mat-icon>
+                <mat-hint>This will be visible to the motard when reviewing your request</mat-hint>
+              </mat-form-field>
+
+              <div class="cost-sharing-section">
+                <mat-checkbox formControlName="costSharingOptIn" color="primary">
+                  I agree to share costs (fuel, tolls)
+                </mat-checkbox>
+                <p class="cost-sharing-info">
+                  <mat-icon>info</mat-icon>
+                  Cost-sharing helps reduce expenses for longer rides
+                </p>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <!-- Submit Section -->
+        <div class="submit-section">
+          <p class="submit-info">
+            <mat-icon>info</mat-icon>
+            Your booking request will be sent to the motard for approval.
+            You'll be notified once they respond.
+          </p>
+
+          <div class="submit-actions">
+            <button type="button"
+                    mat-stroked-button
+                    routerLink="/tours"
+                    [disabled]="isSubmitting()">
+              Cancel
+            </button>
+
+            <button type="submit"
+                    mat-raised-button
+                    color="primary"
+                    [disabled]="isSubmitting()">
+              @if (isSubmitting()) {
+                <mat-spinner diameter="20" class="inline-spinner"></mat-spinner>
+                Submitting...
+              } @else {
+                <mat-icon>send</mat-icon>
+                Submit Request
+              }
+            </button>
+          </div>
+        </div>
+      </form>
+    }
+  </div>
+</div>

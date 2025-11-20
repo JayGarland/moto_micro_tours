@@ -1,0 +1,62 @@
+<div class="booking-actions">
+  <!-- Status Message -->
+  <div class="status-message">
+    <mat-icon>info</mat-icon>
+    <p>{{ getStatusMessage() }}</p>
+  </div>
+
+  <!-- Payment Expiry Warning (for Approved status) -->
+  @if (status === BookingStatus.Approved && expiresAt) {
+    <div class="payment-warning">
+      <mat-icon>schedule</mat-icon>
+      <p>Please complete payment before <strong>{{ formatExpiryDate(expiresAt) }}</strong></p>
+    </div>
+  }
+
+  <!-- Action Buttons -->
+  <div class="action-buttons">
+
+    <!-- Pending Status Actions -->
+    @if (status === BookingStatus.Pending) {
+      <button mat-raised-button color="primary" (click)="onRefresh()">
+        <mat-icon>refresh</mat-icon>
+        Refresh Status
+      </button>
+    }
+
+    <!-- Approved Status Actions -->
+    @if (status === BookingStatus.Approved) {
+      <button mat-raised-button color="primary" (click)="onPay()" class="pay-button">
+        <mat-icon>payment</mat-icon>
+        Pay Now
+      </button>
+      <button mat-stroked-button (click)="onRefresh()">
+        <mat-icon>refresh</mat-icon>
+        Refresh Status
+      </button>
+    }
+
+    <!-- Paid Status Actions -->
+    @if (status === BookingStatus.Paid) {
+      <button mat-raised-button color="primary" (click)="onOpenChat()">
+        <mat-icon>chat</mat-icon>
+        Open Chat with Motard
+      </button>
+      <button mat-stroked-button (click)="onRefresh()">
+        <mat-icon>refresh</mat-icon>
+        Refresh
+      </button>
+    }
+
+    <!-- Declined/Cancelled Status Actions -->
+    @if (status === BookingStatus.Declined ||
+         status === BookingStatus.Cancelled ||
+         status === BookingStatus.CancelledExpired ||
+         status === BookingStatus.Refunded) {
+      <button mat-stroked-button (click)="onRefresh()">
+        <mat-icon>refresh</mat-icon>
+        Refresh
+      </button>
+    }
+  </div>
+</div>

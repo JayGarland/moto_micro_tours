@@ -1,0 +1,280 @@
+<div class="payment-page">
+  <!-- Loading State -->
+  @if (isLoadingBooking()) {
+    <div class="loading-container">
+      <mat-spinner diameter="60"></mat-spinner>
+      <p>Loading booking details...</p>
+    </div>
+  }
+
+  <!-- Error State -->
+  @else if (errorMessage() && !booking) {
+    <mat-card class="error-card">
+      <mat-card-content>
+        <div class="error-content">
+          <mat-icon color="warn">error</mat-icon>
+          <h2>Unable to Load Booking</h2>
+          <p>{{ errorMessage() }}</p>
+          <button mat-raised-button color="primary" (click)="goBack()">
+            <mat-icon>arrow_back</mat-icon>
+            Back to Bookings
+          </button>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  }
+
+  <!-- Success State -->
+  @else if (hasPaid()) {
+    <mat-card class="success-card">
+      <mat-card-content>
+        <div class="success-content">
+          <mat-icon class="success-icon">check_circle</mat-icon>
+          <h2>Payment Successful!</h2>
+          <p>Your booking has been confirmed and paid.</p>
+          <p class="redirect-message">Redirecting to booking details in 3 seconds...</p>
+          <button mat-raised-button color="primary" (click)="navigateToBooking()">
+            <mat-icon>visibility</mat-icon>
+            View Booking Now
+          </button>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  }
+
+  <!-- Main Payment Form -->
+  @else if (booking) {
+    <div class="payment-container">
+
+      <!-- Header -->
+      <div class="page-header">
+        <button mat-icon-button (click)="goBack()" class="back-button">
+          <mat-icon>arrow_back</mat-icon>
+        </button>
+        <h1>Complete Payment</h1>
+      </div>
+
+      <!-- Guard Rail Messages -->
+      @if (isPaid) {
+        <mat-card class="info-card paid-info">
+          <mat-card-content>
+            <mat-icon>info</mat-icon>
+            <p>This booking has already been paid.</p>
+          </mat-card-content>
+        </mat-card>
+      }
+
+      @if (isCancelledOrDeclined) {
+        <mat-card class="info-card declined-info">
+          <mat-card-content>
+            <mat-icon>block</mat-icon>
+            <p>This booking cannot be paid because it has been {{ booking.status === 'Declined' ? 'declined' : 'cancelled' }}.</p>
+          </mat-card-content>
+        </mat-card>
+      }
+
+      <!-- Booking Summary -->
+      <mat-card class="booking-summary-card">
+        <mat-card-header>
+          <mat-card-title>Booking Summary</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="summary-grid">
+            <div class="summary-item">
+              <mat-icon>tour</mat-icon>
+              <div class="summary-details">
+                <span class="label">Tour</span>
+                <span class="value">{{ booking.tourTitle }}</span>
+              </div>
+            </div>
+
+            <div class="summary-item">
+              <mat-icon>event</mat-icon>
+              <div class="summary-details">
+                <span class="label">Date</span>
+                <span class="value">{{ formatDate(booking.tourStartAt) }}</span>
+              </div>
+            </div>
+
+            <div class="summary-item">
+              <mat-icon>location_on</mat-icon>
+              <div class="summary-details">
+                <span class="label">Route</span>
+                <span class="value">{{ booking.startLocationText }} → {{ booking.endLocationText }}</span>
+              </div>
+            </div>
+
+            <div class="summary-item">
+              <mat-icon>two_wheeler</mat-icon>
+              <div class="summary-details">
+                <span class="label">Motard</span>
+                <span class="value">{{ booking.motardName }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="total-price">
+            <span class="label">Total Amount</span>
+            <span class="amount">€{{ totalPrice.toFixed(2) }}</span>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Payout Split Visualization -->
+      <div class="payout-split-section">
+        <h2>Payment Distribution</h2>
+        <div class="payout-cards">
+          <mat-card class="payout-card motard-share">
+            <mat-card-content>
+              <mat-icon>person</mat-icon>
+              <div class="payout-info">
+                <span class="payout-label">Motard Share</span>
+                <span class="payout-percentage">50%</span>
+                <span class="payout-amount">€{{ motardShare.toFixed(2) }}</span>
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+          <mat-card class="payout-card platform-fee">
+            <mat-card-content>
+              <mat-icon>account_balance</mat-icon>
+              <div class="payout-info">
+                <span class="payout-label">Platform Fee</span>
+                <span class="payout-percentage">50%</span>
+                <span class="payout-amount">€{{ platformShare.toFixed(2) }}</span>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </div>
+      </div>
+
+      <!-- Mock Payment Form -->
+      <mat-card class="payment-form-card">
+        <mat-card-header>
+          <mat-card-title>Payment Details</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <form [formGroup]="paymentForm" class="payment-form">
+
+            <!-- Card Number (4 segments) -->
+            <div class="form-section">
+              <label class="section-label">Card Number</label>
+              <div class="card-number-inputs">
+                <mat-form-field appearance="outline">
+                  <input matInput
+                         formControlName="cardSegment1"
+                         maxlength="4"
+                         placeholder="1234"
+                         [disabled]="!canProcessPayment">
+                  @if (getFieldError('cardSegment1')) {
+                    <mat-error>{{ getFieldError('cardSegment1') }}</mat-error>
+                  }
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                  <input matInput
+                         formControlName="cardSegment2"
+                         maxlength="4"
+                         placeholder="5678"
+                         [disabled]="!canProcessPayment">
+                  @if (getFieldError('cardSegment2')) {
+                    <mat-error>{{ getFieldError('cardSegment2') }}</mat-error>
+                  }
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                  <input matInput
+                         formControlName="cardSegment3"
+                         maxlength="4"
+                         placeholder="9012"
+                         [disabled]="!canProcessPayment">
+                  @if (getFieldError('cardSegment3')) {
+                    <mat-error>{{ getFieldError('cardSegment3') }}</mat-error>
+                  }
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                  <input matInput
+                         formControlName="cardSegment4"
+                         maxlength="4"
+                         placeholder="3456"
+                         [disabled]="!canProcessPayment">
+                  @if (getFieldError('cardSegment4')) {
+                    <mat-error>{{ getFieldError('cardSegment4') }}</mat-error>
+                  }
+                </mat-form-field>
+              </div>
+            </div>
+
+            <!-- Name on Card -->
+            <div class="form-section">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Name on Card</mat-label>
+                <input matInput
+                       formControlName="cardName"
+                       placeholder="John Doe"
+                       [disabled]="!canProcessPayment">
+                <mat-icon matPrefix>person</mat-icon>
+                @if (getFieldError('cardName')) {
+                  <mat-error>{{ getFieldError('cardName') }}</mat-error>
+                }
+              </mat-form-field>
+            </div>
+
+            <!-- Expiry Date -->
+            <div class="form-section">
+              <mat-form-field appearance="outline" class="expiry-field">
+                <mat-label>Expiry Date</mat-label>
+                <input matInput
+                       formControlName="cardExpiry"
+                       placeholder="MM/YY"
+                       [disabled]="!canProcessPayment">
+                <mat-icon matPrefix>calendar_today</mat-icon>
+                @if (getFieldError('cardExpiry')) {
+                  <mat-error>{{ getFieldError('cardExpiry') }}</mat-error>
+                }
+              </mat-form-field>
+            </div>
+
+          </form>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Error Message -->
+      @if (errorMessage()) {
+        <mat-card class="error-message-card">
+          <mat-card-content>
+            <mat-icon color="warn">error</mat-icon>
+            <p>{{ errorMessage() }}</p>
+          </mat-card-content>
+        </mat-card>
+      }
+
+      <!-- Action Buttons -->
+      <div class="action-section">
+        @if (isProcessingPayment()) {
+          <div class="processing-indicator">
+            <mat-spinner diameter="40"></mat-spinner>
+            <p>Processing payment...</p>
+          </div>
+        } @else {
+          <button mat-raised-button
+                  color="primary"
+                  class="confirm-button"
+                  [disabled]="!canProcessPayment || !paymentForm.valid"
+                  (click)="onConfirmPayment()">
+            <mat-icon>payment</mat-icon>
+            Confirm Payment - €{{ totalPrice.toFixed(2) }}
+          </button>
+
+          <button mat-stroked-button
+                  class="back-button-bottom"
+                  (click)="goBack()">
+            Back to Booking
+          </button>
+        }
+      </div>
+
+    </div>
+  }
+</div>

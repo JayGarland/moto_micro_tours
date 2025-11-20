@@ -1,0 +1,210 @@
+<div class="booking-detail-container">
+  <!-- Loading State -->
+  @if (isLoading()) {
+    <div class="loading-container">
+      <mat-spinner diameter="60"></mat-spinner>
+      <p>Loading booking details...</p>
+    </div>
+  }
+
+  <!-- Error State -->
+  @else if (errorMessage()) {
+    <mat-card class="error-card">
+      <mat-icon>error</mat-icon>
+      <div class="error-content">
+        <h2>Unable to Load Booking</h2>
+        <p>{{ errorMessage() }}</p>
+        <button mat-raised-button color="primary" routerLink="/tours">
+          <mat-icon>arrow_back</mat-icon>
+          Back to Tours
+        </button>
+      </div>
+    </mat-card>
+  }
+
+  <!-- Booking Content -->
+  @else if (booking(); as bookingData) {
+    <div class="booking-content">
+      <!-- Header Section -->
+      <div class="booking-header">
+        <div class="header-left">
+          <button mat-icon-button routerLink="/tours" class="back-button">
+            <mat-icon>arrow_back</mat-icon>
+          </button>
+          <div class="header-info">
+            <h1>Booking Details</h1>
+            <p class="booking-id">ID: {{ bookingData.bookingId }}</p>
+          </div>
+        </div>
+        <mat-chip [color]="getStatusColor(bookingData.status)" highlighted>
+          {{ getStatusLabel(bookingData.status) }}
+        </mat-chip>
+      </div>
+
+      <!-- Main Layout: Desktop 2-column, Mobile stacked -->
+      <div class="booking-layout">
+
+        <!-- Left Column: Main Details -->
+        <div class="main-column">
+
+          <!-- Booking Information Card -->
+          <mat-card class="info-card">
+            <mat-card-header>
+              <mat-icon mat-card-avatar>confirmation_number</mat-icon>
+              <mat-card-title>Booking Information</mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+              <div class="info-grid">
+                <div class="info-item">
+                  <mat-icon>two_wheeler</mat-icon>
+                  <div>
+                    <span class="label">Tour</span>
+                    <span class="value">{{ bookingData.tourTitle }}</span>
+                  </div>
+                </div>
+
+                <div class="info-item">
+                  <mat-icon>event</mat-icon>
+                  <div>
+                    <span class="label">Date & Time</span>
+                    <span class="value">{{ formatDate(bookingData.tourStartAt) }}</span>
+                  </div>
+                </div>
+
+                <div class="info-item">
+                  <mat-icon>location_on</mat-icon>
+                  <div>
+                    <span class="label">Route</span>
+                    <span class="value">{{ bookingData.startLocationText }} → {{ bookingData.endLocationText }}</span>
+                  </div>
+                </div>
+
+                <div class="info-item">
+                  <mat-icon>person</mat-icon>
+                  <div>
+                    <span class="label">Motard</span>
+                    <span class="value">{{ bookingData.motardName }}</span>
+                  </div>
+                </div>
+
+                <div class="info-item">
+                  <mat-icon>payments</mat-icon>
+                  <div>
+                    <span class="label">Price</span>
+                    <span class="value price">€{{ bookingData.pricePerSeat }}</span>
+                  </div>
+                </div>
+
+                @if (bookingData.expiresAt && bookingData.status === BookingStatus.Approved) {
+                  <div class="info-item warning">
+                    <mat-icon>schedule</mat-icon>
+                    <div>
+                      <span class="label">Payment Due</span>
+                      <span class="value">{{ formatDate(bookingData.expiresAt) }}</span>
+                    </div>
+                  </div>
+                }
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+          <!-- Status Timeline Card -->
+          <mat-card class="timeline-card">
+            <mat-card-header>
+              <mat-icon mat-card-avatar>timeline</mat-icon>
+              <mat-card-title>Status Timeline</mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+              <app-booking-status-timeline
+                [status]="bookingData.status"
+                [createdAt]="bookingData.createdAt"
+                [approvedAt]="bookingData.approvedAt"
+                [paidAt]="bookingData.paidAt"
+                [cancelledAt]="bookingData.cancelledAt">
+              </app-booking-status-timeline>
+            </mat-card-content>
+          </mat-card>
+
+          <!-- Actions Card -->
+          <mat-card class="actions-card">
+            <mat-card-content>
+              <app-booking-actions
+                [status]="bookingData.status"
+                [bookingId]="bookingData.bookingId"
+                [canPay]="canPay()"
+                [canCancel]="canCancel()"
+                [expiresAt]="bookingData.expiresAt"
+                (pay)="onPay()"
+                (refresh)="onRefresh()"
+                (openChat)="onOpenChat()">
+              </app-booking-actions>
+            </mat-card-content>
+          </mat-card>
+
+        </div>
+
+        <!-- Right Column: Tour & Motard Summary -->
+        <div class="side-column">
+
+          <!-- Tour Summary Card -->
+          <mat-card class="summary-card tour-card">
+            <mat-card-header>
+              <mat-icon mat-card-avatar>two_wheeler</mat-icon>
+              <mat-card-title>Tour Details</mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+              <h3>{{ bookingData.tourTitle }}</h3>
+              <div class="summary-info">
+                <div class="summary-item">
+                  <mat-icon>event</mat-icon>
+                  <span>{{ formatDate(bookingData.tourStartAt) }}</span>
+                </div>
+                <div class="summary-item">
+                  <mat-icon>location_on</mat-icon>
+                  <span>{{ bookingData.startLocationText }}</span>
+                </div>
+                <div class="summary-item">
+                  <mat-icon>flag</mat-icon>
+                  <span>{{ bookingData.endLocationText }}</span>
+                </div>
+              </div>
+              <a [routerLink]="['/tours', bookingData.tourId]" mat-stroked-button color="primary" class="view-tour-btn">
+                <mat-icon>visibility</mat-icon>
+                View Full Tour Details
+              </a>
+            </mat-card-content>
+          </mat-card>
+
+          <!-- Motard Summary Card -->
+          <mat-card class="summary-card motard-card">
+            <mat-card-header>
+              <mat-icon mat-card-avatar>person</mat-icon>
+              <mat-card-title>Your Motard</mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+              <h3>{{ bookingData.motardName }}</h3>
+              <div class="summary-info">
+                <div class="summary-item">
+                  <mat-icon>payments</mat-icon>
+                  <span>€{{ bookingData.pricePerSeat }} per seat</span>
+                </div>
+                @if (bookingData.costSharingOptIn) {
+                  <div class="summary-item">
+                    <mat-icon>volunteer_activism</mat-icon>
+                    <span>Cost-sharing opted in</span>
+                  </div>
+                }
+              </div>
+              <a [routerLink]="['/motards', bookingData.motardUserId]" mat-stroked-button color="primary" class="view-profile-btn">
+                <mat-icon>account_circle</mat-icon>
+                View Motard Profile
+              </a>
+            </mat-card-content>
+          </mat-card>
+
+        </div>
+
+      </div>
+    </div>
+  }
+</div>

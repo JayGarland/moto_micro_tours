@@ -106,7 +106,16 @@
           </div>
 
           <div class="motard-actions">
-            <button mat-raised-button color="primary" [routerLink]="['/motards', motard.motardUserId]">
+            <button mat-raised-button
+                    color="primary"
+                    class="book-now-btn"
+                    [disabled]="getAvailableSeats(motard) === 0"
+                    (click)="bookNow(motard)">
+              <mat-icon>book_online</mat-icon>
+              Book Now - €{{ motard.pricePerSeat }}
+            </button>
+            <button mat-stroked-button
+                    [routerLink]="['/motards', motard.motardUserId]">
               View Profile
             </button>
           </div>

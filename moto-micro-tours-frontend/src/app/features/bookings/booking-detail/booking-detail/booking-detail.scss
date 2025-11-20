@@ -1,0 +1,350 @@
+.booking-detail-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  padding: 24px;
+
+  // Loading State
+  .loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 400px;
+    gap: 16px;
+
+    p {
+      color: #666;
+      font-size: 16px;
+    }
+  }
+
+  // Error State
+  .error-card {
+    max-width: 600px;
+    margin: 40px auto;
+    padding: 32px;
+    text-align: center;
+
+    mat-icon {
+      font-size: 64px;
+      width: 64px;
+      height: 64px;
+      color: #f44336;
+      margin-bottom: 16px;
+    }
+
+    .error-content {
+      h2 {
+        color: #333;
+        margin: 0 0 16px 0;
+      }
+
+      p {
+        color: #666;
+        margin: 0 0 24px 0;
+      }
+
+      button {
+        mat-icon {
+          margin-right: 8px;
+        }
+      }
+    }
+  }
+
+  // Main Content
+  .booking-content {
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  // Header Section
+  .booking-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    padding: 20px;
+    background-color: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+
+      .back-button {
+        color: var(--yamaha-blue, #0d47a1);
+      }
+
+      .header-info {
+        h1 {
+          margin: 0;
+          color: var(--yamaha-blue, #0d47a1);
+          font-size: 28px;
+          font-weight: 600;
+        }
+
+        .booking-id {
+          margin: 4px 0 0 0;
+          color: #666;
+          font-size: 14px;
+          font-family: monospace;
+        }
+      }
+    }
+
+    mat-chip {
+      font-weight: 600;
+    }
+  }
+
+  // Main Layout: 2-column on desktop, stacked on mobile
+  .booking-layout {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 24px;
+
+    .main-column,
+    .side-column {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    // Info Card
+    .info-card {
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+
+      mat-card-header {
+        background-color: #f8f9fa;
+        padding: 16px;
+        border-radius: 10px 10px 0 0;
+
+        mat-icon[mat-card-avatar] {
+          background-color: var(--yamaha-blue, #0d47a1);
+          color: white;
+          font-size: 24px;
+          width: 40px;
+          height: 40px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 50%;
+        }
+
+        mat-card-title {
+          color: var(--yamaha-blue, #0d47a1);
+          font-size: 20px;
+          font-weight: 600;
+        }
+      }
+
+      mat-card-content {
+        padding: 24px;
+      }
+
+      .info-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+
+        .info-item {
+          display: flex;
+          align-items: flex-start;
+          gap: 12px;
+
+          mat-icon {
+            color: var(--yamaha-blue, #0d47a1);
+            font-size: 24px;
+            width: 24px;
+            height: 24px;
+            flex-shrink: 0;
+          }
+
+          div {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            min-width: 0;
+
+            .label {
+              font-size: 12px;
+              color: #666;
+              text-transform: uppercase;
+              letter-spacing: 0.5px;
+            }
+
+            .value {
+              font-size: 16px;
+              color: #333;
+              font-weight: 500;
+              word-wrap: break-word;
+
+              &.price {
+                font-size: 20px;
+                font-weight: 600;
+                color: var(--yamaha-blue, #0d47a1);
+              }
+            }
+          }
+
+          &.warning {
+            grid-column: 1 / -1;
+            padding: 12px;
+            background-color: #fff3cd;
+            border-radius: 8px;
+            border-left: 4px solid #ff9800;
+
+            mat-icon {
+              color: #ff9800;
+            }
+          }
+        }
+      }
+    }
+
+    // Timeline & Actions Cards
+    .timeline-card,
+    .actions-card {
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+
+      mat-card-header {
+        background-color: #f8f9fa;
+        padding: 16px;
+        border-radius: 10px 10px 0 0;
+
+        mat-icon[mat-card-avatar] {
+          background-color: var(--yamaha-blue, #0d47a1);
+          color: white;
+          font-size: 24px;
+          width: 40px;
+          height: 40px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 50%;
+        }
+
+        mat-card-title {
+          color: var(--yamaha-blue, #0d47a1);
+          font-size: 20px;
+          font-weight: 600;
+        }
+      }
+
+      mat-card-content {
+        padding: 24px;
+      }
+    }
+
+    // Summary Cards (Right Column)
+    .summary-card {
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+
+      mat-card-header {
+        background: linear-gradient(135deg, var(--yamaha-blue, #0d47a1) 0%, #1565c0 100%);
+        color: white;
+        padding: 16px;
+        border-radius: 10px 10px 0 0;
+
+        mat-icon[mat-card-avatar] {
+          background-color: rgba(255, 255, 255, 0.2);
+          color: white;
+          font-size: 24px;
+          width: 40px;
+          height: 40px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 50%;
+        }
+
+        mat-card-title {
+          color: white;
+          font-size: 18px;
+          font-weight: 600;
+        }
+      }
+
+      mat-card-content {
+        padding: 20px;
+
+        h3 {
+          margin: 0 0 16px 0;
+          color: var(--yamaha-blue, #0d47a1);
+          font-size: 20px;
+          font-weight: 600;
+        }
+
+        .summary-info {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+          margin-bottom: 20px;
+
+          .summary-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #333;
+
+            mat-icon {
+              color: var(--yamaha-blue, #0d47a1);
+              font-size: 20px;
+              width: 20px;
+              height: 20px;
+            }
+          }
+        }
+
+        .view-tour-btn,
+        .view-profile-btn {
+          width: 100%;
+
+          mat-icon {
+            margin-right: 8px;
+          }
+        }
+      }
+    }
+  }
+}
+
+// Responsive Design
+@media (max-width: 1024px) {
+  .booking-detail-container {
+    .booking-layout {
+      grid-template-columns: 1fr;
+
+      .side-column {
+        order: -1; // Move side column to top on mobile
+      }
+
+      .info-card .info-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .booking-detail-container {
+    padding: 16px;
+
+    .booking-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 16px;
+
+      .header-left .header-info h1 {
+        font-size: 22px;
+      }
+    }
+  }
+}

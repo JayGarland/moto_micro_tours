@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -31,6 +31,7 @@ export class TourDetailComponent implements OnInit {
 
   constructor(
     private route: ActivatedRoute,
+    private router: Router,
     private toursService: ToursService,
     private location: Location
   ) {}
@@ -83,5 +84,29 @@ export class TourDetailComponent implements OnInit {
 
   goBack(): void {
     this.location.back();
+  }
+
+  bookNow(motard: any): void {
+    if (!this.tour) return;
+
+    // Navigate with state data + query param fallback
+    this.router.navigate(['/bookings/request'], {
+      state: {
+        tourId: this.tour.id,
+        tourMotardId: motard.tourMotardId,
+        tourSummary: {
+          title: this.tour.title,
+          startLocation: this.tour.startLocationText,
+          endLocation: this.tour.endLocationText,
+          date: this.tour.startAt,
+          price: motard.pricePerSeat,
+          motardName: motard.motardName,
+        }
+      },
+      queryParams: {
+        tourId: this.tour.id,
+        tourMotardId: motard.tourMotardId
+      }
+    });
   }
 }

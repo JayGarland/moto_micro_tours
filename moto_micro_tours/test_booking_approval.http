@@ -4,7 +4,7 @@
 ### ========================================
 ### SETUP: Variables
 @baseUrl = http://localhost:5256
-@bookingId = a2f88d65-4be5-413e-8428-ada827ba9374
+@bookingId = e0106bdc-956f-492d-a496-af96d800c9de
 
 ### ========================================
 ### Test 1: Login as motard1 (tour creator/assigned motard)
@@ -99,7 +99,7 @@ POST {{baseUrl}}/api/auth/login
 Content-Type: application/json
 
 {
-  "username": "motard1",
+  "EmailOrUsername": "motard1",
   "password": "pass"
 }
 

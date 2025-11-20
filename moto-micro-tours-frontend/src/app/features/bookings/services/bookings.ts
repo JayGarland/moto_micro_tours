@@ -1,0 +1,195 @@
+import { Injectable, inject } from '@angular/core';
+import { Observable, throwError } from 'rxjs';
+import { catchError } from 'rxjs/operators';
+import { ApiService } from '../../../core/services/api.service';
+import {
+  CreateBookingRequest,
+  BookingResponse,
+  BookingDetail,
+  BookingSummary,
+  PaymentConfirmation
+} from '../models/booking.model';
+
+@Injectable({
+  providedIn: 'root',
+})
+export class BookingsService {
+  private readonly apiService = inject(ApiService);
+
+  /**
+   * Create a new booking request
+   * Endpoint: POST /api/bookings/request
+   * @param request - Booking request data
+   * @returns Observable of BookingResponse
+   */
+  createBookingRequest(request: CreateBookingRequest): Observable<BookingResponse> {
+    return this.apiService.post<BookingResponse>('bookings/request', request)
+      .pipe(
+        catchError(error => {
+          console.error('Error creating booking request:', error);
+          return throwError(() => this.extractErrorMessage(error));
+        })
+      );
+  }
+
+  /**
+   * Get booking by ID (full details)
+   * Endpoint: GET /api/bookings/{id}
+   * @param bookingId - The booking ID
+   * @returns Observable of BookingDetail
+   */
+  getBookingById(bookingId: string): Observable<BookingDetail> {
+    return this.apiService.get<BookingDetail>(`bookings/${bookingId}`)
+      .pipe(
+        catchError(error => {
+          console.error('Error fetching booking details:', error);
+          return throwError(() => this.extractErrorMessage(error));
+        })
+      );
+  }
+
+  /**
+   * Get all bookings for the current participant
+   * Endpoint: GET /api/bookings
+   * @returns Observable array of BookingSummary
+   */
+  getParticipantBookings(): Observable<BookingSummary[]> {
+    return this.apiService.get<BookingSummary[]>('bookings')
+      .pipe(
+        catchError(error => {
+          console.error('Error fetching participant bookings:', error);
+          return throwError(() => this.extractErrorMessage(error));
+        })
+      );
+  }
+
+  /**
+   * Mark booking as paid (mock payment)
+   * Endpoint: POST /api/payments/pay/{bookingId}
+   * @param bookingId - The booking ID
+   * @returns Observable of PaymentConfirmation
+   */
+  markBookingAsPaid(bookingId: string): Observable<PaymentConfirmation> {
+    return this.apiService.post<PaymentConfirmation>(`payments/pay/${bookingId}`, {})
+      .pipe(
+        catchError(error => {
+          console.error('Error processing payment:', error);
+          return throwError(() => this.extractErrorMessage(error));
+        })
+      );
+  }
+
+  // ============================================
+  // Motard-specific methods (F7+ - Placeholders)
+  // ============================================
+
+  /**
+   * Get booking requests for motard to approve/decline
+   * Endpoint: GET /api/bookings (filtered by role)
+   * @returns Observable array of BookingSummary
+   * TODO: Implement in Stage F7
+   */
+  getMotardBookingRequests(): Observable<BookingSummary[]> {
+    throw new Error('Method not implemented - coming in Stage F7');
+  }
+
+  /**
+   * Approve a booking request (motard only)
+   * Endpoint: POST /api/bookings/{id}/approve
+   * @param bookingId - The booking ID
+   * @returns Observable of BookingDetail
+   * TODO: Implement in Stage F7
+   */
+  approveBooking(bookingId: string): Observable<BookingDetail> {
+    throw new Error('Method not implemented - coming in Stage F7');
+  }
+
+  /**
+   * Decline a booking request (motard only)
+   * Endpoint: POST /api/bookings/{id}/decline
+   * @param bookingId - The booking ID
+   * @param reason - Optional decline reason
+   * @returns Observable of BookingDetail
+   * TODO: Implement in Stage F7
+   */
+  declineBooking(bookingId: string, reason?: string): Observable<BookingDetail> {
+    throw new Error('Method not implemented - coming in Stage F7');
+  }
+
+  /**
+   * Cancel a booking
+   * Endpoint: POST /api/bookings/{id}/cancel
+   * @param bookingId - The booking ID
+   * @param reason - Optional cancellation reason
+   * @returns Observable of BookingDetail
+   * TODO: Implement in Stage F8
+   */
+  cancelBooking(bookingId: string, reason?: string): Observable<BookingDetail> {
+    throw new Error('Method not implemented - coming in Stage F8');
+  }
+
+  /**
+   * Refund a paid booking (motard only)
+   * Endpoint: POST /api/bookings/{id}/refund
+   * @param bookingId - The booking ID
+   * @returns Observable of BookingDetail
+   * TODO: Implement in Stage F8
+   */
+  refundBooking(bookingId: string): Observable<BookingDetail> {
+    throw new Error('Method not implemented - coming in Stage F8');
+  }
+
+  // ============================================
+  // Private Helper Methods
+  // ============================================
+
+  /**
+   * Extract user-friendly error message from HTTP error response
+   * @param error - The error object from HTTP call
+   * @returns User-friendly error message
+   */
+  private extractErrorMessage(error: any): string {
+    // Check for backend error message
+    if (error?.error?.error) {
+      return error.error.error;
+    }
+
+    // Check for message field
+    if (error?.error?.message) {
+      return error.error.message;
+    }
+
+    // Check for string error
+    if (typeof error?.error === 'string') {
+      return error.error;
+    }
+
+    // HTTP status-based messages
+    if (error?.status) {
+      switch (error.status) {
+        case 400:
+          return 'Invalid request. Please check your input.';
+        case 401:
+          return 'You must be logged in to perform this action.';
+        case 403:
+          return 'You do not have permission to perform this action.';
+        case 404:
+          return 'The requested resource was not found.';
+        case 409:
+          return 'This action conflicts with existing data.';
+        case 500:
+          return 'Server error. Please try again later.';
+        default:
+          return `An error occurred (${error.status}). Please try again.`;
+      }
+    }
+
+    // Network error
+    if (error?.message?.includes('Http failure')) {
+      return 'Network error. Please check your connection.';
+    }
+
+    // Fallback
+    return error?.message || 'An unexpected error occurred. Please try again.';
+  }
+}

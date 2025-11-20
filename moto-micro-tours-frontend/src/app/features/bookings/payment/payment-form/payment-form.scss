@@ -1,0 +1,569 @@
+// Yamaha-inspired Payment Form Styling
+:host {
+  --yamaha-blue: #0d47a1;
+  --yamaha-light-blue: #1976d2;
+  --success-green: #4caf50;
+  --warning-red: #f44336;
+  --text-primary: #212121;
+  --text-secondary: #757575;
+}
+
+.payment-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+  padding: 24px;
+}
+
+// Loading State
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  gap: 16px;
+
+  p {
+    color: var(--text-secondary);
+    font-size: 1rem;
+  }
+}
+
+// Error Card (when booking can't load)
+.error-card {
+  max-width: 600px;
+  margin: 80px auto;
+
+  .error-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 32px;
+
+    mat-icon {
+      font-size: 64px;
+      width: 64px;
+      height: 64px;
+      margin-bottom: 16px;
+    }
+
+    h2 {
+      margin: 16px 0 8px 0;
+      color: var(--text-primary);
+    }
+
+    p {
+      color: var(--text-secondary);
+      margin-bottom: 24px;
+    }
+
+    button {
+      mat-icon {
+        font-size: 20px;
+        width: 20px;
+        height: 20px;
+        margin-right: 8px;
+      }
+    }
+  }
+}
+
+// Success Card
+.success-card {
+  max-width: 600px;
+  margin: 80px auto;
+  background: linear-gradient(135deg, #c8e6c9 0%, #a5d6a7 100%);
+
+  .success-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 48px 32px;
+
+    .success-icon {
+      font-size: 80px;
+      width: 80px;
+      height: 80px;
+      color: var(--success-green);
+      margin-bottom: 24px;
+    }
+
+    h2 {
+      color: var(--text-primary);
+      margin: 0 0 16px 0;
+      font-size: 2rem;
+    }
+
+    p {
+      color: var(--text-secondary);
+      margin: 8px 0;
+      font-size: 1.1rem;
+
+      &.redirect-message {
+        font-style: italic;
+        font-size: 0.95rem;
+        margin-bottom: 24px;
+      }
+    }
+
+    button {
+      margin-top: 16px;
+
+      mat-icon {
+        margin-right: 8px;
+      }
+    }
+  }
+}
+
+// Main Payment Container
+.payment-container {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+// Page Header
+.page-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+
+  .back-button {
+    color: var(--yamaha-blue);
+  }
+
+  h1 {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: 2rem;
+    font-weight: 500;
+  }
+}
+
+// Info Cards (Guard Rails)
+.info-card {
+  margin-bottom: 16px;
+
+  mat-card-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+
+    mat-icon {
+      font-size: 32px;
+      width: 32px;
+      height: 32px;
+    }
+
+    p {
+      margin: 0;
+      font-size: 1rem;
+    }
+  }
+
+  &.paid-info {
+    background-color: #e3f2fd;
+    border-left: 4px solid var(--yamaha-blue);
+
+    mat-icon {
+      color: var(--yamaha-blue);
+    }
+  }
+
+  &.declined-info {
+    background-color: #ffebee;
+    border-left: 4px solid var(--warning-red);
+
+    mat-icon {
+      color: var(--warning-red);
+    }
+  }
+}
+
+// Booking Summary Card
+.booking-summary-card {
+  margin-bottom: 24px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+
+  mat-card-header {
+    background: linear-gradient(135deg, var(--yamaha-blue) 0%, var(--yamaha-light-blue) 100%);
+    color: white;
+    padding: 16px;
+    border-radius: 4px 4px 0 0;
+
+    mat-card-title {
+      margin: 0;
+      font-size: 1.25rem;
+    }
+  }
+
+  .summary-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    padding: 24px 0;
+  }
+
+  .summary-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    mat-icon {
+      color: var(--yamaha-blue);
+      font-size: 28px;
+      width: 28px;
+      height: 28px;
+    }
+
+    .summary-details {
+      display: flex;
+      flex-direction: column;
+
+      .label {
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .value {
+        font-size: 1rem;
+        color: var(--text-primary);
+        font-weight: 500;
+        margin-top: 4px;
+      }
+    }
+  }
+
+  .total-price {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 0 0 0;
+    border-top: 2px solid #e0e0e0;
+    margin-top: 16px;
+
+    .label {
+      font-size: 1.2rem;
+      color: var(--text-primary);
+      font-weight: 500;
+    }
+
+    .amount {
+      font-size: 2rem;
+      color: var(--yamaha-blue);
+      font-weight: 700;
+    }
+  }
+}
+
+// Payout Split Section
+.payout-split-section {
+  margin-bottom: 24px;
+
+  h2 {
+    margin: 0 0 16px 0;
+    color: var(--text-primary);
+    font-size: 1.5rem;
+    font-weight: 500;
+  }
+
+  .payout-cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  .payout-card {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s, box-shadow 0.2s;
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    mat-card-content {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 24px;
+
+      mat-icon {
+        font-size: 48px;
+        width: 48px;
+        height: 48px;
+      }
+
+      .payout-info {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+
+        .payout-label {
+          font-size: 0.9rem;
+          color: var(--text-secondary);
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+
+        .payout-percentage {
+          font-size: 1.5rem;
+          font-weight: 700;
+          margin: 4px 0;
+        }
+
+        .payout-amount {
+          font-size: 1.25rem;
+          font-weight: 500;
+        }
+      }
+    }
+
+    &.motard-share {
+      border-top: 3px solid var(--success-green);
+
+      mat-icon {
+        color: var(--success-green);
+      }
+
+      .payout-percentage {
+        color: var(--success-green);
+      }
+    }
+
+    &.platform-fee {
+      border-top: 3px solid var(--yamaha-blue);
+
+      mat-icon {
+        color: var(--yamaha-blue);
+      }
+
+      .payout-percentage {
+        color: var(--yamaha-blue);
+      }
+    }
+  }
+}
+
+// Payment Form Card
+.payment-form-card {
+  margin-bottom: 24px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+
+  mat-card-header {
+    background: linear-gradient(135deg, var(--yamaha-blue) 0%, var(--yamaha-light-blue) 100%);
+    color: white;
+    padding: 16px;
+    border-radius: 4px 4px 0 0;
+
+    mat-card-title {
+      margin: 0;
+      font-size: 1.25rem;
+    }
+  }
+
+  .payment-form {
+    padding: 8px 0;
+  }
+
+  .form-section {
+    margin-bottom: 20px;
+
+    .section-label {
+      display: block;
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .card-number-inputs {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+
+      mat-form-field {
+        input {
+          text-align: center;
+          font-size: 1.1rem;
+          letter-spacing: 1px;
+        }
+      }
+    }
+
+    .full-width {
+      width: 100%;
+    }
+
+    .expiry-field {
+      max-width: 200px;
+    }
+  }
+}
+
+// Error Message Card
+.error-message-card {
+  margin-bottom: 16px;
+  background-color: #ffebee;
+  border-left: 4px solid var(--warning-red);
+
+  mat-card-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+
+    mat-icon {
+      font-size: 28px;
+      width: 28px;
+      height: 28px;
+    }
+
+    p {
+      margin: 0;
+      color: var(--text-primary);
+      font-weight: 500;
+    }
+  }
+}
+
+// Action Section
+.action-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: center;
+  margin-top: 24px;
+  padding-bottom: 48px;
+
+  .processing-indicator {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    padding: 24px;
+
+    p {
+      color: var(--text-secondary);
+      font-size: 1rem;
+    }
+  }
+
+  .confirm-button {
+    width: 100%;
+    max-width: 400px;
+    height: 56px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    background: linear-gradient(135deg, var(--yamaha-blue) 0%, var(--yamaha-light-blue) 100%);
+
+    mat-icon {
+      margin-right: 8px;
+    }
+
+    &:disabled {
+      background: #e0e0e0;
+    }
+  }
+
+  .back-button-bottom {
+    color: var(--text-secondary);
+    border-color: var(--text-secondary);
+  }
+}
+
+// Mobile Responsive
+@media (max-width: 768px) {
+  .payment-page {
+    padding: 16px;
+  }
+
+  .page-header {
+    h1 {
+      font-size: 1.5rem;
+    }
+  }
+
+  .booking-summary-card {
+    .summary-grid {
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+
+    .total-price {
+      .label {
+        font-size: 1rem;
+      }
+
+      .amount {
+        font-size: 1.5rem;
+      }
+    }
+  }
+
+  .payout-split-section {
+    h2 {
+      font-size: 1.25rem;
+    }
+
+    .payout-cards {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .payment-form-card {
+    .form-section {
+      .card-number-inputs {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+      }
+
+      .expiry-field {
+        max-width: 100%;
+      }
+    }
+  }
+
+  .action-section {
+    .confirm-button {
+      max-width: 100%;
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .payment-form-card {
+    .form-section {
+      .card-number-inputs {
+        grid-template-columns: 1fr;
+      }
+    }
+  }
+
+  .success-card {
+    .success-content {
+      padding: 32px 16px;
+
+      .success-icon {
+        font-size: 60px;
+        width: 60px;
+        height: 60px;
+      }
+
+      h2 {
+        font-size: 1.5rem;
+      }
+
+      p {
+        font-size: 1rem;
+      }
+    }
+  }
+}

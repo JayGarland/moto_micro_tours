@@ -1,0 +1,109 @@
+.booking-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+
+  // Status Message
+  .status-message {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px;
+    background-color: #e3f2fd;
+    border-radius: 8px;
+    border-left: 4px solid #2196f3;
+
+    mat-icon {
+      color: #2196f3;
+      font-size: 24px;
+      width: 24px;
+      height: 24px;
+      flex-shrink: 0;
+    }
+
+    p {
+      margin: 0;
+      color: #333;
+      font-size: 15px;
+      line-height: 1.6;
+    }
+  }
+
+  // Payment Warning
+  .payment-warning {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px;
+    background-color: #fff3cd;
+    border-radius: 8px;
+    border-left: 4px solid #ff9800;
+
+    mat-icon {
+      color: #ff9800;
+      font-size: 24px;
+      width: 24px;
+      height: 24px;
+      flex-shrink: 0;
+    }
+
+    p {
+      margin: 0;
+      color: #333;
+      font-size: 14px;
+      line-height: 1.6;
+
+      strong {
+        color: #ff9800;
+        font-weight: 600;
+      }
+    }
+  }
+
+  // Action Buttons
+  .action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+
+    button {
+      width: 100%;
+      padding: 12px 24px;
+      font-size: 16px;
+      font-weight: 500;
+
+      mat-icon {
+        margin-right: 8px;
+      }
+
+      &.pay-button {
+        font-size: 18px;
+        padding: 14px 24px;
+        box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+
+        &:hover {
+          box-shadow: 0 6px 16px rgba(33, 150, 243, 0.4);
+        }
+      }
+    }
+  }
+}
+
+// Responsive Design
+@media (min-width: 768px) {
+  .booking-actions {
+    .action-buttons {
+      flex-direction: row;
+      justify-content: flex-start;
+
+      button {
+        width: auto;
+        min-width: 180px;
+
+        &.pay-button {
+          min-width: 220px;
+        }
+      }
+    }
+  }
+}

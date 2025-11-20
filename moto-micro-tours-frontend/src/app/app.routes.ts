@@ -53,6 +53,11 @@ export const routes: Routes = [
     loadComponent: () => import('./features/chats/inbox/prebooking-inbox.component').then(m => m.PrebookingInboxComponent)
   },
   {
+    path: 'bookings',
+    canActivate: [authGuard],
+    loadChildren: () => import('./features/bookings/bookings.routes').then(m => m.bookingsRoutes)
+  },
+  {
     path: 'motard',
     canActivate: [roleGuard('Motard')],
     children: [

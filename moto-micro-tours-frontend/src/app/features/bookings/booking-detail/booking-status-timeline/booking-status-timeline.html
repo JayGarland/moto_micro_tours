@@ -1,0 +1,26 @@
+<div class="timeline">
+  @for (step of steps; track step.label; let isLast = $last) {
+    <div class="timeline-step" [class.completed]="step.state === 'completed'"
+         [class.current]="step.state === 'current'"
+         [class.upcoming]="step.state === 'upcoming'">
+
+      <!-- Icon/Dot -->
+      <div class="timeline-icon">
+        <mat-icon>{{ step.icon }}</mat-icon>
+      </div>
+
+      <!-- Connecting Line -->
+      @if (!isLast) {
+        <div class="timeline-line"></div>
+      }
+
+      <!-- Content -->
+      <div class="timeline-content">
+        <div class="timeline-label">{{ step.label }}</div>
+        @if (step.date) {
+          <div class="timeline-date">{{ formatDate(step.date) }}</div>
+        }
+      </div>
+    </div>
+  }
+</div>
