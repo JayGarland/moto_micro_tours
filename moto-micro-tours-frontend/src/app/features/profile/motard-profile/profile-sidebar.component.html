@@ -1,0 +1,57 @@
+<div class="profile-sidebar">
+  <!-- Avatar / Profile Photo -->
+  <div class="avatar-container">
+    <div class="avatar-placeholder">
+      <mat-icon>person</mat-icon>
+    </div>
+  </div>
+
+  <!-- Name & Tagline -->
+  <div class="profile-info">
+    <h2 class="profile-name">{{ profile.userName }}</h2>
+    <p class="profile-tagline" *ngIf="profile.bio">{{ profile.bio }}</p>
+  </div>
+
+  <!-- Rating Display (Stars + Numeric) -->
+  <div class="rating-display" *ngIf="profile.avgRating">
+    <div class="stars">
+      <mat-icon *ngFor="let filled of getStarArray()" [class.filled]="filled">
+        {{ filled ? 'star' : 'star_border' }}
+      </mat-icon>
+    </div>
+    <span class="rating-text">{{ profile.avgRating | number:'1.1-1' }} / 5.0</span>
+  </div>
+
+  <!-- Statistics -->
+  <div class="stats-section">
+    <div class="stat-item">
+      <mat-icon>tour</mat-icon>
+      <div class="stat-content">
+        <span class="stat-value">{{ profile.completedTours?.length || 0 }}</span>
+        <span class="stat-label">Completed Tours</span>
+      </div>
+    </div>
+    
+    <div class="stat-item">
+      <mat-icon>rate_review</mat-icon>
+      <div class="stat-content">
+        <span class="stat-value">{{ profile.totalReviews }}</span>
+        <span class="stat-label">Reviews</span>
+      </div>
+    </div>
+
+    <div class="stat-item" *ngIf="profile.bikeModel">
+      <mat-icon>two_wheeler</mat-icon>
+      <div class="stat-content">
+        <span class="stat-value">{{ profile.bikeModel }}</span>
+        <span class="stat-label">Bike Model</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Start Pre-booking Chat Button -->
+  <button mat-raised-button color="primary" class="chat-button" (click)="onStartChat()">
+    <mat-icon>chat</mat-icon>
+    Start Pre-booking Chat
+  </button>
+</div>

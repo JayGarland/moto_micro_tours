@@ -52,7 +52,7 @@ public class MotardProfileDto
 
     // Statistics
     public decimal? AvgRating { get; set; }
-    public int CompletedTours { get; set; }
+    public int CompletedToursCount { get; set; } //Optimize: use backend calculation
     public int TotalReviews { get; set; }
 
     // Reviews from past participants
@@ -60,6 +60,10 @@ public class MotardProfileDto
 
     // Optional: Tours this motard is part of (upcoming)
     public List<MotardTourSummaryDto> UpcomingTours { get; set; } = new();
+
+    // Optional: Tours this motard has completed
+    public List<MotardTourSummaryDto> CompletedTours { get; set; } = new();
+
 }
 
 /// <summary>
@@ -117,7 +121,6 @@ public class TourMotardDetailDto
     public string? MotardBio { get; set; }
     public string? BikeModel { get; set; }
     public float? AvgRating { get; set; }
-    public int CompletedTours { get; set; }
 
     public int CapacitySeats { get; set; }
     public int SeatsBooked { get; set; }

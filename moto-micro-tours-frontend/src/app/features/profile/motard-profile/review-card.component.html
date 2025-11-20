@@ -1,0 +1,22 @@
+<div class="review-card">
+  <!-- Header: Avatar + Name + Stars -->
+  <div class="review-header">
+    <div class="avatar-placeholder">
+      <mat-icon>person</mat-icon>
+    </div>
+    <div class="review-info">
+      <span class="reviewer-name">{{ review.authorName }}</span>
+      <div class="stars">
+        <mat-icon *ngFor="let filled of getStarArray()" [class.filled]="filled">
+          {{ filled ? 'star' : 'star_border' }}
+        </mat-icon>
+      </div>
+    </div>
+    <span class="review-date">{{ review.createdAt | date:'mediumDate' }}</span>
+  </div>
+
+  <!-- Review Comment (2-3 lines) -->
+  <div class="review-comment" *ngIf="review.comment">
+    <p>{{ getTruncatedComment() }}</p>
+  </div>
+</div>

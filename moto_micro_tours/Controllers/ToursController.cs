@@ -184,7 +184,6 @@ public class ToursController : ControllerBase
                     MotardBio = m.Profile?.Bio,
                     BikeModel = m.Profile?.BikeModel,
                     AvgRating = (float?)(m.Profile?.AvgRating),
-                    CompletedTours = m.Profile?.CompletedTours ?? 0,
                     CapacitySeats = m.TourMotard.CapacitySeats,
                     SeatsBooked = m.TourMotard.SeatsBooked,
                     PricePerSeat = m.TourMotard.PricePerSeat

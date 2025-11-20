@@ -1,0 +1,329 @@
+// ============================================
+// Motard Profile Page - Smooth Responsive Layout
+// Single Breakpoint Strategy (768px)
+// ============================================
+
+// Only animate colors/opacity/shadows - NO layout properties
+* {
+  transition-property: color, background-color, border-color, box-shadow, opacity;
+  transition-duration: 0.2s;
+  transition-timing-function: ease;
+}
+
+// Loading & Error states
+.loading-container,
+.error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  gap: 1rem;
+
+  mat-icon {
+    font-size: 48px;
+    width: 48px;
+    height: 48px;
+    color: #9e9e9e;
+  }
+
+  p {
+    font-size: 16px;
+    color: #757575;
+  }
+}
+
+// ============================================
+// Mobile-First Layout (≤ 768px)
+// ============================================
+.profile-page {
+  background: #fafafa;
+  min-height: 100vh;
+  padding-bottom: 4rem;
+}
+
+.profile-container {
+  // Mobile: Single column, flexbox
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px;
+}
+
+.profile-hero {
+  // Mobile: First in order
+  order: 1;
+}
+
+.profile-sidebar-wrapper {
+  // Mobile: Second (after hero, before main content)
+  order: 2;
+  width: 100%;
+}
+
+.profile-main {
+  // Mobile: Third in order
+  order: 3;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+// Key info strip
+.key-info-strip {
+  display: flex;
+  gap: 16px;
+  padding: 16px;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  flex-wrap: wrap;
+
+  .info-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    mat-icon {
+      color: #0d47a1;
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+    }
+
+    span {
+      font-size: 14px;
+      font-weight: 500;
+      color: #424242;
+    }
+  }
+}
+
+// Upcoming tours section
+.upcoming-tours-section {
+  .section-title {
+    font-size: 28px;
+    font-weight: 700;
+    margin: 0 0 16px 0;
+    color: #212121;
+  }
+
+  .tours-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+}
+
+// Completed tours section
+.completed-tours-section {
+  .section-header {
+    margin-bottom: 16px;
+  }
+
+  .section-title {
+    font-size: 24px;
+    font-weight: 600;
+    margin: 0 0 8px 0;
+    color: #424242; // Medium gray (secondary)
+  }
+
+  .subtitle {
+    font-size: 14px;
+    color: #757575;
+    margin: 0;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 32px 16px;
+    background-color: #fafafa;
+    border-radius: 8px;
+    
+    .empty-icon {
+      font-size: 48px;
+      display: block;
+      margin-bottom: 16px;
+    }
+    
+    .empty-message {
+      color: #9e9e9e;
+      font-size: 16px;
+      font-weight: 500;
+      margin: 0 0 8px 0;
+    }
+    
+    .empty-submessage {
+      color: #9e9e9e;
+      font-size: 14px;
+      margin: 0;
+    }
+  }
+
+  .completed-tours-container {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+
+    // Make tour cards visually secondary
+    ::ng-deep app-tour-card {
+      .tour-card {
+        background: #fafafa; // Off-white instead of white
+        border-color: #e0e0e0;
+        
+        // Reduce hover effect
+        &:hover {
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+        }
+      }
+    }
+  }
+
+  .see-all-link {
+    display: inline-block;
+    margin-top: 12px;
+    font-size: 14px;
+    color: #0d47a1;
+    text-decoration: none;
+    cursor: pointer;
+    font-weight: 500;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+// Sticky chat button (mobile only)
+.sticky-chat-button {
+  display: block;
+  position: fixed;
+  bottom: 16px;
+  right: 16px;
+  z-index: 1000;
+
+  button {
+    box-shadow: 0 4px 12px rgba(13, 71, 161, 0.3);
+  }
+}
+
+// ============================================
+// Desktop Layout (> 768px)
+// ONE MAIN BREAKPOINT - Smooth transition
+// ============================================
+@media (min-width: 769px) {
+  .profile-container {
+    // Desktop: CSS Grid with named areas
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    grid-template-areas:
+      "hero hero"
+      "sidebar main";
+    gap: 24px;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 24px;
+  }
+
+  .profile-hero {
+    grid-area: hero;
+    order: unset;
+  }
+
+  .profile-sidebar-wrapper {
+    grid-area: sidebar;
+    order: unset;
+    
+    // Sticky sidebar on desktop
+    position: sticky;
+    top: 80px; // Below fixed navbar
+    align-self: start;
+    max-height: calc(100vh - 96px);
+    overflow-y: auto;
+  }
+
+  .profile-main {
+    grid-area: main;
+    order: unset;
+    gap: 32px;
+  }
+
+  .key-info-strip {
+    gap: 32px;
+    padding: 20px;
+  }
+
+  .upcoming-tours-section {
+    .section-title {
+      font-size: 32px;
+      margin-bottom: 24px;
+    }
+
+    .tours-grid {
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 24px;
+    }
+  }
+
+  .completed-tours-section {
+    .section-title {
+      font-size: 26px;
+    }
+
+    .section-header {
+      margin-bottom: 20px;
+    }
+
+    // Desktop: Horizontal scroll gallery
+    .completed-tours-container {
+      flex-direction: row;
+      overflow-x: auto;
+      gap: 16px;
+      padding-bottom: 8px;
+
+      // Custom scrollbar styling
+      scrollbar-width: thin;
+      scrollbar-color: #e0e0e0 transparent;
+
+      &::-webkit-scrollbar {
+        height: 6px;
+      }
+
+      &::-webkit-scrollbar-thumb {
+        background: #e0e0e0;
+        border-radius: 3px;
+
+        &:hover {
+          background: #bdbdbd;
+        }
+      }
+
+      ::ng-deep app-tour-card {
+        flex: 0 0 320px; // Fixed width, no shrink
+        min-width: 320px;
+      }
+    }
+
+    // Hide "see all" link on desktop (all visible in scroll)
+    .see-all-link {
+      display: none;
+    }
+  }
+
+  // Hide sticky button on desktop
+  .sticky-chat-button {
+    display: none;
+  }
+}
+
+// ============================================
+// Large Desktop (> 1400px)
+// ============================================
+@media (min-width: 1401px) {
+  .upcoming-tours-section {
+    .tours-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+}
+

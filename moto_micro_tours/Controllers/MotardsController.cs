@@ -84,7 +84,6 @@ public class MotardsController : ControllerBase
                 BikeModel = user.MotardProfile.BikeModel,
                 LicenseNo = user.MotardProfile.LicenseNo,
                 AvgRating = user.MotardProfile.AvgRating,
-                CompletedTours = user.MotardProfile.CompletedTours,
                 TotalReviews = reviews.Count,
                 Reviews = reviews
             };
@@ -111,6 +110,26 @@ public class MotardsController : ControllerBase
                     .ToListAsync();
 
                 result.UpcomingTours = upcomingTours;
+
+                // Also include completed tours (past tours with Closed status)
+                var completedTours = await _context.TourMotards
+                    .Where(tm => tm.MotardUserId == userId)
+                    .Include(tm => tm.Tour)
+                    .Where(tm => tm.Tour!.Status == TourStatus.Closed && tm.Tour.StartAt < now)
+                    .OrderByDescending(tm => tm.Tour!.StartAt) // Most recent first
+                    .Select(tm => new MotardTourSummaryDto
+                    {
+                        TourId = tm.TourId,
+                        Title = tm.Tour!.Title,
+                        StartAt = tm.Tour.StartAt,
+                        StartLocationText = tm.Tour.StartLocationText,
+                        EndLocationText = tm.Tour.EndLocationText,
+                        AvailableSeats = tm.CapacitySeats - tm.SeatsBooked,
+                        PricePerSeat = tm.PricePerSeat
+                    })
+                    .ToListAsync();
+
+                result.CompletedTours = completedTours;
             }
 
             _logger.LogInformation(

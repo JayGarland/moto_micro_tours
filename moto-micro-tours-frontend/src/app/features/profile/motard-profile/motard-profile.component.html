@@ -1,0 +1,121 @@
+<!-- Loading State -->
+<div class="loading-container" *ngIf="loading">
+  <mat-spinner></mat-spinner>
+</div>
+
+<!-- Error State -->
+<div class="error-container" *ngIf="error && !loading">
+  <mat-icon>error_outline</mat-icon>
+  <p>{{ error }}</p>
+  <button mat-raised-button color="primary" (click)="goBack()">Back to Tours</button>
+</div>
+
+<!-- Profile Content -->
+<div class="profile-page" *ngIf="profile && !loading">
+  <!-- Desktop: 2-column layout, Mobile: Stack -->
+  <div class="profile-container">
+    
+    <!-- Hero Section (Full width on desktop, first on mobile) -->
+    <app-profile-hero 
+      class="profile-hero"
+      [profile]="profile"
+      (startChat)="onStartChat()"
+      (bookTour)="onBookTour()">
+    </app-profile-hero>
+
+    <!-- Left Sidebar (Desktop) / Top Header Block (Mobile) -->
+    <aside class="profile-sidebar-wrapper">
+      <app-profile-sidebar 
+        [profile]="profile" 
+        (startChat)="onStartChat()">
+      </app-profile-sidebar>
+    </aside>
+
+    <!-- Right Main Column -->
+    <main class="profile-main">
+
+      <!-- Key Info Strip -->
+      <div class="key-info-strip">
+        <div class="info-item" *ngIf="profile.licenseNo">
+          <mat-icon>verified</mat-icon>
+          <span>License: {{ profile.licenseNo }}</span>
+        </div>
+        <div class="info-item" *ngIf="profile.bikeModel">
+          <mat-icon>two_wheeler</mat-icon>
+          <span>{{ profile.bikeModel }}</span>
+        </div>
+        <div class="info-item">
+          <mat-icon>groups</mat-icon>
+          <span>{{ profile.completedTours?.length || 0 }} Tours Completed</span>
+        </div>
+      </div>
+
+      <!-- Upcoming Tours Section -->
+      <section class="upcoming-tours-section" id="upcoming-tours" *ngIf="profile.upcomingTours && profile.upcomingTours.length > 0">
+        <h2 class="section-title">Upcoming Tours</h2>
+        <div class="tours-grid">
+          <app-tour-card 
+            *ngFor="let tour of profile.upcomingTours"
+            [tour]="{
+              id: tour.tourId,
+              title: tour.title,
+              startAt: tour.startAt,
+              startLocationText: tour.startLocationText,
+              endLocationText: tour.endLocationText,
+              status: 'Published',
+              notes: '',
+              totalCapacity: tour.availableSeats,
+              totalSeatsBooked: 0,
+              minPrice: tour.pricePerSeat,
+              maxPrice: tour.pricePerSeat,
+              motardCount: 1,
+              motards: []
+            }">
+          </app-tour-card>
+        </div>
+      </section>
+
+      <!-- Completed Tours Section -->
+      <section class="completed-tours-section">
+        <div class="section-header">
+          <h3 class="section-title">Completed Tours</h3>
+          <p class="subtitle">Real rides I've done with other riders.</p>
+        </div>
+        
+        <!-- Tours List -->
+        <div class="completed-tours-container" [class.desktop-scroll]="!isMobile()" *ngIf="profile.completedTours && profile.completedTours.length > 0">
+          <app-tour-card 
+            *ngFor="let tour of displayedCompletedTours()"
+            [tour]="tour">
+          </app-tour-card>
+        </div>
+        
+        <!-- Empty State -->
+        <div class="empty-state" *ngIf="!profile.completedTours || profile.completedTours.length === 0">
+          <span class="empty-icon">🏍️</span>
+          <p class="empty-message">No completed tours yet.</p>
+          <p class="empty-submessage">Stay tuned for upcoming rides!</p>
+        </div>
+        
+        <!-- Mobile: Show more link -->
+        <a class="see-all-link" *ngIf="isMobile() && hasMoreCompletedTours()" (click)="showAllCompletedTours()">
+          See all {{ profile.completedTours?.length || 0 }} tours →
+        </a>
+      </section>
+
+      <!-- Reviews Section -->
+      <app-review-list [reviews]="profile.reviews"></app-review-list>
+
+      <!-- FAQ Section -->
+      <app-faq-section></app-faq-section>
+
+    </main>
+  </div>
+
+  <!-- Sticky Chat Button (Mobile) -->
+  <div class="sticky-chat-button">
+    <button mat-fab color="primary" (click)="onStartChat()">
+      <mat-icon>chat</mat-icon>
+    </button>
+  </div>
+</div>

@@ -47,7 +47,6 @@ export interface TourMotardDetailDto {
   motardBio?: string;
   bikeModel?: string;
   avgRating?: number;
-  completedTours: number;
 
   capacitySeats: number;
   seatsBooked: number;

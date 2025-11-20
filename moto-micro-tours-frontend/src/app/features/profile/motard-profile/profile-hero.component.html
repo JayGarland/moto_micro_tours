@@ -1,0 +1,38 @@
+<div class="profile-hero">
+  <!-- Scenic Banner (Placeholder) -->
+  <div class="hero-banner">
+    <div class="banner-placeholder">
+      <mat-icon>landscape</mat-icon>
+      <span>Profile Banner</span>
+    </div>
+  </div>
+
+  <!-- Hero Content -->
+  <div class="hero-content">
+    <!-- Title -->
+    <h1 class="hero-title">{{ profile.userName }}'s Tours</h1>
+
+    <!-- Rating & Reviews -->
+    <div class="hero-rating" *ngIf="profile.avgRating">
+      <div class="stars">
+        <mat-icon *ngFor="let filled of getStarArray()" [class.filled]="filled">
+          {{ filled ? 'star' : 'star_border' }}
+        </mat-icon>
+      </div>
+      <span class="rating-text">{{ profile.avgRating | number:'1.1-1' }} / 5.0</span>
+      <span class="review-count">· {{ profile.totalReviews }} reviews</span>
+    </div>
+
+    <!-- Call-to-Action Buttons -->
+    <div class="hero-actions">
+      <button mat-raised-button color="primary" class="primary-cta" (click)="onBookTour()">
+        <mat-icon>event_available</mat-icon>
+        Book a Tour
+      </button>
+      <button mat-stroked-button color="primary" class="secondary-cta" (click)="onStartChat()">
+        <mat-icon>chat</mat-icon>
+        Start Chat
+      </button>
+    </div>
+  </div>
+</div>

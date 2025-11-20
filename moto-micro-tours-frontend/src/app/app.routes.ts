@@ -44,6 +44,10 @@ export const routes: Routes = [
     ]
   },
   {
+    path: 'motards/:userId',
+    loadComponent: () => import('./features/profile/motard-profile/motard-profile.component').then(m => m.MotardProfileComponent)
+  },
+  {
     path: 'motard',
     canActivate: [roleGuard('Motard')],
     children: [
