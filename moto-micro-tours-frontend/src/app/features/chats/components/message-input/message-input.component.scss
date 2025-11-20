@@ -1,0 +1,141 @@
+@use '../../../../../styles/variables' as *;
+
+.message-input-container {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid #e0e0e0;
+  background-color: white;
+}
+
+// ==================== Error Banner ====================
+.error-banner {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  padding: $spacing-sm $spacing-md;
+  background-color: #ffebee;
+  border-bottom: 1px solid #ffcdd2;
+  
+  .error-icon {
+    font-size: 16px;
+  }
+  
+  .error-text {
+    flex: 1;
+    color: #c62828;
+    font-size: 13px;
+  }
+}
+
+// ==================== Input Wrapper ====================
+.input-wrapper {
+  display: flex;
+  align-items: flex-end;
+  gap: $spacing-sm;
+  padding: $spacing-md;
+}
+
+// ==================== Message Input ====================
+.message-input {
+  flex: 1;
+  min-height: 40px;
+  max-height: 120px;
+  padding: $spacing-sm $spacing-md;
+  border: 1px solid #e0e0e0;
+  border-radius: $border-radius-md;
+  font-family: $font-family-primary;
+  font-size: 15px;
+  resize: none;
+  overflow-y: auto;
+  transition: border-color 0.2s;
+  
+  &:focus {
+    outline: none;
+    border-color: $yamaha-blue-primary;
+  }
+  
+  &:disabled {
+    background-color: #f5f5f5;
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+  
+  &::placeholder {
+    color: $yamaha-gray;
+    opacity: 0.6;
+  }
+}
+
+// ==================== Send Button ====================
+.send-button {
+  padding: $spacing-sm $spacing-lg;
+  background-color: $yamaha-blue-primary;
+  color: white;
+  border: none;
+  border-radius: $border-radius-md;
+  font-weight: 500;
+  font-size: 15px;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-width: 80px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  &:hover:not(:disabled) {
+    background-color: $yamaha-blue-light;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  }
+  
+  &:active:not(:disabled) {
+    transform: translateY(0);
+  }
+  
+  &:disabled {
+    background-color: #bdbdbd;
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+  
+  &.sending {
+    background-color: $yamaha-blue-light;
+  }
+}
+
+// ==================== Spinner ====================
+.spinner-small {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top: 2px solid white;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+// ==================== Character Counter ====================
+.char-counter {
+  padding: 0 $spacing-md $spacing-sm $spacing-md;
+  font-size: 12px;
+  color: $yamaha-gray;
+  text-align: right;
+}
+
+// ==================== Mobile Responsiveness ====================
+@media (max-width: 768px) {
+  .input-wrapper {
+    padding: $spacing-sm;
+  }
+  
+  .send-button {
+    min-width: 60px;
+    padding: $spacing-sm $spacing-md;
+  }
+}

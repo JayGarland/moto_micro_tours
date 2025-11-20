@@ -1,0 +1,33 @@
+<div class="message-input-container">
+  <!-- Error Display -->
+  <div *ngIf="error" class="error-banner">
+    <span class="error-icon">⚠️</span>
+    <span class="error-text">{{ error }}</span>
+  </div>
+
+  <!-- Input Area -->
+  <div class="input-wrapper">
+    <textarea
+      [(ngModel)]="messageContent"
+      [placeholder]="placeholder"
+      [disabled]="sending"
+      (keydown)="onKeyDown($event)"
+      class="message-input"
+      rows="1"
+      maxlength="1000"></textarea>
+    
+    <button
+      (click)="onSend()"
+      [disabled]="!messageContent.trim() || sending"
+      class="send-button"
+      [class.sending]="sending">
+      <span *ngIf="!sending">Send</span>
+      <span *ngIf="sending" class="spinner-small"></span>
+    </button>
+  </div>
+
+  <!-- Character Counter -->
+  <div class="char-counter" *ngIf="messageContent.length > 800">
+    {{ messageContent.length }} / 1000
+  </div>
+</div>

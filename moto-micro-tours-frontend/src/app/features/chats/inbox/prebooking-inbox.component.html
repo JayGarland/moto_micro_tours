@@ -1,0 +1,73 @@
+<div class="inbox-container">
+  <!-- Header -->
+  <div class="inbox-header">
+    <h1>Messages</h1>
+    <button class="btn-refresh" (click)="loadConversations()" [disabled]="loading()">
+      <span *ngIf="!loading()">🔄</span>
+      <span *ngIf="loading()">⏳</span>
+    </button>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading()" class="loading-state">
+    <div class="spinner"></div>
+    <p>Loading conversations...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error() && !loading()" class="error-state">
+    <p>{{ error() }}</p>
+    <button class="btn-retry" (click)="loadConversations()">Retry</button>
+  </div>
+
+  <!-- Main Content: Split View -->
+  <div *ngIf="!loading() && !error()" class="inbox-content">
+    <!-- Conversation List (Left Side) -->
+    <div class="conversation-list" [class.has-selection]="showChat()">
+      <!-- Empty State -->
+      <div *ngIf="conversations().length === 0" class="empty-state">
+        <p>No conversations yet</p>
+        <p class="empty-subtitle">Start chatting with motards from their profile pages</p>
+      </div>
+
+      <!-- Conversation Items -->
+      <div
+        *ngFor="let conv of conversations()"
+        class="conversation-item"
+        [class.selected]="isSelected(conv.conversationId)"
+        (click)="onSelectConversation(conv)"
+      >
+        <!-- Avatar Placeholder -->
+        <div class="conversation-avatar">
+          {{ conv.otherUserName.charAt(0).toUpperCase() }}
+        </div>
+
+        <!-- Conversation Info -->
+        <div class="conversation-info">
+          <div class="conversation-header">
+            <h3 class="other-user-name">{{ conv.otherUserName }}</h3>
+            <span class="conversation-time">{{ conv.displayTime }}</span>
+          </div>
+          
+          <div class="conversation-details">
+            <p class="tour-title">{{ conv.tourTitle }}</p>
+            <p class="last-message">{{ truncateMessage(conv.lastMessage) }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chat View (Right Side) -->
+    <div class="chat-view" *ngIf="showChat() && selectedConversation()">
+      <app-chat-sidebar
+        [isOpen]="showChat()"
+        [conversationId]="selectedConversationId()!"
+        [tourId]="selectedConversation()!.tourId"
+        [motardUserId]="selectedConversation()!.motardUserId"
+        [chatWithName]="selectedConversation()!.otherUserName"
+        [tourTitle]="selectedConversation()!.tourTitle"
+        (close)="onCloseChat()">
+      </app-chat-sidebar>
+    </div>
+  </div>
+</div>

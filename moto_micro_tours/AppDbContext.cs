@@ -52,6 +52,19 @@ namespace moto_micro_tours
             modelBuilder.Entity<PreBookingConversation>()
                 .HasIndex(x => new { x.TourId, x.MotardUserId, x.ParticipantUserId }).IsUnique();
 
+            // PreBookingConversation: Configure FK relationships explicitly
+            modelBuilder.Entity<PreBookingConversation>()
+                .HasOne(c => c.Motard)
+                .WithMany()
+                .HasForeignKey(c => c.MotardUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<PreBookingConversation>()
+                .HasOne(c => c.Participant)
+                .WithMany()
+                .HasForeignKey(c => c.ParticipantUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
             // BookingConversation: Unique (BookingId)
             modelBuilder.Entity<BookingConversation>()
                 .HasIndex(x => x.BookingId).IsUnique();
@@ -115,16 +128,6 @@ namespace moto_micro_tours
                     fk.DeleteBehavior = DeleteBehavior.Restrict;
                 }
             }
-            // Configure RowVersion concurrency tokens
-            modelBuilder.Entity<Booking>()
-                .Property(b => b.RowVersion)
-                .IsRowVersion()
-                .HasDefaultValueSql("CURRENT_TIMESTAMP");
-
-            modelBuilder.Entity<TourMotard>()
-                .Property(tm => tm.RowVersion)
-                .IsRowVersion()
-                .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
             // IdempotencyKey entity configuration
             modelBuilder.Entity<IdempotencyKey>(b =>

@@ -119,3 +119,18 @@
     </button>
   </div>
 </div>
+
+<!-- Chat Sidebar - Stage F5 -->
+<app-chat-sidebar
+  *ngIf="profile"
+  [isOpen]="showChat()"
+  [tourId]="selectedTourId() || profile.upcomingTours?.[0]?.tourId || ''"
+  [tourTitle]="selectedTourTitle() || profile.upcomingTours?.[0]?.title || 'Chat'"
+  [motardUserId]="profile.userId"
+  [chatWithName]="profile.userName"
+  [motardRating]="selectedTourDetails().rating"
+  [tripDate]="selectedTourDetails().tripDate"
+  [priceRange]="selectedTourDetails().priceRange"
+  [startingCity]="selectedTourDetails().startingCity"
+  (close)="onCloseChat()">
+</app-chat-sidebar>

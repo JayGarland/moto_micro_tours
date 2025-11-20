@@ -1,0 +1,82 @@
+<div class="chat-container">
+  <!-- Header with Context Bar -->
+  <div class="chat-header">
+    <div class="header-content">
+      <!-- Motard Info -->
+      <div class="chat-info">
+        <div class="motard-info">
+          <h3 class="chat-with-name">{{ chatWithName }}</h3>
+          @if (motardRating) {
+            <div class="rating">
+              <span class="star">★</span>
+              <span class="rating-value">{{ motardRating }}</span>
+            </div>
+          }
+        </div>
+      </div>
+      
+      <div class="header-actions">
+        <button 
+          class="request-booking-btn"
+          (click)="onRequestBooking()"
+          [disabled]="!conversationId">
+          Request Booking
+        </button>
+      </div>
+    </div>
+    
+    <!-- Tour Context Bar -->
+    @if (tourTitle) {
+      <div class="tour-context-bar">
+        <div class="tour-title-section">
+          <h4 class="tour-title">{{ tourTitle }}</h4>
+        </div>
+        
+        <div class="tour-details">
+          @if (tripDate) {
+            <div class="detail-item">
+              <span class="detail-icon">📅</span>
+              <span class="detail-text">{{ tripDate }}</span>
+            </div>
+          }
+          @if (duration) {
+            <div class="detail-item">
+              <span class="detail-icon">⏱️</span>
+              <span class="detail-text">{{ duration }}</span>
+            </div>
+          }
+          @if (priceRange) {
+            <div class="detail-item">
+              <span class="detail-icon">💰</span>
+              <span class="detail-text">{{ priceRange }}</span>
+            </div>
+          }
+          @if (startingCity) {
+            <div class="detail-item">
+              <span class="detail-icon">📍</span>
+              <span class="detail-text">{{ startingCity }}</span>
+            </div>
+          }
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- Messages Area -->
+  <div class="chat-body">
+    <app-message-list
+      [messages]="messages()"
+      [loading]="loading()"
+      [error]="loadError()">
+    </app-message-list>
+  </div>
+
+  <!-- Input Area -->
+  <div class="chat-footer">
+    <app-message-input
+      [sending]="sending()"
+      [error]="sendError()"
+      (sendMessage)="onSendMessage($event)">
+    </app-message-input>
+  </div>
+</div>

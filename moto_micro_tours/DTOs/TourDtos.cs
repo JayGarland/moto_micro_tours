@@ -1,9 +1,15 @@
 namespace moto_micro_tours.DTOs;
 
+// NOTE: Tour entity is missing these fields in the database:
+// TODO (Database Schema): Add Description field (string?) for tour overview/details
+// TODO (Database Schema): Add EndAt field (DateTime) to calculate tour duration
+// TODO (Database Schema): Add CreatedAt field (DateTime) for tracking tour creation
+// These should be added to the Tour entity, then reflected in all DTOs below.
+
 /// <summary>
-/// DTO for listing tours with their motards
+/// Base class for tour information shared across DTOs
 /// </summary>
-public class TourListDto
+public abstract class TourBaseDto
 {
     public Guid Id { get; set; }
     public string Title { get; set; } = string.Empty;
@@ -12,7 +18,14 @@ public class TourListDto
     public string EndLocationText { get; set; } = string.Empty;
     public string Status { get; set; } = string.Empty;
     public string? Notes { get; set; }
+}
 
+/// <summary>
+/// DTO for listing tours with their motards
+/// Used in tour list/search views
+/// </summary>
+public class TourListDto : TourBaseDto
+{
     // Aggregated info from TourMotards
     public int TotalCapacity { get; set; }
     public int TotalSeatsBooked { get; set; }
@@ -82,6 +95,7 @@ public class ReviewDto
 
 /// <summary>
 /// Summary of a tour that a motard is part of
+/// Used in MotardProfileDto to show upcoming/completed tours
 /// </summary>
 public class MotardTourSummaryDto
 {
@@ -96,17 +110,10 @@ public class MotardTourSummaryDto
 
 /// <summary>
 /// Detailed tour info with full motard details
+/// Used for tour detail page
 /// </summary>
-public class TourDetailDto
-{//todo: add datetime createdat
-    public Guid Id { get; set; }
-    public string Title { get; set; } = string.Empty;
-    public DateTime StartAt { get; set; }
-    public string StartLocationText { get; set; } = string.Empty;
-    public string EndLocationText { get; set; } = string.Empty;
-    public string Status { get; set; } = string.Empty;
-    public string? Notes { get; set; }
-
+public class TourDetailDto : TourBaseDto
+{
     public List<TourMotardDetailDto> Motards { get; set; } = new();
 }
 

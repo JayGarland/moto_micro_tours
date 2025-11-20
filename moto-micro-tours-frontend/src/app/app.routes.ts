@@ -48,6 +48,11 @@ export const routes: Routes = [
     loadComponent: () => import('./features/profile/motard-profile/motard-profile.component').then(m => m.MotardProfileComponent)
   },
   {
+    path: 'messages',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/chats/inbox/prebooking-inbox.component').then(m => m.PrebookingInboxComponent)
+  },
+  {
     path: 'motard',
     canActivate: [roleGuard('Motard')],
     children: [

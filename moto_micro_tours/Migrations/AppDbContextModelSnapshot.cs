@@ -248,22 +248,15 @@ namespace moto_micro_tours.Migrations
                     b.Property<DateTime?>("PaidAt")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<string>("ParticipantId")
-                        .HasColumnType("varchar(255)");
-
                     b.Property<string>("ParticipantUserId")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasColumnType("varchar(255)");
 
                     b.Property<DateTime?>("RefundedAt")
                         .HasColumnType("datetime(6)");
 
                     b.Property<DateTime>("RowVersion")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("datetime(6)");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlComputedColumn(b.Property<DateTime>("RowVersion"));
 
                     b.Property<int>("Status")
                         .HasColumnType("int");
@@ -276,13 +269,13 @@ namespace moto_micro_tours.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ParticipantId");
+                    b.HasIndex("ParticipantUserId");
 
                     b.HasIndex("TourId");
 
                     b.HasIndex("TourMotardId");
 
-                    b.ToTable("Bookings", (string)null);
+                    b.ToTable("Bookings");
                 });
 
             modelBuilder.Entity("moto_micro_tours.Domain.Entities.BookingConversation", b =>
@@ -302,7 +295,36 @@ namespace moto_micro_tours.Migrations
                     b.HasIndex("BookingId")
                         .IsUnique();
 
-                    b.ToTable("BookingConversations", (string)null);
+                    b.ToTable("BookingConversations");
+                });
+
+            modelBuilder.Entity("moto_micro_tours.Domain.Entities.IdempotencyKey", b =>
+                {
+                    b.Property<string>("Key")
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime(6)")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<string>("ResponseBody")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<int>("StatusCode")
+                        .HasColumnType("int");
+
+                    b.HasKey("Key");
+
+                    b.HasIndex("Key")
+                        .IsUnique();
+
+                    b.ToTable("IdempotencyKeys");
                 });
 
             modelBuilder.Entity("moto_micro_tours.Domain.Entities.Message", b =>
@@ -339,7 +361,7 @@ namespace moto_micro_tours.Migrations
 
                     b.HasIndex("SenderId");
 
-                    b.ToTable("Messages", null, t =>
+                    b.ToTable("Messages", t =>
                         {
                             t.HasCheckConstraint("CK_Message_XOR", "((PreBookingConversationId IS NOT NULL AND BookingConversationId IS NULL) OR (PreBookingConversationId IS NULL AND BookingConversationId IS NOT NULL))");
                         });
@@ -376,7 +398,7 @@ namespace moto_micro_tours.Migrations
                     b.HasIndex("UserId")
                         .IsUnique();
 
-                    b.ToTable("MotardProfiles", (string)null);
+                    b.ToTable("MotardProfiles");
                 });
 
             modelBuilder.Entity("moto_micro_tours.Domain.Entities.Payment", b =>
@@ -408,7 +430,7 @@ namespace moto_micro_tours.Migrations
                     b.HasIndex("BookingId")
                         .IsUnique();
 
-                    b.ToTable("Payments", (string)null);
+                    b.ToTable("Payments");
                 });
 
             modelBuilder.Entity("moto_micro_tours.Domain.Entities.PaymentKey", b =>
@@ -436,7 +458,7 @@ namespace moto_micro_tours.Migrations
 
                     b.HasIndex("PaymentId");
 
-                    b.ToTable("PaymentKey", (string)null);
+                    b.ToTable("PaymentKey");
                 });
 
             modelBuilder.Entity("moto_micro_tours.Domain.Entities.Payout", b =>
@@ -468,7 +490,7 @@ namespace moto_micro_tours.Migrations
                     b.HasIndex("BookingId")
                         .IsUnique();
 
-                    b.ToTable("Payouts", (string)null);
+                    b.ToTable("Payouts");
                 });
 
             modelBuilder.Entity("moto_micro_tours.Domain.Entities.PreBookingConversation", b =>
@@ -480,14 +502,8 @@ namespace moto_micro_tours.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<string>("MotardId")
-                        .HasColumnType("varchar(255)");
-
                     b.Property<string>("MotardUserId")
                         .IsRequired()
-                        .HasColumnType("varchar(255)");
-
-                    b.Property<string>("ParticipantId")
                         .HasColumnType("varchar(255)");
 
                     b.Property<string>("ParticipantUserId")
@@ -499,14 +515,14 @@ namespace moto_micro_tours.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("MotardId");
+                    b.HasIndex("MotardUserId");
 
-                    b.HasIndex("ParticipantId");
+                    b.HasIndex("ParticipantUserId");
 
                     b.HasIndex("TourId", "MotardUserId", "ParticipantUserId")
                         .IsUnique();
 
-                    b.ToTable("PreBookingConversations", (string)null);
+                    b.ToTable("PreBookingConversations");
                 });
 
             modelBuilder.Entity("moto_micro_tours.Domain.Entities.RateLimitCounter", b =>
@@ -535,7 +551,7 @@ namespace moto_micro_tours.Migrations
                     b.HasIndex("ParticipantUserId", "Date")
                         .IsUnique();
 
-                    b.ToTable("RateLimitCounters", (string)null);
+                    b.ToTable("RateLimitCounters");
                 });
 
             modelBuilder.Entity("moto_micro_tours.Domain.Entities.Review", b =>
@@ -544,12 +560,9 @@ namespace moto_micro_tours.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("char(36)");
 
-                    b.Property<string>("AuthorId")
-                        .HasColumnType("varchar(255)");
-
                     b.Property<string>("AuthorUserId")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasColumnType("varchar(255)");
 
                     b.Property<Guid>("BookingId")
                         .HasColumnType("char(36)");
@@ -560,26 +573,23 @@ namespace moto_micro_tours.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<string>("MotardId")
-                        .HasColumnType("varchar(255)");
-
                     b.Property<string>("MotardUserId")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasColumnType("varchar(255)");
 
                     b.Property<int>("Rating")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AuthorId");
+                    b.HasIndex("AuthorUserId");
 
                     b.HasIndex("BookingId")
                         .IsUnique();
 
-                    b.HasIndex("MotardId");
+                    b.HasIndex("MotardUserId");
 
-                    b.ToTable("Reviews", (string)null);
+                    b.ToTable("Reviews");
                 });
 
             modelBuilder.Entity("moto_micro_tours.Domain.Entities.Tour", b =>
@@ -611,7 +621,7 @@ namespace moto_micro_tours.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Tours", (string)null);
+                    b.ToTable("Tours");
                 });
 
             modelBuilder.Entity("moto_micro_tours.Domain.Entities.TourMotard", b =>
@@ -622,9 +632,6 @@ namespace moto_micro_tours.Migrations
 
                     b.Property<int>("CapacitySeats")
                         .HasColumnType("int");
-
-                    b.Property<string>("MotardId")
-                        .HasColumnType("varchar(255)");
 
                     b.Property<Guid?>("MotardProfileId")
                         .HasColumnType("char(36)");
@@ -637,11 +644,7 @@ namespace moto_micro_tours.Migrations
                         .HasColumnType("decimal(10,2)");
 
                     b.Property<DateTime>("RowVersion")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("datetime(6)");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlComputedColumn(b.Property<DateTime>("RowVersion"));
 
                     b.Property<int>("SeatsBooked")
                         .HasColumnType("int");
@@ -651,14 +654,14 @@ namespace moto_micro_tours.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("MotardId");
-
                     b.HasIndex("MotardProfileId");
+
+                    b.HasIndex("MotardUserId");
 
                     b.HasIndex("TourId", "MotardUserId")
                         .IsUnique();
 
-                    b.ToTable("TourMotards", (string)null);
+                    b.ToTable("TourMotards");
                 });
 
             modelBuilder.Entity("moto_micro_tours.Domain.Entities.UserRole", b =>
@@ -678,7 +681,7 @@ namespace moto_micro_tours.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("AppUserRoles", (string)null);
+                    b.ToTable("AppUserRoles");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -736,8 +739,9 @@ namespace moto_micro_tours.Migrations
                 {
                     b.HasOne("moto_micro_tours.Domain.Entities.AppUser", "Participant")
                         .WithMany()
-                        .HasForeignKey("ParticipantId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .HasForeignKey("ParticipantUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.HasOne("moto_micro_tours.Domain.Entities.Tour", "Tour")
                         .WithMany("Bookings")
@@ -846,13 +850,15 @@ namespace moto_micro_tours.Migrations
                 {
                     b.HasOne("moto_micro_tours.Domain.Entities.AppUser", "Motard")
                         .WithMany()
-                        .HasForeignKey("MotardId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .HasForeignKey("MotardUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.HasOne("moto_micro_tours.Domain.Entities.AppUser", "Participant")
                         .WithMany()
-                        .HasForeignKey("ParticipantId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .HasForeignKey("ParticipantUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.HasOne("moto_micro_tours.Domain.Entities.Tour", "Tour")
                         .WithMany("PreBookingConversations")
@@ -881,8 +887,9 @@ namespace moto_micro_tours.Migrations
                 {
                     b.HasOne("moto_micro_tours.Domain.Entities.AppUser", "Author")
                         .WithMany()
-                        .HasForeignKey("AuthorId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .HasForeignKey("AuthorUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.HasOne("moto_micro_tours.Domain.Entities.Booking", "Booking")
                         .WithOne("Review")
@@ -892,8 +899,9 @@ namespace moto_micro_tours.Migrations
 
                     b.HasOne("moto_micro_tours.Domain.Entities.AppUser", "Motard")
                         .WithMany()
-                        .HasForeignKey("MotardId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .HasForeignKey("MotardUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.Navigation("Author");
 
@@ -904,15 +912,16 @@ namespace moto_micro_tours.Migrations
 
             modelBuilder.Entity("moto_micro_tours.Domain.Entities.TourMotard", b =>
                 {
-                    b.HasOne("moto_micro_tours.Domain.Entities.AppUser", "Motard")
-                        .WithMany()
-                        .HasForeignKey("MotardId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.HasOne("moto_micro_tours.Domain.Entities.MotardProfile", null)
                         .WithMany("TourMemberships")
                         .HasForeignKey("MotardProfileId")
                         .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("moto_micro_tours.Domain.Entities.AppUser", "Motard")
+                        .WithMany()
+                        .HasForeignKey("MotardUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.HasOne("moto_micro_tours.Domain.Entities.Tour", "Tour")
                         .WithMany("TourMotards")

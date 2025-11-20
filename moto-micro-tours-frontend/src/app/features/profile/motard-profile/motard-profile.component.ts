@@ -11,6 +11,7 @@ import { ProfileHeroComponent } from './profile-hero.component';
 import { ReviewListComponent } from './review-list.component';
 import { FAQSectionComponent } from './faq-section.component';
 import { TourCardComponent } from '../../tours/tour-list/tour-card.component';
+import { ChatSidebarComponent } from '../../chats/chat-sidebar/chat-sidebar.component';
 
 @Component({
   selector: 'app-motard-profile',
@@ -24,7 +25,8 @@ import { TourCardComponent } from '../../tours/tour-list/tour-card.component';
     ProfileHeroComponent,
     ReviewListComponent,
     FAQSectionComponent,
-    TourCardComponent
+    TourCardComponent,
+    ChatSidebarComponent
   ],
   templateUrl: './motard-profile.component.html',
   styleUrls: ['./motard-profile.component.scss']
@@ -33,6 +35,18 @@ export class MotardProfileComponent implements OnInit {
   profile: MotardProfileDto | null = null;
   loading = true;
   error: string | null = null;
+
+  // Chat state - Stage F5
+  showChat = signal(false);
+  selectedTourId = signal<string | null>(null);
+  selectedTourTitle = signal<string>('');
+  selectedTourDetails = signal<{
+    rating?: number;
+    tripDate?: string;
+    duration?: string;
+    priceRange?: string;
+    startingCity?: string;
+  }>({});
 
   // Responsive behavior
   isMobile = signal(false);
@@ -108,10 +122,58 @@ export class MotardProfileComponent implements OnInit {
       });
   }
 
+  /**
+   * Open pre-booking chat - Stage F5
+   * Opens chat sidebar with the first upcoming tour (or null if none)
+   */
   onStartChat(): void {
-    // TODO: Navigate to chat or open chat dialog (Stage F5)
-    console.log('Start chat with motard:', this.profile?.userId);
-    alert('Chat functionality will be implemented in Stage F5');
+    if (!this.profile) return;
+
+    // Use first upcoming tour if available
+    const firstTour = this.profile.upcomingTours?.[0];
+    
+    if (firstTour) {
+      this.selectedTourId.set(firstTour.tourId);
+      this.selectedTourTitle.set(firstTour.title);
+      
+      // Format tour details for context bar
+      const tripDate = this.formatTripDate(firstTour.startAt);
+      const priceRange = `$${firstTour.pricePerSeat}`;
+      const startingCity = firstTour.startLocationText;
+      
+      this.selectedTourDetails.set({
+        rating: this.profile.avgRating,
+        tripDate,
+        priceRange,
+        startingCity
+      });
+    } else {
+      // No upcoming tours - still allow general chat
+      // Backend will handle conversation without specific tour
+      this.selectedTourId.set(null);
+      this.selectedTourTitle.set('General Inquiry');
+    }
+
+    this.showChat.set(true);
+  }
+
+  /**
+   * Close chat sidebar
+   */
+  onCloseChat(): void {
+    this.showChat.set(false);
+  }
+  
+  /**
+   * Format trip date for display
+   * Converts ISO date string to readable format
+   */
+  private formatTripDate(isoDate: string): string {
+    const date = new Date(isoDate);
+    const month = date.toLocaleDateString('en-US', { month: 'short' });
+    const day = date.getDate();
+    const year = date.getFullYear();
+    return `${month} ${day}, ${year}`;
   }
 
   onBookTour(): void {
