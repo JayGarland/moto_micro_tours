@@ -1,0 +1,26 @@
+<div class="dashboard-header">
+  <div class="header-content">
+    <div class="header-text">
+      <h1 class="header-title">{{ title }}</h1>
+      <p class="header-subtitle">{{ subtitle }}</p>
+    </div>
+    <div class="header-actions" *ngIf="primaryActionLabel || secondaryActionLabel">
+      <button
+        *ngIf="secondaryActionLabel"
+        type="button"
+        class="btn btn-secondary"
+        (click)="onSecondaryClick()"
+      >
+        {{ secondaryActionLabel }}
+      </button>
+      <button
+        *ngIf="primaryActionLabel"
+        type="button"
+        class="btn btn-primary"
+        (click)="onPrimaryClick()"
+      >
+        {{ primaryActionLabel }}
+      </button>
+    </div>
+  </div>
+</div>

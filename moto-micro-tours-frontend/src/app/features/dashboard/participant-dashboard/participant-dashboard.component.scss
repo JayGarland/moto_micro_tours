@@ -1,0 +1,238 @@
+.participant-dashboard {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+
+  @media (max-width: 768px) {
+    padding: 1.5rem 1rem;
+  }
+}
+
+// Loading State
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  gap: 1rem;
+
+  p {
+    color: var(--color-text-secondary, #6b7280);
+    font-size: 1rem;
+  }
+}
+
+.spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid var(--color-border, #e5e7eb);
+  border-top-color: var(--color-primary, #0066b2);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// Error State
+.error-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+}
+
+.error-message {
+  text-align: center;
+  padding: 2rem;
+  max-width: 400px;
+
+  .error-icon {
+    font-size: 3rem;
+    display: block;
+    margin-bottom: 1rem;
+  }
+
+  h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--color-text-primary, #111827);
+    margin: 0 0 0.5rem 0;
+  }
+
+  p {
+    color: var(--color-text-secondary, #6b7280);
+    margin: 0 0 1.5rem 0;
+    font-size: 0.875rem;
+  }
+
+  .btn {
+    margin: 0 auto;
+  }
+}
+
+// Dashboard Content
+.dashboard-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+}
+
+// Next Ride Card (Featured)
+.next-ride-section {
+  margin-bottom: 1rem;
+}
+
+.section-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--color-text-primary, #111827);
+  margin: 0 0 1.5rem 0;
+}
+
+.next-ride-card {
+  background: linear-gradient(135deg, #0066b2 0%, #004d8a 100%);
+  color: white;
+  border-radius: 1rem;
+  padding: 2rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 102, 178, 0.2), 0 4px 6px -2px rgba(0, 102, 178, 0.1);
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 25px -5px rgba(0, 102, 178, 0.3), 0 10px 10px -5px rgba(0, 102, 178, 0.1);
+  }
+
+  @media (max-width: 768px) {
+    padding: 1.5rem;
+  }
+}
+
+.next-ride-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.ride-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0;
+  flex: 1;
+  line-height: 1.3;
+
+  @media (max-width: 768px) {
+    font-size: 1.25rem;
+  }
+}
+
+.booking-status {
+  padding: 0.375rem 0.875rem;
+  border-radius: 1rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+  background-color: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+}
+
+.status-approved {
+  background-color: rgba(219, 234, 254, 0.9);
+  color: #1e40af;
+}
+
+.status-paid {
+  background-color: rgba(209, 250, 229, 0.9);
+  color: #065f46;
+}
+
+.ride-details {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.ride-detail-row {
+  display: grid;
+  grid-template-columns: auto auto 1fr;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.95rem;
+}
+
+.detail-icon {
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.detail-label {
+  font-weight: 500;
+  opacity: 0.9;
+}
+
+.detail-value {
+  font-weight: 600;
+  text-align: right;
+}
+
+.ride-actions {
+  display: flex;
+  gap: 0.75rem;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+  }
+}
+
+// Button Styles
+.btn {
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  font-size: 0.875rem;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+  white-space: nowrap;
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+.btn-primary {
+  background-color: white;
+  color: var(--color-primary, #0066b2);
+  font-weight: 600;
+
+  &:hover {
+    background-color: #f9fafb;
+  }
+
+  // When used in error state
+  .error-message & {
+    background-color: var(--color-primary, #0066b2);
+    color: white;
+
+    &:hover {
+      background-color: var(--color-primary-dark, #004d8a);
+    }
+  }
+}

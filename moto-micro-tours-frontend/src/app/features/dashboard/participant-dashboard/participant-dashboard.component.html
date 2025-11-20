@@ -1,0 +1,98 @@
+<div class="participant-dashboard">
+  <app-dashboard-header
+    title="My rides"
+    subtitle="Overview of your moto micro tours"
+    primaryActionLabel="Browse tours"
+    (primaryAction)="onBrowseTours()"
+  ></app-dashboard-header>
+
+  <!-- Loading State -->
+  <div class="loading-container" *ngIf="loading()">
+    <div class="spinner"></div>
+    <p>Loading your bookings...</p>
+  </div>
+
+  <!-- Error State -->
+  <div class="error-container" *ngIf="!loading() && error()">
+    <div class="error-message">
+      <span class="error-icon">⚠️</span>
+      <h3>Unable to load bookings</h3>
+      <p>{{ error() }}</p>
+      <button class="btn btn-primary" (click)="retry()">Try again</button>
+    </div>
+  </div>
+
+  <!-- Dashboard Content -->
+  <div class="dashboard-content" *ngIf="!loading() && !error()">
+    
+    <!-- Next Ride Card (Highlighted) -->
+    <section class="next-ride-section" *ngIf="nextBooking()">
+      <h2 class="section-title">Next ride</h2>
+      <div class="next-ride-card">
+        <div class="next-ride-header">
+          <h3 class="ride-title">{{ nextBooking()!.tourTitle }}</h3>
+          <span 
+            class="booking-status"
+            [ngClass]="getStatusClass(nextBooking()!.status)"
+          >
+            {{ getStatusLabel(nextBooking()!.status) }}
+          </span>
+        </div>
+
+        <div class="ride-details">
+          <div class="ride-detail-row">
+            <span class="detail-icon">📅</span>
+            <span class="detail-label">Date:</span>
+            <span class="detail-value">{{ formatDate(nextBooking()!.tourStartAt) }}</span>
+          </div>
+
+          <div class="ride-detail-row">
+            <span class="detail-icon">👤</span>
+            <span class="detail-label">Motard:</span>
+            <span class="detail-value">{{ nextBooking()!.motardName }}</span>
+          </div>
+
+          <div class="ride-detail-row">
+            <span class="detail-icon">💰</span>
+            <span class="detail-label">Price:</span>
+            <span class="detail-value">{{ formatPrice(nextBooking()!.pricePerSeat) }}</span>
+          </div>
+        </div>
+
+        <div class="ride-actions">
+          <button
+            class="btn btn-primary"
+            (click)="onViewBooking(nextBooking()!.bookingId)"
+          >
+            View booking details
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Pending Requests Section -->
+    <app-booking-section-list
+      title="Pending requests"
+      [bookings]="pendingRequests()"
+      emptyMessage="No pending requests"
+      emptyIcon="⏳"
+    ></app-booking-section-list>
+
+    <!-- Upcoming Bookings Section -->
+    <app-booking-section-list
+      title="Upcoming rides"
+      [bookings]="upcomingBookings()"
+      emptyMessage="No upcoming rides"
+      emptyIcon="🏍️"
+    ></app-booking-section-list>
+
+    <!-- Past Rides Section -->
+    <app-booking-section-list
+      title="Past rides"
+      [bookings]="pastBookings()"
+      emptyMessage="No past rides yet"
+      emptyIcon="📜"
+    ></app-booking-section-list>
+
+  </div>
+</div>

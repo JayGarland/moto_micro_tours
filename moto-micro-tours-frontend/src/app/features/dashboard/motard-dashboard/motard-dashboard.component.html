@@ -1,0 +1,174 @@
+<div class="motard-dashboard">
+  <app-dashboard-header
+    title="Motard dashboard"
+    subtitle="Manage your tours and bookings"
+    primaryActionLabel="Create new tour"
+    (primaryAction)="onCreateTour()"
+  ></app-dashboard-header>
+
+  <!-- Loading State -->
+  <div class="loading-container" *ngIf="loading()">
+    <div class="spinner"></div>
+    <p>Loading your dashboard...</p>
+  </div>
+
+  <!-- Error State -->
+  <div class="error-container" *ngIf="!loading() && error()">
+    <div class="error-message">
+      <span class="error-icon">⚠️</span>
+      <h3>Unable to load dashboard</h3>
+      <p>{{ error() }}</p>
+      <button class="btn btn-primary" (click)="retry()">Try again</button>
+    </div>
+  </div>
+
+  <!-- Dashboard Content -->
+  <div class="dashboard-content" *ngIf="!loading() && !error()">
+    
+    <!-- Pending Booking Approvals Section -->
+    <section class="pending-approvals-section">
+      <h2 class="section-title">Pending booking requests</h2>
+      
+      <app-empty-state
+        *ngIf="pendingApprovals().length === 0"
+        icon="✅"
+        title="No booking requests yet"
+        description="When participants request to join your tours, they'll appear here"
+      ></app-empty-state>
+
+      <div class="approval-list" *ngIf="pendingApprovals().length > 0">
+        <div class="approval-card" *ngFor="let booking of pendingApprovals()">
+          <div class="approval-header">
+            <div class="approval-info">
+              <h3 class="booking-title">{{ booking.tourTitle }}</h3>
+              <p class="participant-name">Request from: {{ booking.participantName }}</p>
+            </div>
+            <span class="status-badge status-waiting">
+              Waiting for your decision
+            </span>
+          </div>
+
+          <div class="approval-details">
+            <div class="detail-item">
+              <span class="detail-icon">📅</span>
+              <span class="detail-text">{{ formatDate(booking.tourStartAt) }}</span>
+            </div>
+            
+            <div class="detail-item" *ngIf="booking.createdAt">
+              <span class="detail-icon">⏰</span>
+              <span class="detail-text">Requested {{ formatShortDate(booking.createdAt) }}</span>
+            </div>
+            
+            <div class="detail-item" *ngIf="booking.pricePerSeat != null">
+              <span class="detail-icon">💰</span>
+              <span class="detail-text">{{ formatPrice(booking.pricePerSeat) }}</span>
+            </div>
+
+            <div class="detail-item" *ngIf="booking.expiresAt">
+              <span class="detail-icon">⏳</span>
+              <span class="detail-text">Expires {{ formatShortDate(booking.expiresAt) }}</span>
+            </div>
+          </div>
+
+          <div class="approval-actions">
+            <button
+              class="btn btn-outline-danger"
+              (click)="onDeclineBooking(booking.bookingId)"
+            >
+              Decline
+            </button>
+            <button
+              class="btn btn-success"
+              (click)="onApproveBooking(booking.bookingId)"
+            >
+              Approve
+            </button>
+            <button
+              class="btn btn-secondary"
+              (click)="onViewBooking(booking.bookingId)"
+            >
+              View details
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Upcoming Rides Section -->
+    <app-booking-section-list
+      title="Upcoming rides"
+      [bookings]="upcomingRides()"
+      emptyMessage="No upcoming rides"
+      emptyIcon="🏍️"
+    ></app-booking-section-list>
+
+    <!-- My Tours Section -->
+    <section class="my-tours-section">
+      <h2 class="section-title">My tours</h2>
+      
+      <app-empty-state
+        *ngIf="myTours().length === 0"
+        icon="🗺️"
+        title="You haven't created any tours yet"
+        description="Create your first tour to start accepting bookings"
+        actionLabel="Create tour"
+        (action)="onCreateTour()"
+      ></app-empty-state>
+
+      <div class="tours-grid" *ngIf="myTours().length > 0">
+        <div class="tour-card" *ngFor="let tour of myTours()">
+          <div class="tour-header">
+            <h3 class="tour-title">{{ tour.title }}</h3>
+            <span 
+              class="tour-status"
+              [ngClass]="getTourStatusClass(tour)"
+            >
+              {{ getTourStatus(tour) }}
+            </span>
+          </div>
+
+          <div class="tour-details">
+            <div class="tour-detail-row">
+              <span class="detail-icon">📍</span>
+              <div class="tour-locations">
+                <span class="location-text">{{ tour.startLocationText }}</span>
+                <span class="location-arrow">→</span>
+                <span class="location-text">{{ tour.endLocationText }}</span>
+              </div>
+            </div>
+
+            <div class="tour-detail-row">
+              <span class="detail-icon">📅</span>
+              <span class="detail-text">{{ formatDate(tour.startAt) }}</span>
+            </div>
+
+            <div class="tour-detail-row">
+              <span class="detail-icon">👥</span>
+              <span class="detail-text">
+                {{ tour.totalSeatsBooked }} / {{ tour.totalCapacity }} seats booked
+              </span>
+            </div>
+
+            <div class="tour-detail-row">
+              <span class="detail-icon">💰</span>
+              <span class="detail-text">
+                {{ formatPrice(tour.minPrice) }}
+                <span *ngIf="tour.minPrice !== tour.maxPrice"> - {{ formatPrice(tour.maxPrice) }}</span>
+              </span>
+            </div>
+          </div>
+
+          <div class="tour-actions">
+            <button
+              class="btn btn-secondary"
+              (click)="onViewTour(tour.id)"
+            >
+              View tour
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</div>

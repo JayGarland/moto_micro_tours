@@ -1,0 +1,49 @@
+<section class="booking-section">
+  <h2 class="section-title">{{ title }}</h2>
+  
+  <app-empty-state
+    *ngIf="bookings.length === 0"
+    [icon]="emptyIcon"
+    [title]="emptyMessage"
+  ></app-empty-state>
+
+  <div class="booking-list" *ngIf="bookings.length > 0">
+    <div class="booking-card" *ngFor="let booking of bookings">
+      <div class="booking-header">
+        <h3 class="booking-title">{{ booking.tourTitle }}</h3>
+        <span 
+          class="booking-status"
+          [ngClass]="getStatusClass(booking.status)"
+        >
+          {{ getStatusLabel(booking.status) }}
+        </span>
+      </div>
+
+      <div class="booking-details">
+        <div class="booking-detail-item">
+          <span class="detail-icon">👤</span>
+          <span class="detail-text">{{ booking.motardName }}</span>
+        </div>
+        
+        <div class="booking-detail-item">
+          <span class="detail-icon">📅</span>
+          <span class="detail-text">{{ formatDate(booking.tourStartAt) }}</span>
+        </div>
+        
+        <div class="booking-detail-item">
+          <span class="detail-icon">💰</span>
+          <span class="detail-text">{{ formatPrice(booking.pricePerSeat) }}</span>
+        </div>
+      </div>
+
+      <div class="booking-actions">
+        <a 
+          [routerLink]="['/bookings', booking.bookingId]"
+          class="btn btn-primary"
+        >
+          View booking
+        </a>
+      </div>
+    </div>
+  </div>
+</section>

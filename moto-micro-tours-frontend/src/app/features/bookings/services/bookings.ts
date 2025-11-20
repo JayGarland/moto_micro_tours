@@ -87,10 +87,15 @@ export class BookingsService {
    * Get booking requests for motard to approve/decline
    * Endpoint: GET /api/bookings (filtered by role)
    * @returns Observable array of BookingSummary
-   * TODO: Implement in Stage F7
    */
   getMotardBookingRequests(): Observable<BookingSummary[]> {
-    throw new Error('Method not implemented - coming in Stage F7');
+    return this.apiService.get<BookingSummary[]>('bookings')
+      .pipe(
+        catchError(error => {
+          console.error('Error fetching motard booking requests:', error);
+          return throwError(() => this.extractErrorMessage(error));
+        })
+      );
   }
 
   /**

@@ -116,6 +116,7 @@ export interface BookingSummary {
   bookingId: string;
   tourTitle: string;
   motardName: string;
+  participantName: string;
   tourStartAt: string;
   status: BookingStatus;
   pricePerSeat: number;

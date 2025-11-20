@@ -5,11 +5,16 @@ import { roleGuard } from './core/guards/role.guard';
 export const routes: Routes = [
   {
     path: '',
-    redirectTo: 'home',
+    redirectTo: 'dashboard',
     pathMatch: 'full'
   },
   {
     path: 'home',
+    redirectTo: 'dashboard',
+    pathMatch: 'full'
+  },
+  {
+    path: 'landing',
     loadComponent: () => import('./features/home/home.component').then(m => m.HomeComponent)
   },
   {
@@ -58,12 +63,18 @@ export const routes: Routes = [
     loadChildren: () => import('./features/bookings/bookings.routes').then(m => m.bookingsRoutes)
   },
   {
+    path: 'dashboard',
+    canActivate: [authGuard],
+    loadChildren: () => import('./features/dashboard/dashboard.routes').then(m => m.dashboardRoutes)
+  },
+  {
     path: 'motard',
     canActivate: [roleGuard('Motard')],
     children: [
       {
         path: 'dashboard',
-        loadComponent: () => import('./features/motard/dashboard/dashboard.component').then(m => m.DashboardComponent)
+        redirectTo: '/dashboard/motard',
+        pathMatch: 'full'
       },
       {
         path: 'tours',
@@ -77,13 +88,19 @@ export const routes: Routes = [
     children: [
       {
         path: 'dashboard',
-        loadComponent: () => import('./features/participant/dashboard/dashboard.component').then(m => m.DashboardComponent)
+        redirectTo: '/dashboard/participant',
+        pathMatch: 'full'
       },
       {
         path: 'tours',
         loadComponent: () => import('./features/participant/tours/tours.component').then(m => m.ToursComponent)
       }
     ]
+  },
+  {
+    path: 'profile',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/profile/components/profile-redirect.component').then(m => m.ProfileRedirectComponent)
   },
   {
     path: 'unauthorized',

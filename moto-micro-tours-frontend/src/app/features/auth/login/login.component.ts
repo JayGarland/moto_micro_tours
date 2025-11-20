@@ -60,13 +60,13 @@ export class LoginComponent {
     this.authService.login(credentials).subscribe({
       next: () => {
         this.loading.set(false);
-        // Redirect based on role
+        // Redirect based on role to new dashboard routes
         if (this.authService.getIsMotard()) {
-          this.router.navigate(['/motard/dashboard']);
+          this.router.navigate(['/dashboard/motard']);
         } else if (this.authService.getIsParticipant()) {
-          this.router.navigate(['/participant/dashboard']);
+          this.router.navigate(['/dashboard/participant']);
         } else {
-          this.router.navigate(['/']);
+          this.router.navigate(['/dashboard']);
         }
       },
       error: (err) => {
