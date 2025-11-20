@@ -156,7 +156,10 @@ public class ToursController : ControllerBase
                     {
                         TourMotard = tm,
                         User = tm.Motard,
-                        Profile = tm.Motard!.MotardProfile
+                        Profile = tm.Motard!.MotardProfile,
+                        AvgRating = _context.Reviews
+                            .Where(r => r.MotardUserId == tm.MotardUserId)
+                            .Average(r => (decimal?)r.Rating)
                     }).ToList()
                 })
                 .FirstOrDefaultAsync();
@@ -183,7 +186,7 @@ public class ToursController : ControllerBase
                     MotardName = m.User?.UserName ?? "Unknown",
                     MotardBio = m.Profile?.Bio,
                     BikeModel = m.Profile?.BikeModel,
-                    AvgRating = (float?)(m.Profile?.AvgRating),
+                    AvgRating = (float?)m.AvgRating,
                     CapacitySeats = m.TourMotard.CapacitySeats,
                     SeatsBooked = m.TourMotard.SeatsBooked,
                     PricePerSeat = m.TourMotard.PricePerSeat

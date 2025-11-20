@@ -75,6 +75,13 @@ public class MotardsController : ControllerBase
                 })
                 .ToListAsync();
 
+            // Calculate average rating from reviews
+            decimal? avgRating = null;
+            if (reviews.Count > 0)
+            {
+                avgRating = (decimal)reviews.Average(r => r.Rating);
+            }
+
             var result = new MotardProfileDto
             {
                 UserId = Guid.Parse(user.Id),
@@ -83,7 +90,7 @@ public class MotardsController : ControllerBase
                 Bio = user.MotardProfile.Bio,
                 BikeModel = user.MotardProfile.BikeModel,
                 LicenseNo = user.MotardProfile.LicenseNo,
-                AvgRating = user.MotardProfile.AvgRating,
+                AvgRating = avgRating,
                 TotalReviews = reviews.Count,
                 Reviews = reviews
             };

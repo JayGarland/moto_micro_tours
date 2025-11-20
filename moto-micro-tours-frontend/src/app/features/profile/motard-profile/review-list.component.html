@@ -1,9 +1,9 @@
 <div class="review-list-section">
   <h2 class="section-title">Reviews</h2>
-  
+
   <div class="review-list" *ngIf="reviews.length > 0">
-    <app-review-card 
-      *ngFor="let review of displayedReviews" 
+    <app-review-card
+      *ngFor="let review of displayedReviews"
       [review]="review">
     </app-review-card>
   </div>
@@ -12,10 +12,10 @@
     <p>No reviews yet.</p>
   </div>
 
-  <button 
-    mat-stroked-button 
-    class="load-more-button" 
-    *ngIf="hasMore" 
+  <button
+    mat-stroked-button
+    class="load-more-button"
+    *ngIf="hasMore"
     (click)="loadMore()">
     Load More Reviews
   </button>

@@ -1,11 +1,11 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { ApiService } from '../../../core/services/api.service';
-import { 
-  MotardProfileDto, 
-  CreateReviewDto, 
+import {
+  MotardProfileDto,
+  CreateReviewDto,
   ReviewDto,
-  MotardProfileParams 
+  MotardProfileParams
 } from '../../../core/models/motard.models';
 
 @Injectable({

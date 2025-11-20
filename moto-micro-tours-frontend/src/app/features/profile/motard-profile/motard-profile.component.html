@@ -14,9 +14,9 @@
 <div class="profile-page" *ngIf="profile && !loading">
   <!-- Desktop: 2-column layout, Mobile: Stack -->
   <div class="profile-container">
-    
+
     <!-- Hero Section (Full width on desktop, first on mobile) -->
-    <app-profile-hero 
+    <app-profile-hero
       class="profile-hero"
       [profile]="profile"
       (startChat)="onStartChat()"
@@ -25,8 +25,8 @@
 
     <!-- Left Sidebar (Desktop) / Top Header Block (Mobile) -->
     <aside class="profile-sidebar-wrapper">
-      <app-profile-sidebar 
-        [profile]="profile" 
+      <app-profile-sidebar
+        [profile]="profile"
         (startChat)="onStartChat()">
       </app-profile-sidebar>
     </aside>
@@ -54,7 +54,7 @@
       <section class="upcoming-tours-section" id="upcoming-tours" *ngIf="profile.upcomingTours && profile.upcomingTours.length > 0">
         <h2 class="section-title">Upcoming Tours</h2>
         <div class="tours-grid">
-          <app-tour-card 
+          <app-tour-card
             *ngFor="let tour of profile.upcomingTours"
             [tour]="{
               id: tour.tourId,
@@ -81,22 +81,22 @@
           <h3 class="section-title">Completed Tours</h3>
           <p class="subtitle">Real rides I've done with other riders.</p>
         </div>
-        
+
         <!-- Tours List -->
         <div class="completed-tours-container" [class.desktop-scroll]="!isMobile()" *ngIf="profile.completedTours && profile.completedTours.length > 0">
-          <app-tour-card 
+          <app-tour-card
             *ngFor="let tour of displayedCompletedTours()"
             [tour]="tour">
           </app-tour-card>
         </div>
-        
+
         <!-- Empty State -->
         <div class="empty-state" *ngIf="!profile.completedTours || profile.completedTours.length === 0">
           <span class="empty-icon">🏍️</span>
           <p class="empty-message">No completed tours yet.</p>
           <p class="empty-submessage">Stay tuned for upcoming rides!</p>
         </div>
-        
+
         <!-- Mobile: Show more link -->
         <a class="see-all-link" *ngIf="isMobile() && hasMoreCompletedTours()" (click)="showAllCompletedTours()">
           See all {{ profile.completedTours?.length || 0 }} tours →

@@ -17,7 +17,7 @@
   .avatar-container {
     display: flex;
     justify-content: center;
-    
+
     .avatar-placeholder {
       width: 120px;
       height: 120px;
@@ -26,7 +26,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      
+
       mat-icon {
         font-size: 64px;
         width: 64px;
@@ -39,14 +39,14 @@
   // Profile info
   .profile-info {
     text-align: center;
-    
+
     .profile-name {
       font-size: 24px;
       font-weight: 600;
       margin: 0 0 0.5rem 0;
       color: #212121;
     }
-    
+
     .profile-tagline {
       font-size: 14px;
       color: #757575;
@@ -64,23 +64,23 @@
     padding: 0.75rem;
     background: #fafafa;
     border-radius: 8px;
-    
+
     .stars {
       display: flex;
       gap: 0.25rem;
-      
+
       mat-icon {
         font-size: 20px;
         width: 20px;
         height: 20px;
         color: #e0e0e0;
-        
+
         &.filled {
           color: #ffa726; // Orange/gold for filled stars
         }
       }
     }
-    
+
     .rating-text {
       font-size: 16px;
       font-weight: 600;
@@ -95,29 +95,29 @@
     gap: 1rem;
     padding-top: 0.5rem;
     border-top: 1px solid #e0e0e0;
-    
+
     .stat-item {
       display: flex;
       align-items: center;
       gap: 0.75rem;
-      
+
       mat-icon {
         color: var(--yamaha-blue-primary, #0D47A1);
         font-size: 24px;
         width: 24px;
         height: 24px;
       }
-      
+
       .stat-content {
         display: flex;
         flex-direction: column;
-        
+
         .stat-value {
           font-size: 16px;
           font-weight: 600;
           color: #212121;
         }
-        
+
         .stat-label {
           font-size: 12px;
           color: #757575;
@@ -133,7 +133,7 @@
     font-size: 14px;
     font-weight: 600;
     border-radius: 8px;
-    
+
     mat-icon {
       margin-right: 0.5rem;
     }

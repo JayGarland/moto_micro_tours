@@ -93,7 +93,7 @@ export class MotardProfileComponent implements OnInit {
   loadProfile(userId: string): void {
     this.loading = true;
     this.error = null;
-    
+
     this.motardsService.getMotardProfile(userId, { includeUpcomingTours: true })
       .subscribe({
         next: (profile: MotardProfileDto) => {

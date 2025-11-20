@@ -13,7 +13,7 @@ import { ReviewCardComponent } from './review-card.component';
 })
 export class ReviewListComponent {
   @Input() reviews: ReviewDto[] = [];
-  
+
   displayCount = 5;
 
   get displayedReviews(): ReviewDto[] {
