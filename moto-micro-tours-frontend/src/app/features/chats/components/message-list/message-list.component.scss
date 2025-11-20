@@ -1,0 +1,144 @@
+@use '../../../../../styles/variables' as *;
+
+.message-list-container {
+  height: 100%; // Fill parent (chat-body)
+  min-height: 0; // Allow shrinking
+  overflow-y: auto; // This is the ONLY scrollable zone
+  overflow-x: hidden;
+  padding: $spacing-md;
+  display: flex;
+  flex-direction: column;
+  
+  // Smooth scrolling
+  scroll-behavior: smooth;
+  
+  // Better scrolling on mobile
+  -webkit-overflow-scrolling: touch;
+  
+  // Ensure proper box sizing
+  box-sizing: border-box;
+}
+
+// ==================== Loading State ====================
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: $spacing-xl;
+  color: $yamaha-gray;
+
+  .spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid $yamaha-white;
+    border-top: 3px solid $yamaha-blue-primary;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-bottom: $spacing-md;
+  }
+
+  p {
+    margin: 0;
+    font-size: 14px;
+  }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+// ==================== Error State ====================
+.error-state {
+  padding: $spacing-md;
+  text-align: center;
+
+  .error-message {
+    color: #d32f2f;
+    background-color: #ffebee;
+    padding: $spacing-sm $spacing-md;
+    border-radius: $border-radius-sm;
+    margin: 0;
+    font-size: 14px;
+  }
+}
+
+// ==================== Empty State ====================
+.empty-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  color: $yamaha-gray;
+  text-align: center;
+  padding: $spacing-xl;
+
+  p {
+    margin: 0;
+    font-size: 14px;
+  }
+}
+
+// ==================== Messages ====================
+.messages {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+}
+
+.message-wrapper {
+  display: flex;
+  max-width: 70%;
+  
+  &.own-message {
+    align-self: flex-end;
+    
+    .message-bubble {
+      background-color: $yamaha-blue-primary;
+      color: white;
+      border-bottom-right-radius: $border-radius-sm;
+    }
+  }
+  
+  &.other-message {
+    align-self: flex-start;
+    
+    .message-bubble {
+      background-color: #e3f2fd;
+      color: $yamaha-black;
+      border-bottom-left-radius: $border-radius-sm;
+    }
+  }
+}
+
+.message-bubble {
+  padding: $spacing-sm $spacing-md;
+  border-radius: $border-radius-md;
+  word-wrap: break-word;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  
+  .message-content {
+    margin: 0 0 $spacing-xs 0;
+    line-height: 1.4;
+    font-size: 15px;
+  }
+  
+  .message-time {
+    display: block;
+    font-size: 11px;
+    opacity: 0.7;
+    margin-top: $spacing-xs;
+  }
+}
+
+// ==================== Mobile Responsiveness ====================
+@media (max-width: 768px) {
+  .message-wrapper {
+    max-width: 85%;
+  }
+  
+  .message-list-container {
+    padding: $spacing-sm;
+  }
+}

@@ -1,0 +1,145 @@
+@use '../../../../styles/variables' as *;
+
+// ==================== Backdrop ====================
+.chat-sidebar-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  display: flex;
+  justify-content: flex-end;
+}
+
+// ==================== Sidebar ====================
+.chat-sidebar {
+  width: 450px;
+  max-width: 100%;
+  height: 100vh; // Fixed viewport height
+  max-height: 100vh; // Never exceed viewport
+  background-color: white;
+  box-shadow: -2px 0 8px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden; // Prevent sidebar itself from scrolling
+}
+
+// ==================== Close Button ====================
+.close-button {
+  position: absolute;
+  top: $spacing-md;
+  right: $spacing-md;
+  width: 36px;
+  height: 36px;
+  border: none;
+  background-color: white;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: bold;
+  color: $yamaha-black;
+  z-index: 1000; // Higher z-index to ensure it's above everything
+  transition: all 0.2s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+
+  &:hover {
+    background-color: #f5f5f5;
+    transform: scale(1.1);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+}
+
+// ==================== Loading State ====================
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: $spacing-xl;
+  color: $yamaha-gray;
+
+  .spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid $yamaha-white;
+    border-top: 4px solid $yamaha-blue-primary;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-bottom: $spacing-md;
+  }
+
+  p {
+    margin: 0;
+    font-size: 15px;
+  }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+// ==================== Error State ====================
+.error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: $spacing-xl;
+
+  .error-message {
+    color: #d32f2f;
+    background-color: #ffebee;
+    padding: $spacing-md;
+    border-radius: $border-radius-sm;
+    margin-bottom: $spacing-md;
+    text-align: center;
+  }
+
+  .retry-button {
+    padding: $spacing-sm $spacing-lg;
+    background-color: $yamaha-blue-primary;
+    color: white;
+    border: none;
+    border-radius: $border-radius-md;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background-color 0.2s;
+
+    &:hover {
+      background-color: $yamaha-blue-light;
+    }
+  }
+}
+
+// ==================== Mobile: Full Screen ====================
+@media (max-width: 768px) {
+  .chat-sidebar {
+    width: 100%;
+  }
+
+  .close-button {
+    top: $spacing-sm;
+    right: $spacing-sm;
+  }
+}
+
+// ==================== Tablet ====================
+@media (min-width: 769px) and (max-width: 1024px) {
+  .chat-sidebar {
+    width: 400px;
+  }
+}

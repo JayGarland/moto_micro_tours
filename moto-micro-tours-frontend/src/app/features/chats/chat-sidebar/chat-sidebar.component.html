@@ -1,0 +1,42 @@
+<div class="chat-sidebar-backdrop" 
+     *ngIf="isOpen" 
+     @fadeIn
+     (click)="onBackdropClick()">
+  
+  <div class="chat-sidebar" 
+       @slideIn
+       (click)="onSidebarClick($event)">
+    
+    <!-- Close Button -->
+    <button class="close-button" (click)="onClose()" aria-label="Close chat">
+      ✕
+    </button>
+
+    <!-- Loading State -->
+    <div *ngIf="loadingConversation" class="loading-container">
+      <div class="spinner"></div>
+      <p>Loading conversation...</p>
+    </div>
+
+    <!-- Error State -->
+    <div *ngIf="conversationError && !loadingConversation" class="error-container">
+      <p class="error-message">{{ conversationError }}</p>
+      <button class="retry-button" (click)="initializeConversation()">Retry</button>
+    </div>
+
+    <!-- Chat Component -->
+    <app-prebooking-chat
+      *ngIf="!loadingConversation && !conversationError"
+      [tourId]="tourId || ''"
+      [tourTitle]="tourTitle"
+      [motardUserId]="motardUserId || ''"
+      [chatWithName]="chatWithName || ''"
+      [conversationId]="internalConversationId"
+      [motardRating]="motardRating"
+      [tripDate]="tripDate"
+      [duration]="duration"
+      [priceRange]="priceRange"
+      [startingCity]="startingCity">
+    </app-prebooking-chat>
+  </div>
+</div>

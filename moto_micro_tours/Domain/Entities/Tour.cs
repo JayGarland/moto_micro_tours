@@ -2,6 +2,12 @@ using moto_micro_tours.Domain.Enums;
 
 namespace moto_micro_tours.Domain.Entities;
 
+/// <summary>
+/// Tour entity
+/// TODO: Add Description field (string?) for tour overview/details
+/// TODO: Add EndAt field (DateTime) to calculate tour duration
+/// TODO: Add CreatedAt field (DateTime) for tracking tour creation
+/// </summary>
 public class Tour
 {
     public Guid Id { get; set; }

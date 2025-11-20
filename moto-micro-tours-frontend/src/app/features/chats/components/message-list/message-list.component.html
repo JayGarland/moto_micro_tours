@@ -1,0 +1,32 @@
+<div class="message-list-container" #scrollContainer>
+  <!-- Loading State -->
+  <div *ngIf="loading && messages.length === 0" class="loading-state">
+    <div class="spinner"></div>
+    <p>Loading messages...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error && !loading" class="error-state">
+    <p class="error-message">{{ error }}</p>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!loading && !error && messages.length === 0" class="empty-state">
+    <p>No messages yet. Start the conversation!</p>
+  </div>
+
+  <!-- Messages List -->
+  <div *ngIf="messages.length > 0" class="messages">
+    <div 
+      *ngFor="let message of messages; trackBy: trackByMessageId"
+      class="message-wrapper"
+      [class.own-message]="message.isOwnMessage"
+      [class.other-message]="!message.isOwnMessage">
+      
+      <div class="message-bubble">
+        <p class="message-content">{{ message.content }}</p>
+        <span class="message-time">{{ message.displayTime }}</span>
+      </div>
+    </div>
+  </div>
+</div>
