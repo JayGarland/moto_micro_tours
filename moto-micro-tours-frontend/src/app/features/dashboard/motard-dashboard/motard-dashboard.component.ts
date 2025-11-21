@@ -2,14 +2,17 @@ import { Component, OnInit, inject, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
+import { MatDialog } from '@angular/material/dialog';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { BookingsService } from '../../bookings/services/bookings';
 import { ToursService } from '../../tours/services/tours.service';
 import { AuthService } from '../../../core/services/auth.service';
-import { BookingSummary, BookingStatus } from '../../bookings/models/booking.model';
+import { BookingResponse, BookingStatus } from '../../bookings/models/booking.model';
 import { TourListDto } from '../../../core/models/tour.models';
 import { DashboardHeaderComponent } from '../components/dashboard-header/dashboard-header.component';
 import { BookingSectionListComponent } from '../components/booking-section-list/booking-section-list.component';
 import { EmptyStateComponent } from '../components/empty-state/empty-state.component';
+import { ConfirmationDialogComponent, ConfirmationDialogData } from '../../../shared/components/confirmation-dialog/confirmation-dialog.component';
 
 @Component({
   selector: 'app-motard-dashboard',
@@ -17,6 +20,7 @@ import { EmptyStateComponent } from '../components/empty-state/empty-state.compo
   imports: [
     CommonModule,
     RouterLink,
+    MatSnackBarModule,
     DashboardHeaderComponent,
     BookingSectionListComponent,
     EmptyStateComponent
@@ -29,12 +33,15 @@ export class MotardDashboardComponent implements OnInit {
   private readonly toursService = inject(ToursService);
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly dialog = inject(MatDialog);
+  private readonly snackBar = inject(MatSnackBar);
 
   // Signals for state management
-  protected readonly allBookings = signal<BookingSummary[]>([]);
+  protected readonly allBookings = signal<BookingResponse[]>([]);
   protected readonly allTours = signal<TourListDto[]>([]);
   protected readonly loading = signal(true);
   protected readonly error = signal<string | null>(null);
+  protected readonly processingBookingId = signal<string | null>(null);
 
   private readonly currentUserId = this.authService.getCurrentUser()?.userId;
 
@@ -51,7 +58,7 @@ export class MotardDashboardComponent implements OnInit {
       .filter(booking => {
         const tourDate = new Date(booking.tourStartAt);
         const isUpcoming = tourDate >= now;
-        const isConfirmed = booking.status === BookingStatus.Approved || 
+        const isConfirmed = booking.status === BookingStatus.Approved ||
                            booking.status === BookingStatus.Paid;
         return isUpcoming && isConfirmed;
       })
@@ -60,7 +67,7 @@ export class MotardDashboardComponent implements OnInit {
 
   protected readonly myTours = computed(() => {
     if (!this.currentUserId) return [];
-    
+
     return this.allTours()
       .filter(tour => {
         // Check if current user is one of the motards in this tour
@@ -110,30 +117,110 @@ export class MotardDashboardComponent implements OnInit {
   }
 
   onApproveBooking(bookingId: string): void {
-    // TODO: Implement in Stage F7 - For now, show console message
-    console.log('Approve booking:', bookingId);
-    alert('Approve booking feature will be implemented in Stage F7');
-    // Future implementation:
-    // this.bookingsService.approveBooking(bookingId).subscribe({
-    //   next: () => {
-    //     this.loadDashboardData();
-    //   },
-    //   error: (err) => console.error('Error approving booking:', err)
-    // });
+    const dialogData: ConfirmationDialogData = {
+      title: 'Approve Booking Request',
+      message: 'Are you sure you want to approve this booking request? The participant will be notified and the booking will be confirmed.',
+      confirmText: 'Approve',
+      cancelText: 'Cancel',
+      confirmColor: 'primary',
+      icon: 'check_circle'
+    };
+
+    const dialogRef = this.dialog.open(ConfirmationDialogComponent, {
+      width: '450px',
+      data: dialogData
+    });
+
+    dialogRef.afterClosed().subscribe(confirmed => {
+      if (confirmed) {
+        this.approveBookingRequest(bookingId);
+      }
+    });
+  }
+
+  private approveBookingRequest(bookingId: string): void {
+    this.processingBookingId.set(bookingId);
+
+    this.bookingsService.approveBooking(bookingId).subscribe({
+      next: () => {
+        this.processingBookingId.set(null);
+        this.snackBar.open('✅ Booking approved! Check "Upcoming rides" section below.', 'Close', {
+          duration: 5000,
+          horizontalPosition: 'end',
+          verticalPosition: 'top',
+          panelClass: ['success-snackbar']
+        });
+        this.loadDashboardData();
+      },
+      error: (err) => {
+        this.processingBookingId.set(null);
+        console.error('Error approving booking:', err);
+        this.snackBar.open(
+          typeof err === 'string' ? err : 'Failed to approve booking. Please try again.',
+          'Close',
+          {
+            duration: 5000,
+            horizontalPosition: 'end',
+            verticalPosition: 'top',
+            panelClass: ['error-snackbar']
+          }
+        );
+      }
+    });
   }
 
   onDeclineBooking(bookingId: string): void {
-    // TODO: Implement in Stage F7 - For now, show console message
-    console.log('Decline booking:', bookingId);
-    alert('Decline booking feature will be implemented in Stage F7');
-    // Future implementation:
-    // const reason = prompt('Reason for declining (optional):');
-    // this.bookingsService.declineBooking(bookingId, reason).subscribe({
-    //   next: () => {
-    //     this.loadDashboardData();
-    //   },
-    //   error: (err) => console.error('Error declining booking:', err)
-    // });
+    const dialogData: ConfirmationDialogData = {
+      title: 'Decline Booking Request',
+      message: 'Are you sure you want to decline this booking request? The participant will be notified. You can optionally provide a reason.',
+      confirmText: 'Decline',
+      cancelText: 'Cancel',
+      confirmColor: 'warn',
+      icon: 'cancel'
+    };
+
+    const dialogRef = this.dialog.open(ConfirmationDialogComponent, {
+      width: '450px',
+      data: dialogData
+    });
+
+    dialogRef.afterClosed().subscribe(confirmed => {
+      if (confirmed) {
+        // TODO: In future, add a reason input field in a more advanced dialog
+        this.declineBookingRequest(bookingId);
+      }
+    });
+  }
+
+  private declineBookingRequest(bookingId: string, reason?: string): void {
+    this.processingBookingId.set(bookingId);
+    
+    this.bookingsService.declineBooking(bookingId, reason).subscribe({
+      next: () => {
+        this.processingBookingId.set(null);
+        this.snackBar.open('Booking declined successfully.', 'Close', {
+          duration: 3000,
+          horizontalPosition: 'end',
+          verticalPosition: 'top',
+          panelClass: ['success-snackbar']
+        });
+        this.loadDashboardData();
+      },
+      error: (err) => {
+        this.processingBookingId.set(null);
+        console.error('Error declining booking:', err);
+        this.snackBar.open(
+          typeof err === 'string' ? err : 'Failed to decline booking. Please try again.',
+          'Close',
+          {
+            duration: 5000,
+            horizontalPosition: 'end',
+            verticalPosition: 'top',
+            panelClass: ['error-snackbar']
+          }
+        );
+      }
+    });
   }
 
   formatDate(dateString: string): string {
@@ -184,15 +271,15 @@ export class MotardDashboardComponent implements OnInit {
   getTourStatus(tour: TourListDto): string {
     const tourDate = new Date(tour.startAt);
     const now = new Date();
-    
+
     if (tourDate < now) {
       return 'Completed';
     }
-    
+
     if (tour.totalSeatsBooked >= tour.totalCapacity) {
       return 'Full';
     }
-    
+
     return tour.status;
   }
 
@@ -213,5 +300,9 @@ export class MotardDashboardComponent implements OnInit {
 
   retry(): void {
     this.loadDashboardData();
+  }
+
+  isProcessing(bookingId: string): boolean {
+    return this.processingBookingId() === bookingId;
   }
 }

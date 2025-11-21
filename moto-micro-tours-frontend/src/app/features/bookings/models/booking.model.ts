@@ -15,6 +15,7 @@ export interface CreateBookingRequest {
 
 /**
  * Response DTO after creating a booking
+ * Also used for booking list summaries in dashboards (same as BookingSummary)
  */
 export interface BookingResponse {
   bookingId: string;
@@ -23,12 +24,15 @@ export interface BookingResponse {
   tourMotardId: string;
   motardName: string;
   participantId: string;
+  participantName: string; // Added for dashboard display
   status: BookingStatus;
   costSharingOptIn: boolean;
   emergencyContact: string;
   createdAt: string;
   approvedAt?: string;
   expiresAt?: string;
+  tourStartAt: string; // Added for filtering upcoming rides
+  pricePerSeat: number; // Added for price display
 }
 
 /**

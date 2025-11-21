@@ -83,6 +83,27 @@
   font-weight: 600;
   color: var(--color-text-primary, #111827);
   margin: 0 0 1.5rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.section-header-with-badge {
+  margin-bottom: 1.5rem;
+}
+
+.count-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 28px;
+  padding: 0 0.5rem;
+  background-color: var(--color-primary, #0066b2);
+  color: white;
+  border-radius: 14px;
+  font-size: 0.875rem;
+  font-weight: 600;
 }
 
 // Pending Approvals Section
@@ -163,6 +184,16 @@
   color: #92400e;
 }
 
+.status-approved {
+  background-color: #dbeafe;
+  color: #1e40af;
+}
+
+.status-paid {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
 .approval-details {
   display: flex;
   flex-direction: column;
@@ -191,6 +222,45 @@
 .approval-actions {
   display: flex;
   gap: 0.75rem;
+}
+
+// Upcoming Rides Section
+.upcoming-rides-section {
+  margin-bottom: 2.5rem;
+  padding: 1.5rem;
+  background: linear-gradient(to right, rgba(0, 102, 178, 0.03), rgba(0, 102, 178, 0.01));
+  border-radius: 0.75rem;
+  border: 1px solid rgba(0, 102, 178, 0.1);
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: rgba(0, 102, 178, 0.2);
+    box-shadow: 0 2px 8px rgba(0, 102, 178, 0.08);
+  }
+
+  .booking-cards {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+
+    @media (max-width: 768px) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .booking-card {
+    background: white;
+    border: 1px solid var(--color-border, #e5e7eb);
+    border-radius: 0.5rem;
+    padding: 1rem;
+    transition: all 0.2s ease;
+
+    &:hover {
+      border-color: var(--color-primary, #0066b2);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      transform: translateY(-2px);
+    }
+  }
 }
 
 // My Tours Section
@@ -318,14 +388,42 @@
   border: none;
   cursor: pointer;
   transition: all 0.2s ease;
+  position: relative;
 
-  &:hover {
+  &:hover:not(:disabled) {
     transform: translateY(-1px);
     box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.1);
   }
 
-  &:active {
+  &:active:not(:disabled) {
     transform: translateY(0);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.processing {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.spinner-small {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
   }
 }
 

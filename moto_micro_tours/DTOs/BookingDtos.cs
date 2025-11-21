@@ -28,6 +28,7 @@ public class CreateBookingRequestDto
 
 /// <summary>
 /// Response DTO after creating a booking
+/// Also used for booking list summaries in dashboards
 /// </summary>
 public class BookingResponseDto
 {
@@ -37,12 +38,15 @@ public class BookingResponseDto
     public Guid TourMotardId { get; set; }
     public string MotardName { get; set; } = string.Empty;
     public Guid ParticipantId { get; set; }
+    public string ParticipantName { get; set; } = string.Empty; // Added for dashboard display
     public string Status { get; set; } = string.Empty;
     public bool CostSharingOptIn { get; set; }
     public string EmergencyContact { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; }
     public DateTime? ApprovedAt { get; set; }
     public DateTime? ExpiresAt { get; set; }
+    public DateTime TourStartAt { get; set; } // Added for filtering upcoming rides
+    public decimal PricePerSeat { get; set; } // Added for price display
 }
 
 /// <summary>

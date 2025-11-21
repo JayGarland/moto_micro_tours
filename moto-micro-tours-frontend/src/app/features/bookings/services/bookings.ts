@@ -86,10 +86,11 @@ export class BookingsService {
   /**
    * Get booking requests for motard to approve/decline
    * Endpoint: GET /api/bookings (filtered by role)
-   * @returns Observable array of BookingSummary
+   * Returns BookingResponse[] which now includes all fields needed for dashboard
+   * @returns Observable array of BookingResponse (used as BookingSummary)
    */
-  getMotardBookingRequests(): Observable<BookingSummary[]> {
-    return this.apiService.get<BookingSummary[]>('bookings')
+  getMotardBookingRequests(): Observable<BookingResponse[]> {
+    return this.apiService.get<BookingResponse[]>('bookings')
       .pipe(
         catchError(error => {
           console.error('Error fetching motard booking requests:', error);
@@ -103,10 +104,15 @@ export class BookingsService {
    * Endpoint: POST /api/bookings/{id}/approve
    * @param bookingId - The booking ID
    * @returns Observable of BookingDetail
-   * TODO: Implement in Stage F7
    */
   approveBooking(bookingId: string): Observable<BookingDetail> {
-    throw new Error('Method not implemented - coming in Stage F7');
+    return this.apiService.post<BookingDetail>(`bookings/${bookingId}/approve`, {})
+      .pipe(
+        catchError(error => {
+          console.error('Error approving booking:', error);
+          return throwError(() => this.extractErrorMessage(error));
+        })
+      );
   }
 
   /**
@@ -115,10 +121,16 @@ export class BookingsService {
    * @param bookingId - The booking ID
    * @param reason - Optional decline reason
    * @returns Observable of BookingDetail
-   * TODO: Implement in Stage F7
    */
   declineBooking(bookingId: string, reason?: string): Observable<BookingDetail> {
-    throw new Error('Method not implemented - coming in Stage F7');
+    const body = reason ? { reason } : {};
+    return this.apiService.post<BookingDetail>(`bookings/${bookingId}/decline`, body)
+      .pipe(
+        catchError(error => {
+          console.error('Error declining booking:', error);
+          return throwError(() => this.extractErrorMessage(error));
+        })
+      );
   }
 
   /**

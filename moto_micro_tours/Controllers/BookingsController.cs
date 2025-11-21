@@ -129,12 +129,15 @@ public class BookingsController : ControllerBase
                 TourMotardId = tourMotard.Id,
                 MotardName = tourMotard.Motard?.UserName ?? "Unknown",
                 ParticipantId = Guid.Parse(currentUser.Id),
+                ParticipantName = currentUser.UserName ?? "Unknown",
                 Status = booking.Status.ToString(),
                 CostSharingOptIn = booking.CostSharingOptIn,
                 EmergencyContact = booking.EmergencyContact,
                 CreatedAt = booking.CreatedAt,
                 ApprovedAt = booking.ApprovedAt,
-                ExpiresAt = booking.ExpiresAt
+                ExpiresAt = booking.ExpiresAt,
+                TourStartAt = tour.StartAt,
+                PricePerSeat = tourMotard.PricePerSeat
             };
 
             return CreatedAtAction(
@@ -260,12 +263,15 @@ public class BookingsController : ControllerBase
                 TourMotardId = booking.TourMotardId,
                 MotardName = booking.TourMotard.Motard?.UserName ?? "Unknown",
                 ParticipantId = Guid.Parse(booking.ParticipantUserId),
+                ParticipantName = booking.Participant?.UserName ?? "Unknown",
                 Status = booking.Status.ToString(),
                 CostSharingOptIn = booking.CostSharingOptIn,
                 EmergencyContact = booking.EmergencyContact,
                 CreatedAt = booking.CreatedAt,
                 ApprovedAt = booking.ApprovedAt,
-                ExpiresAt = booking.ExpiresAt
+                ExpiresAt = booking.ExpiresAt,
+                TourStartAt = booking.Tour?.StartAt ?? DateTime.MinValue,
+                PricePerSeat = booking.TourMotard?.PricePerSeat ?? 0
             };
 
             return Ok(response);
@@ -464,12 +470,15 @@ public class BookingsController : ControllerBase
                 TourMotardId = booking.TourMotardId,
                 MotardName = booking.TourMotard?.Motard?.UserName ?? "Unknown",
                 ParticipantId = Guid.Parse(booking.ParticipantUserId),
+                ParticipantName = booking.Participant?.UserName ?? "Unknown",
                 Status = booking.Status.ToString(),
                 CostSharingOptIn = booking.CostSharingOptIn,
                 EmergencyContact = booking.EmergencyContact ?? string.Empty,
                 CreatedAt = booking.CreatedAt,
                 ApprovedAt = booking.ApprovedAt,
-                ExpiresAt = booking.ExpiresAt
+                ExpiresAt = booking.ExpiresAt,
+                TourStartAt = booking.Tour?.StartAt ?? DateTime.MinValue,
+                PricePerSeat = booking.TourMotard?.PricePerSeat ?? 0
             }).ToList();
 
             _logger.LogInformation(
@@ -627,12 +636,15 @@ public class BookingsController : ControllerBase
                 TourMotardId = booking.TourMotardId,
                 MotardName = booking.TourMotard?.Motard?.UserName ?? "Unknown",
                 ParticipantId = Guid.Parse(booking.ParticipantUserId),
+                ParticipantName = booking.Participant?.UserName ?? "Unknown",
                 Status = booking.Status.ToString(),
                 CostSharingOptIn = booking.CostSharingOptIn,
                 EmergencyContact = booking.EmergencyContact ?? string.Empty,
                 CreatedAt = booking.CreatedAt,
                 ApprovedAt = booking.ApprovedAt,
-                ExpiresAt = booking.ExpiresAt
+                ExpiresAt = booking.ExpiresAt,
+                TourStartAt = booking.Tour?.StartAt ?? DateTime.MinValue,
+                PricePerSeat = booking.TourMotard?.PricePerSeat ?? 0
             };
 
             return Ok(response);
@@ -775,12 +787,15 @@ public class BookingsController : ControllerBase
                 TourMotardId = booking.TourMotardId,
                 MotardName = booking.TourMotard?.Motard?.UserName ?? "Unknown",
                 ParticipantId = Guid.Parse(booking.ParticipantUserId),
+                ParticipantName = booking.Participant?.UserName ?? "Unknown",
                 Status = booking.Status.ToString(),
                 CostSharingOptIn = booking.CostSharingOptIn,
                 EmergencyContact = booking.EmergencyContact ?? string.Empty,
                 CreatedAt = booking.CreatedAt,
                 ApprovedAt = booking.ApprovedAt,
-                ExpiresAt = booking.ExpiresAt
+                ExpiresAt = booking.ExpiresAt,
+                TourStartAt = booking.Tour?.StartAt ?? DateTime.MinValue,
+                PricePerSeat = booking.TourMotard?.PricePerSeat ?? 0
             };
 
             return Ok(response);

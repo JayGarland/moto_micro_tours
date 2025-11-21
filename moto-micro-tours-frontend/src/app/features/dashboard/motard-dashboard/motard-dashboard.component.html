@@ -24,11 +24,11 @@
 
   <!-- Dashboard Content -->
   <div class="dashboard-content" *ngIf="!loading() && !error()">
-    
+
     <!-- Pending Booking Approvals Section -->
     <section class="pending-approvals-section">
       <h2 class="section-title">Pending booking requests</h2>
-      
+
       <app-empty-state
         *ngIf="pendingApprovals().length === 0"
         icon="✅"
@@ -53,12 +53,12 @@
               <span class="detail-icon">📅</span>
               <span class="detail-text">{{ formatDate(booking.tourStartAt) }}</span>
             </div>
-            
+
             <div class="detail-item" *ngIf="booking.createdAt">
               <span class="detail-icon">⏰</span>
               <span class="detail-text">Requested {{ formatShortDate(booking.createdAt) }}</span>
             </div>
-            
+
             <div class="detail-item" *ngIf="booking.pricePerSeat != null">
               <span class="detail-icon">💰</span>
               <span class="detail-text">{{ formatPrice(booking.pricePerSeat) }}</span>
@@ -74,18 +74,29 @@
             <button
               class="btn btn-outline-danger"
               (click)="onDeclineBooking(booking.bookingId)"
+              [disabled]="isProcessing(booking.bookingId)"
             >
-              Decline
+              <span *ngIf="!isProcessing(booking.bookingId)">Decline</span>
+              <span *ngIf="isProcessing(booking.bookingId)" class="processing">
+                <span class="spinner-small"></span>
+                Processing...
+              </span>
             </button>
             <button
               class="btn btn-success"
               (click)="onApproveBooking(booking.bookingId)"
+              [disabled]="isProcessing(booking.bookingId)"
             >
-              Approve
+              <span *ngIf="!isProcessing(booking.bookingId)">Approve</span>
+              <span *ngIf="isProcessing(booking.bookingId)" class="processing">
+                <span class="spinner-small"></span>
+                Processing...
+              </span>
             </button>
             <button
               class="btn btn-secondary"
               (click)="onViewBooking(booking.bookingId)"
+              [disabled]="isProcessing(booking.bookingId)"
             >
               View details
             </button>
@@ -95,17 +106,66 @@
     </section>
 
     <!-- Upcoming Rides Section -->
-    <app-booking-section-list
-      title="Upcoming rides"
-      [bookings]="upcomingRides()"
-      emptyMessage="No upcoming rides"
-      emptyIcon="🏍️"
-    ></app-booking-section-list>
+    <section class="upcoming-rides-section">
+      <div class="section-header-with-badge">
+        <h2 class="section-title">
+          Upcoming rides
+          <span class="count-badge" *ngIf="upcomingRides().length > 0">
+            {{ upcomingRides().length }}
+          </span>
+        </h2>
+      </div>
+
+      <app-empty-state
+        *ngIf="upcomingRides().length === 0"
+        icon="🏍️"
+        title="No upcoming rides"
+        description="Approved bookings will appear here"
+      ></app-empty-state>
+
+      <div class="booking-list" *ngIf="upcomingRides().length > 0">
+        <div class="booking-card" *ngFor="let booking of upcomingRides()">
+          <div class="booking-header">
+            <div class="booking-info">
+              <h3 class="booking-title">{{ booking.tourTitle }}</h3>
+              <p class="participant-name">Participant: {{ booking.participantName }}</p>
+            </div>
+            <span 
+              class="status-badge"
+              [ngClass]="booking.status === BookingStatus.Paid ? 'status-paid' : 'status-approved'"
+            >
+              {{ booking.status === BookingStatus.Paid ? 'Paid' : 'Approved' }}
+            </span>
+          </div>
+
+          <div class="booking-details">
+            <div class="detail-item">
+              <span class="detail-icon">📅</span>
+              <span class="detail-text">{{ formatDate(booking.tourStartAt) }}</span>
+            </div>
+            
+            <div class="detail-item" *ngIf="booking.pricePerSeat != null">
+              <span class="detail-icon">💰</span>
+              <span class="detail-text">{{ formatPrice(booking.pricePerSeat) }}</span>
+            </div>
+          </div>
+
+          <div class="booking-actions">
+            <button
+              class="btn btn-primary"
+              (click)="onViewBooking(booking.bookingId)"
+            >
+              View booking
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
 
     <!-- My Tours Section -->
     <section class="my-tours-section">
       <h2 class="section-title">My tours</h2>
-      
+
       <app-empty-state
         *ngIf="myTours().length === 0"
         icon="🗺️"
@@ -119,7 +179,7 @@
         <div class="tour-card" *ngFor="let tour of myTours()">
           <div class="tour-header">
             <h3 class="tour-title">{{ tour.title }}</h3>
-            <span 
+            <span
               class="tour-status"
               [ngClass]="getTourStatusClass(tour)"
             >

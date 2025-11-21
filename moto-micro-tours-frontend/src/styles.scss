@@ -56,3 +56,22 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: $yamaha-black;
 }
+
+/* Snackbar custom styles */
+.success-snackbar {
+  background-color: #10b981 !important;
+  color: white !important;
+
+  .mat-mdc-button.mat-mdc-snack-bar-action {
+    color: white !important;
+  }
+}
+
+.error-snackbar {
+  background-color: #dc2626 !important;
+  color: white !important;
+
+  .mat-mdc-button.mat-mdc-snack-bar-action {
+    color: white !important;
+  }
+}
