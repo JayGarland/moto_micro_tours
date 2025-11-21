@@ -30,12 +30,12 @@ export class HeaderComponent {
   logout(): void {
     this.authService.logout().subscribe({
       next: () => {
-        this.router.navigate(['/auth/login']);
+        this.router.navigate(['/landing']);
       },
       error: (error) => {
         console.error('Logout error:', error);
-        // Even if logout fails, navigate to login
-        this.router.navigate(['/auth/login']);
+        // Even if logout fails, navigate to landing page
+        this.router.navigate(['/landing']);
       }
     });
   }

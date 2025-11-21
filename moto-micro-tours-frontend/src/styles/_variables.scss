@@ -1,10 +1,17 @@
-// Yamaha-Inspired Color Palette
-$yamaha-blue-primary: #0D47A1;    // Deep Yamaha Blue
+// Yamaha-Inspired Color Palette - Centralized Theme Colors
+$yamaha-blue: #0b3c8a;            // Primary Yamaha Blue
+$yamaha-blue-primary: #0b3c8a;    // Deep Yamaha Blue (alias)
 $yamaha-blue-light: #1976D2;      // Lighter variant
-$yamaha-blue-dark: #002171;       // Darker variant
+$yamaha-blue-dark: #022a63;       // Darker variant for gradients
 $yamaha-black: #212121;           // Almost black
 $yamaha-gray: #424242;            // Dark gray
-$yamaha-white: #FAFAFA;           // Off-white
+$yamaha-white: #ffffff;           // Pure white
+
+// App Shell Colors (for logged-in pages)
+$app-bg-light: #f5f5f7;           // Light background for app content
+$surface-white: #ffffff;          // Card/surface backgrounds
+$text-main: #1a1a1a;              // Main text color
+$text-muted: #555555;             // Muted/secondary text
 
 // Spacing
 $spacing-xs: 4px;

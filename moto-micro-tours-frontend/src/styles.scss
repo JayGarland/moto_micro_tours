@@ -17,8 +17,8 @@ html {
 
 body {
   color-scheme: light;
-  background-color: var(--mat-sys-surface);
-  color: var(--mat-sys-on-surface);
+  background-color: $app-bg-light;
+  color: $text-main;
   font: var(--mat-sys-body-medium);
   margin: 0;
 }
@@ -31,11 +31,128 @@ html, body {
 body {
   margin: 0;
   font-family: $font-family-primary;
-  background-color: $yamaha-white;
+  background-color: $app-bg-light;
+  color: $text-main;
 }
 
 * {
   box-sizing: border-box;
+}
+
+/* ========================================
+   Yamaha Blue Header/Toolbar Theme
+   Always blue with white text on ALL pages
+   ======================================== */
+.app-header,
+.mat-toolbar.app-header,
+.mat-mdc-toolbar.app-header {
+  background-color: $yamaha-blue !important;
+  color: #ffffff !important;
+
+  /* Scope Material theme variables to header only */
+  --mat-toolbar-title-text-color: #ffffff;
+  --mat-toolbar-text-color: #ffffff;
+}
+
+.app-header button,
+.app-header a,
+.app-header .mat-icon,
+.app-header .mat-mdc-button,
+.app-header .mat-button {
+  color: #ffffff !important;
+}
+
+.app-header .mat-mdc-button .mat-icon {
+  color: #ffffff !important;
+}
+
+/* ========================================
+   App Shell Layout (for logged-in pages)
+   Light background, dark text, clean dashboard look
+   ======================================== */
+.app-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: $app-bg-light;
+  color: $text-main;
+}
+
+.app-shell main,
+.app-shell .app-content {
+  flex: 1;
+  padding: 1.5rem;
+  background: $app-bg-light;
+  color: $text-main;
+}
+
+.app-shell .card,
+.app-shell .mat-mdc-card,
+.app-shell .mat-card {
+  background: $surface-white;
+  color: $text-main;
+}
+
+/* ========================================
+   Landing Page Hero (Public Home)
+   Yamaha image background with light blue overlay, white text
+   SCOPED to .landing-page only
+   ======================================== */
+.landing-page {
+  min-height: calc(100vh - 64px);
+  display: flex;
+  flex-direction: column;
+  background:
+    linear-gradient(135deg, rgba(11, 60, 138, 0.5) 0%, rgba(2, 42, 99, 0.6) 100%),
+    url('/img/YAMAHA_grp.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  color: #ffffff;
+}
+
+.landing-page .hero-title,
+.landing-page .hero-subtitle,
+.landing-page h1,
+.landing-page h2,
+.landing-page p {
+  color: #ffffff;
+}
+
+.landing-page .hero-actions button {
+  background: #ffffff;
+  color: $yamaha-blue;
+}
+
+/* ========================================
+   Dashboard & Page Containers
+   Light background, dark text
+   ======================================== */
+.app-content,
+.page-container {
+  background: $app-bg-light;
+  color: $text-main;
+}
+
+.dashboard-container,
+.home-container,
+.profile-container {
+  background: $app-bg-light;
+  color: $text-main;
+}
+
+/* Dashboard headings should use Yamaha blue */
+.dashboard-container h1,
+.dashboard-container h2,
+.dashboard-container h3,
+.participant-dashboard h1,
+.participant-dashboard h2,
+.participant-dashboard h3,
+.motard-dashboard h1,
+.motard-dashboard h2,
+.motard-dashboard h3 {
+  color: $yamaha-blue;
 }
 
 /* Custom scrollbar for Yamaha theme */

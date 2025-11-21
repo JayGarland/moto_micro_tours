@@ -5,12 +5,12 @@ import { roleGuard } from './core/guards/role.guard';
 export const routes: Routes = [
   {
     path: '',
-    redirectTo: 'dashboard',
+    redirectTo: 'landing',
     pathMatch: 'full'
   },
   {
     path: 'home',
-    redirectTo: 'dashboard',
+    redirectTo: 'landing',
     pathMatch: 'full'
   },
   {
@@ -108,6 +108,6 @@ export const routes: Routes = [
   },
   {
     path: '**',
-    redirectTo: 'home'
+    redirectTo: 'landing'
   }
 ];

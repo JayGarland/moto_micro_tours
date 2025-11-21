@@ -2,6 +2,8 @@
   max-width: 1280px;
   margin: 0 auto;
   padding: 2rem 1.5rem;
+  background-color: transparent; /* Inherit from app-content */
+  color: #1a1a1a;
 
   @media (max-width: 768px) {
     padding: 1.5rem 1rem;
@@ -90,7 +92,7 @@
 .section-title {
   font-size: 1.5rem;
   font-weight: 600;
-  color: var(--color-text-primary, #111827);
+  color: #0b3c8a;
   margin: 0 0 1.5rem 0;
 }
 
