@@ -174,9 +174,9 @@ npm run start:proxy
 
 ### **Critical**
 
-- because now we are in development mode with Angular proxy setup so :
-- **you need to configure the environment api url:** in the path [environment.ts](.\moto-micro-tours-frontend\src\environments\environment.ts) for the frontend to connect to the backend properly.
-- **you need to configure the url for the CORS for Angular frontend:** in the path [Program.cs](.\moto_micro_tours\moto_micro_tours\Program.cs) for the backend to accept requests from the frontend.
+- Because now we are in development mode with Angular proxy setup so:
+- **You need to configure the environment API URL:** in the path [environment.ts](./moto-micro-tours-frontend/src/environments/environment.ts) for the frontend to connect to the backend properly.
+- **You need to configure the URL for the CORS for Angular frontend:** in the path [Program.cs](./moto_micro_tours/Program.cs) for the backend to accept requests from the frontend.
 
 
 ## 📁 Project Structure
