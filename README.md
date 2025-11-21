@@ -168,9 +168,10 @@ npm run start:proxy
 
 ### Access the Application
 
-- **Frontend:** http://localhost:4200
 - **Backend API:** http://localhost:5000 (or check your console output)
+- **Frontend:** http://localhost:4200
 - **Swagger UI:** http://localhost:5000/swagger
+- **Critical**: **you need to change the environment api url**(Dev) in the path [environment.ts](.\moto-micro-tours-frontend\src\environments\environment.ts)
 
 ## 📁 Project Structure
 
