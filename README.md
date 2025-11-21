@@ -171,7 +171,13 @@ npm run start:proxy
 - **Backend API:** http://localhost:5000 (or check your console output)
 - **Frontend:** http://localhost:4200
 - **Swagger UI:** http://localhost:5000/swagger
-- **Critical**: **you need to change the environment api url**(Dev) in the path [environment.ts](.\moto-micro-tours-frontend\src\environments\environment.ts)
+
+### **Critical**
+
+- because now we are in development mode with Angular proxy setup so :
+- **you need to configure the environment api url:** in the path [environment.ts](.\moto-micro-tours-frontend\src\environments\environment.ts) for the frontend to connect to the backend properly.
+- **you need to configure the url for the CORS for Angular frontend:** in the path [Program.cs](.\moto_micro_tours\moto_micro_tours\Program.cs) for the backend to accept requests from the frontend.
+
 
 ## 📁 Project Structure
 
