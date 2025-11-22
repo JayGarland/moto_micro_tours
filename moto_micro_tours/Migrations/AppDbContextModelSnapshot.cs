@@ -239,6 +239,12 @@ namespace moto_micro_tours.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
 
+                    b.Property<string>("DeclineReason")
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime?>("DeclinedAt")
+                        .HasColumnType("datetime(6)");
+
                     b.Property<string>("EmergencyContact")
                         .HasColumnType("longtext");
 

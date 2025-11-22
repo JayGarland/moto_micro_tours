@@ -48,6 +48,18 @@ export interface BookingConversationSummaryDto {
 }
 
 /**
+ * Response from GET /api/bookings/{id}/conversation endpoint
+ */
+export interface BookingConversationDto {
+  bookingId: string;
+  conversationId: string | null;
+  motardUserId?: string;
+  motardName?: string;
+  participantUserId?: string;
+  participantName?: string;
+}
+
+/**
  * UI-specific message model with additional helper properties
  */
 export interface ChatMessage extends MessageDto {

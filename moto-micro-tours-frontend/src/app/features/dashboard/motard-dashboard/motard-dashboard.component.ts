@@ -12,7 +12,7 @@ import { TourListDto } from '../../../core/models/tour.models';
 import { DashboardHeaderComponent } from '../components/dashboard-header/dashboard-header.component';
 import { BookingSectionListComponent } from '../components/booking-section-list/booking-section-list.component';
 import { EmptyStateComponent } from '../components/empty-state/empty-state.component';
-import { ConfirmationDialogComponent, ConfirmationDialogData } from '../../../shared/components/confirmation-dialog/confirmation-dialog.component';
+import { ConfirmationDialogComponent, ConfirmationDialogData, ConfirmationDialogResult } from '../../../shared/components/confirmation-dialog/confirmation-dialog.component';
 
 @Component({
   selector: 'app-motard-dashboard',
@@ -131,8 +131,8 @@ export class MotardDashboardComponent implements OnInit {
       data: dialogData
     });
 
-    dialogRef.afterClosed().subscribe(confirmed => {
-      if (confirmed) {
+    dialogRef.afterClosed().subscribe((result: ConfirmationDialogResult | undefined) => {
+      if (result?.confirmed) {
         this.approveBookingRequest(bookingId);
       }
     });
@@ -172,29 +172,31 @@ export class MotardDashboardComponent implements OnInit {
   onDeclineBooking(bookingId: string): void {
     const dialogData: ConfirmationDialogData = {
       title: 'Decline Booking Request',
-      message: 'Are you sure you want to decline this booking request? The participant will be notified. You can optionally provide a reason.',
+      message: 'Are you sure you want to decline this booking request? The participant will be notified.',
       confirmText: 'Decline',
       cancelText: 'Cancel',
       confirmColor: 'warn',
-      icon: 'cancel'
+      icon: 'cancel',
+      showTextarea: true, // Stage F7.1
+      textareaLabel: 'Reason (optional)', // Stage F7.1
+      textareaPlaceholder: 'Explain why you\'re declining this booking...' // Stage F7.1
     };
 
     const dialogRef = this.dialog.open(ConfirmationDialogComponent, {
-      width: '450px',
+      width: '500px',
       data: dialogData
     });
 
-    dialogRef.afterClosed().subscribe(confirmed => {
-      if (confirmed) {
-        // TODO: In future, add a reason input field in a more advanced dialog
-        this.declineBookingRequest(bookingId);
+    dialogRef.afterClosed().subscribe((result: ConfirmationDialogResult | undefined) => {
+      if (result?.confirmed) {
+        this.declineBookingRequest(bookingId, result.textValue);
       }
     });
   }
 
   private declineBookingRequest(bookingId: string, reason?: string): void {
     this.processingBookingId.set(bookingId);
-    
+
     this.bookingsService.declineBooking(bookingId, reason).subscribe({
       next: () => {
         this.processingBookingId.set(null);

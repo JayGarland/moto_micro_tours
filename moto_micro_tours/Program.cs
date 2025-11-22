@@ -19,6 +19,9 @@ builder.Services.AddCors(options =>
     });
 });
 
+// Add SignalR for real-time messaging
+builder.Services.AddSignalR();
+
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -64,17 +67,20 @@ builder.Services.ConfigureApplicationCookie(options =>
     };
 });
 
-// Authorization: register conversation policies and handlers
+// Authorization: register conversation and booking policies and handlers
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("CanAccessPreBookingConversation", policy =>
         policy.Requirements.Add(new moto_micro_tours.Authorization.ConversationAccessRequirement()));
     options.AddPolicy("CanAccessBookingConversation", policy =>
         policy.Requirements.Add(new moto_micro_tours.Authorization.ConversationAccessRequirement()));
+    options.AddPolicy("CanAccessBookingDetails", policy =>
+        policy.Requirements.Add(new moto_micro_tours.Authorization.BookingAccessRequirement()));
 });
 
 builder.Services.AddScoped<Microsoft.AspNetCore.Authorization.IAuthorizationHandler, moto_micro_tours.Authorization.PreBookingConversationHandler>();
 builder.Services.AddScoped<Microsoft.AspNetCore.Authorization.IAuthorizationHandler, moto_micro_tours.Authorization.BookingConversationHandler>();
+builder.Services.AddScoped<Microsoft.AspNetCore.Authorization.IAuthorizationHandler, moto_micro_tours.Authorization.BookingAccessHandler>();
 
 // Register application services
 builder.Services.AddScoped<moto_micro_tours.Services.IPaymentService, moto_micro_tours.Services.PaymentService>();
@@ -105,6 +111,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHub<moto_micro_tours.Hubs.BookingChatHub>("/hubs/booking-chat");
 
 // Seed the database with happy path data if empty
 await moto_micro_tours.DbSeeder.SeedAsync(app.Services);

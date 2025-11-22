@@ -15,15 +15,18 @@ public class BookingsController : ControllerBase
     private readonly AppDbContext _context;
     private readonly UserManager<AppUser> _userManager;
     private readonly ILogger<BookingsController> _logger;
+    private readonly IAuthorizationService _authorizationService;
 
     public BookingsController(
         AppDbContext context,
         UserManager<AppUser> userManager,
-        ILogger<BookingsController> logger)
+        ILogger<BookingsController> logger,
+        IAuthorizationService authorizationService)
     {
         _context = context;
         _userManager = userManager;
         _logger = logger;
+        _authorizationService = authorizationService;
     }
 
     /// <summary>
@@ -284,6 +287,122 @@ public class BookingsController : ControllerBase
     }
 
     /// <summary>
+    /// Decline a booking request (Stage F7.1: Only the assigned motard can decline)
+    /// Sets status to Declined and optionally stores a decline reason
+    /// </summary>
+    /// <param name="id">Booking ID</param>
+    /// <param name="request">Optional decline reason</param>
+    /// <returns>Updated booking with Declined status</returns>
+    [HttpPost("{id}/decline")]
+    [Authorize(Roles = "Motard")] // Must be a Motard, and specifically the one assigned to this booking
+    public async Task<ActionResult<BookingResponseDto>> DeclineBooking(Guid id, [FromBody] DeclineBookingRequestDto? request)
+    {
+        try
+        {
+            _logger.LogInformation("Declining booking {BookingId}", id);
+
+            // Load booking with related entities
+            var booking = await _context.Bookings
+                .Include(b => b.Tour)
+                .Include(b => b.TourMotard)
+                    .ThenInclude(tm => tm!.Motard)
+                .Include(b => b.Participant)
+                .FirstOrDefaultAsync(b => b.Id == id);
+
+            if (booking == null)
+            {
+                _logger.LogWarning("Booking {BookingId} not found", id);
+                return NotFound(new { error = $"Booking with ID {id} not found" });
+            }
+
+            // Verify booking is in Pending status
+            if (booking.Status != BookingStatus.Pending)
+            {
+                _logger.LogWarning(
+                    "Booking {BookingId} cannot be declined (current status: {Status})",
+                    id, booking.Status);
+                return BadRequest(new
+                {
+                    error = $"Booking cannot be declined. Current status: {booking.Status}"
+                });
+            }
+
+            // Verify tour is still Published
+            if (booking.Tour?.Status != TourStatus.Published)
+            {
+                _logger.LogWarning(
+                    "Tour {TourId} is not published (status: {Status})",
+                    booking.TourId, booking.Tour?.Status);
+                return BadRequest(new
+                {
+                    error = $"Tour is no longer available (status: {booking.Tour?.Status})"
+                });
+            }
+
+            // Stage F7.1: Verify current user is the assigned motard
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
+            {
+                _logger.LogWarning("Decline attempt without authentication for booking {BookingId}", id);
+                return Unauthorized(new { error = "You must be logged in to decline bookings" });
+            }
+
+            // Only the assigned motard can decline their own bookings
+            if (booking.TourMotard?.MotardUserId != currentUser.Id)
+            {
+                _logger.LogWarning(
+                    "User {UserId} attempted to decline booking {BookingId} assigned to motard {MotardUserId}",
+                    currentUser.Id, id, booking.TourMotard?.MotardUserId);
+                return Forbid(); // 403 Forbidden - user is authenticated but not authorized
+            }
+
+            _logger.LogInformation(
+                "Motard {MotardUserId} ({Username}) is authorized to decline booking {BookingId}",
+                currentUser.Id, currentUser.UserName, id);
+
+            // Decline the booking
+            booking.Status = BookingStatus.Declined;
+            booking.DeclinedAt = DateTime.UtcNow;
+            booking.DeclineReason = request?.Reason;
+
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation(
+                "Booking {BookingId} declined{ReasonSuffix}",
+                booking.Id,
+                string.IsNullOrWhiteSpace(request?.Reason) ? "" : $" with reason: {request.Reason}");
+
+            var response = new BookingResponseDto
+            {
+                BookingId = booking.Id,
+                TourId = booking.TourId,
+                TourTitle = booking.Tour?.Title ?? "Unknown",
+                TourMotardId = booking.TourMotardId,
+                MotardName = booking.TourMotard?.Motard?.UserName ?? "Unknown",
+                ParticipantId = Guid.Parse(booking.ParticipantUserId),
+                ParticipantName = booking.Participant?.UserName ?? "Unknown",
+                Status = booking.Status.ToString(),
+                CostSharingOptIn = booking.CostSharingOptIn,
+                EmergencyContact = booking.EmergencyContact ?? string.Empty,
+                CreatedAt = booking.CreatedAt,
+                ApprovedAt = booking.ApprovedAt,
+                ExpiresAt = booking.ExpiresAt,
+                DeclinedAt = booking.DeclinedAt,
+                DeclineReason = booking.DeclineReason,
+                TourStartAt = booking.Tour?.StartAt ?? DateTime.MinValue,
+                PricePerSeat = booking.TourMotard?.PricePerSeat ?? 0
+            };
+
+            return Ok(response);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error declining booking {BookingId}", id);
+            return StatusCode(500, new { error = "An error occurred while declining the booking" });
+        }
+    }
+
+    /// <summary>
     /// Get complete booking details by ID
     /// Shows booking status, tour info, payment, and payout details
     /// </summary>
@@ -309,6 +428,18 @@ public class BookingsController : ControllerBase
             if (booking == null)
             {
                 _logger.LogWarning("Booking {BookingId} not found", id);
+                return NotFound(new { error = $"Booking with ID {id} not found" });
+            }
+
+            // Authorization: Only participant or assigned motard can view booking details
+            var authResult = await _authorizationService.AuthorizeAsync(User, booking, "CanAccessBookingDetails");
+            if (!authResult.Succeeded)
+            {
+                _logger.LogWarning(
+                    "User {UserId} attempted to access booking {BookingId} without authorization",
+                    User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value,
+                    id);
+                // Return 404 instead of 403 to avoid leaking booking existence
                 return NotFound(new { error = $"Booking with ID {id} not found" });
             }
 
@@ -357,6 +488,8 @@ public class BookingsController : ControllerBase
                 PaidAt = booking.PaidAt,
                 CancelledAt = booking.CancelledAt,
                 CancellationReason = null, // Not yet implemented in entity
+                DeclinedAt = booking.DeclinedAt, // Stage F7.1
+                DeclineReason = booking.DeclineReason, // Stage F7.1
 
                 // Payment information (if exists)
                 Payment = booking.Payment != null ? new PaymentInfoDto
@@ -477,6 +610,8 @@ public class BookingsController : ControllerBase
                 CreatedAt = booking.CreatedAt,
                 ApprovedAt = booking.ApprovedAt,
                 ExpiresAt = booking.ExpiresAt,
+                DeclinedAt = booking.DeclinedAt, // Stage F7.1
+                DeclineReason = booking.DeclineReason, // Stage F7.1
                 TourStartAt = booking.Tour?.StartAt ?? DateTime.MinValue,
                 PricePerSeat = booking.TourMotard?.PricePerSeat ?? 0
             }).ToList();
@@ -804,6 +939,88 @@ public class BookingsController : ControllerBase
         {
             _logger.LogError(ex, "Error refunding booking {BookingId}", id);
             return StatusCode(500, new { error = "An error occurred while refunding the booking" });
+        }
+    }
+
+    /// <summary>
+    /// Get the conversation ID for a booking (F7.2 Phase 1 helper)
+    /// </summary>
+    /// <param name="id">Booking ID</param>
+    /// <returns>Conversation ID if exists, null otherwise</returns>
+    [HttpGet("{id}/conversation")]
+    [Authorize]
+    public async Task<ActionResult<BookingConversationDto>> GetBookingConversation(Guid id)
+    {
+        try
+        {
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
+            {
+                return Unauthorized(new { error = "User not authenticated" });
+            }
+
+            // Load booking with related data
+            var booking = await _context.Bookings
+                .Include(b => b.TourMotard)
+                    .ThenInclude(tm => tm.Motard)
+                .Include(b => b.Participant)
+                .FirstOrDefaultAsync(b => b.Id == id);
+
+            if (booking == null)
+            {
+                return NotFound(new { error = "Booking not found" });
+            }
+
+            // Check authorization: user must be motard or participant
+            var isMotard = booking.TourMotard?.MotardUserId == currentUser.Id;
+            var isParticipant = booking.ParticipantUserId == currentUser.Id;
+
+            if (!isMotard && !isParticipant)
+            {
+                return Forbid();
+            }
+
+            // Check if booking status allows chat (Approved, Paid, Cancelled, CancelledExpired, Refunded)
+            if (booking.Status != BookingStatus.Approved &&
+                booking.Status != BookingStatus.Paid &&
+                booking.Status != BookingStatus.Cancelled &&
+                booking.Status != BookingStatus.CancelledExpired &&
+                booking.Status != BookingStatus.Refunded)
+            {
+                return BadRequest(new { error = "Chat is only available for approved or completed bookings" });
+            }
+
+            // Find existing conversation
+            var conversation = await _context.BookingConversations
+                .FirstOrDefaultAsync(c => c.BookingId == id);
+
+            if (conversation == null)
+            {
+                return Ok(new BookingConversationDto
+                {
+                    BookingId = id,
+                    ConversationId = null,
+                    MotardUserId = booking.TourMotard?.MotardUserId,
+                    MotardName = booking.TourMotard?.Motard?.UserName,
+                    ParticipantUserId = booking.ParticipantUserId,
+                    ParticipantName = booking.Participant?.UserName
+                });
+            }
+
+            return Ok(new BookingConversationDto
+            {
+                BookingId = id,
+                ConversationId = conversation.Id,
+                MotardUserId = booking.TourMotard?.MotardUserId,
+                MotardName = booking.TourMotard?.Motard?.UserName,
+                ParticipantUserId = booking.ParticipantUserId,
+                ParticipantName = booking.Participant?.UserName
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting conversation for booking {BookingId}", id);
+            return StatusCode(500, new { error = "An error occurred while retrieving the conversation" });
         }
     }
 

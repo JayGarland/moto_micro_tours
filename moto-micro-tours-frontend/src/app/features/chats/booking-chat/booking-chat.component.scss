@@ -1,0 +1,147 @@
+@use '../../../../styles/variables' as *;
+
+.chat-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-color: white;
+  overflow: hidden;
+  border: 1px solid #e0e0e0;
+  border-radius: $border-radius-md;
+}
+
+// ==================== Header ====================
+.chat-header {
+  border-bottom: 1px solid #e0e0e0;
+  background-color: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  z-index: 10;
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: $spacing-md;
+  gap: $spacing-md;
+}
+
+.chat-info {
+  flex: 1;
+  min-width: 0;
+
+  .chat-with-name {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: $yamaha-black;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .tour-subtitle {
+    margin: 4px 0 0 0;
+    font-size: 14px;
+    color: $yamaha-gray;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+// ==================== Booking Context Bar ====================
+.booking-context-bar {
+  padding: $spacing-sm $spacing-md;
+  border-top: 1px solid #f0f0f0;
+  background-color: #fafafa;
+
+  .booking-details {
+    display: flex;
+    align-items: center;
+    gap: $spacing-md;
+
+    .detail-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+
+      .detail-label {
+        color: $yamaha-gray;
+        font-weight: 500;
+      }
+
+      .detail-value {
+        font-weight: 600;
+        padding: 2px 8px;
+        border-radius: 4px;
+
+        &.status-approved {
+          color: #2e7d32;
+          background-color: #e8f5e9;
+        }
+
+        &.status-paid {
+          color: $yamaha-blue-primary;
+          background-color: #e3f2fd;
+        }
+
+        &.status-cancelled,
+        &.status-cancelledexpired {
+          color: #d32f2f;
+          background-color: #ffebee;
+        }
+
+        &.status-refunded {
+          color: #f57c00;
+          background-color: #fff3e0;
+        }
+      }
+    }
+  }
+}
+
+// ==================== Body ====================
+.chat-body {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  background-color: #f8f9fa;
+}
+
+// ==================== Footer ====================
+.chat-footer {
+  flex-shrink: 0;
+  border-top: 1px solid #e0e0e0;
+  background-color: white;
+}
+
+// ==================== Mobile Responsiveness ====================
+@media (max-width: 768px) {
+  .header-content {
+    padding: $spacing-sm;
+  }
+
+  .chat-info {
+    .chat-with-name {
+      font-size: 16px;
+    }
+
+    .tour-subtitle {
+      font-size: 13px;
+    }
+  }
+
+  .booking-context-bar {
+    padding: $spacing-xs $spacing-sm;
+
+    .booking-details {
+      gap: $spacing-sm;
+
+      .detail-item {
+        font-size: 12px;
+      }
+    }
+  }
+}

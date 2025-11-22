@@ -2,10 +2,12 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.SignalR;
 using System.Security.Claims;
 using moto_micro_tours.DTOs;
 using moto_micro_tours.Domain.Entities;
 using moto_micro_tours.Services;
+using moto_micro_tours.Hubs;
 
 namespace moto_micro_tours.Controllers;
 
@@ -19,19 +21,22 @@ public class ChatsController : ControllerBase
     private readonly ILogger<ChatsController> _logger;
     private readonly IAuthorizationService _authService;
     private readonly UserManager<AppUser> _userManager;
+    private readonly IHubContext<BookingChatHub> _hubContext;
 
     public ChatsController(
         AppDbContext db,
         IMessageService messageService,
         ILogger<ChatsController> logger,
         IAuthorizationService authService,
-        UserManager<AppUser> userManager)
+        UserManager<AppUser> userManager,
+        IHubContext<BookingChatHub> hubContext)
     {
         _db = db;
         _messageService = messageService;
         _logger = logger;
         _authService = authService;
         _userManager = userManager;
+        _hubContext = hubContext;
     }
 
     /// <summary>
@@ -293,6 +298,11 @@ public class ChatsController : ControllerBase
 
         var created = await _messageService.CreateMessageAsync(message);
         var dto = created.ToDto();
+
+        // Broadcast message via SignalR to all clients in the booking group
+        await _hubContext.Clients.Group($"booking-{booking.Id}")
+            .SendAsync("ReceiveMessage", dto);
+
         return CreatedAtAction(nameof(GetBookingMessages), new { conversationId = conv.Id }, dto);
     }
 

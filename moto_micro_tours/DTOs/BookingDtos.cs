@@ -27,6 +27,17 @@ public class CreateBookingRequestDto
 }
 
 /// <summary>
+/// Request DTO for declining a booking (Stage F7.1)
+/// </summary>
+public class DeclineBookingRequestDto
+{
+    /// <summary>
+    /// Optional reason for declining the booking
+    /// </summary>
+    public string? Reason { get; set; }
+}
+
+/// <summary>
 /// Response DTO after creating a booking
 /// Also used for booking list summaries in dashboards
 /// </summary>
@@ -45,6 +56,8 @@ public class BookingResponseDto
     public DateTime CreatedAt { get; set; }
     public DateTime? ApprovedAt { get; set; }
     public DateTime? ExpiresAt { get; set; }
+    public DateTime? DeclinedAt { get; set; } // Stage F7.1
+    public string? DeclineReason { get; set; } // Stage F7.1
     public DateTime TourStartAt { get; set; } // Added for filtering upcoming rides
     public decimal PricePerSeat { get; set; } // Added for price display
 }
@@ -83,6 +96,8 @@ public class BookingDetailDto
     public DateTime? PaidAt { get; set; }
     public DateTime? CancelledAt { get; set; }
     public string? CancellationReason { get; set; }
+    public DateTime? DeclinedAt { get; set; } // Stage F7.1
+    public string? DeclineReason { get; set; } // Stage F7.1
 
     // Payment information (if exists)
     public PaymentInfoDto? Payment { get; set; }

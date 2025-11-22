@@ -158,6 +158,12 @@
   color: #065f46;
 }
 
+// Stage F7.1: Declined status styling
+.status-declined {
+  background-color: rgba(254, 226, 226, 0.9);
+  color: #991b1b;
+}
+
 .ride-details {
   display: flex;
   flex-direction: column;

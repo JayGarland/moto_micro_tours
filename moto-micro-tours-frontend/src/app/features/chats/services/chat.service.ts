@@ -1,31 +1,35 @@
 import { Injectable, inject } from '@angular/core';
 import { BehaviorSubject, Observable, throwError, interval, Subscription } from 'rxjs';
 import { tap, catchError, map, switchMap } from 'rxjs/operators';
+import * as signalR from '@microsoft/signalr';
 import { ApiService } from '../../../core/services/api.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { environment } from '../../../../environments/environment';
 import {
   MessageDto,
   SendPreBookingMessageDto,
   SendBookingMessageDto,
   ConversationSummaryDto,
   BookingConversationSummaryDto,
+  BookingConversationDto,
   ChatMessage,
   ConversationListItem
 } from '../models/chat.models';
 
 /**
- * ChatService - Stage F5
- * Handles pre-booking and booking conversations
- * 
+ * ChatService - Stage F7.2 Phase 2
+ * Handles pre-booking and booking conversations with SignalR support
+ *
  * Features:
- * - Send/receive messages
+ * - Send/receive messages via REST + SignalR
  * - In-memory caching with BehaviorSubject per conversation
- * - Automatic polling for new messages (configurable interval)
+ * - Real-time updates via SignalR for booking chats
+ * - Automatic polling fallback for pre-booking chats
  * - Lightweight error handling (errors bubble up)
- * 
- * TODO Phase 2: Add SignalR for real-time messaging
- * TODO Phase 2: Add typing indicator support
- * TODO Phase 2: Implement more sophisticated caching with invalidation
+ *
+ * Architecture (Hybrid):
+ * - Sending: REST API (reliable)
+ * - Receiving: SignalR (real-time) with polling fallback
  */
 @Injectable({
   providedIn: 'root'
@@ -42,6 +46,10 @@ export class ChatService {
 
   // Polling subscriptions: conversationId -> Subscription
   private pollingSubscriptions = new Map<string, Subscription>();
+
+  // SignalR connection for booking chats
+  private hubConnection: signalR.HubConnection | null = null;
+  private connectedBookingIds = new Set<string>();
 
   // Polling interval in milliseconds (default: 3 seconds)
   private readonly POLLING_INTERVAL = 3000;
@@ -109,7 +117,7 @@ export class ChatService {
           // Check cache for last message
           let lastMessage: string | undefined;
           let lastMessageTime: string | undefined;
-          
+
           if (this.messagesCache.has(conv.conversationId)) {
             const messages = this.messagesCache.get(conv.conversationId)!.value;
             if (messages.length > 0) {
@@ -125,7 +133,7 @@ export class ChatService {
             otherUserId,
             lastMessage,
             lastMessageTime,
-            displayTime: lastMessageTime 
+            displayTime: lastMessageTime
               ? this.formatMessageTime(lastMessageTime)
               : this.formatMessageTime(conv.createdAt)
           };
@@ -141,6 +149,19 @@ export class ChatService {
     return this.apiService.get<BookingConversationSummaryDto[]>('chats/booking/conversations').pipe(
       catchError((error) => {
         console.error('Error fetching booking conversations:', error);
+        return throwError(() => error);
+      })
+    );
+  }
+
+  /**
+   * Get booking conversation info by bookingId (F7.2 Phase 1 helper)
+   * Returns conversation details or null if no conversation exists yet
+   */
+  getBookingConversation(bookingId: string): Observable<BookingConversationDto> {
+    return this.apiService.get<BookingConversationDto>(`bookings/${bookingId}/conversation`).pipe(
+      catchError((error) => {
+        console.error('Error fetching booking conversation:', error);
         return throwError(() => error);
       })
     );
@@ -257,7 +278,7 @@ export class ChatService {
    * Start polling for new messages in a pre-booking conversation
    * Automatically fetches new messages every POLLING_INTERVAL milliseconds
    * Updates the cached BehaviorSubject when new messages arrive
-   * 
+   *
    * @param conversationId The conversation to poll
    */
   startPolling(conversationId: string, type: 'prebooking' | 'booking' = 'prebooking'): void {
@@ -267,10 +288,10 @@ export class ChatService {
     // Create polling subscription
     const polling$ = interval(this.POLLING_INTERVAL).pipe(
       switchMap(() => {
-        const endpoint = type === 'prebooking' 
+        const endpoint = type === 'prebooking'
           ? `chats/prebooking/${conversationId}/messages`
           : `chats/booking/${conversationId}/messages`;
-        
+
         return this.apiService.get<MessageDto[]>(endpoint);
       }),
       catchError((error) => {
@@ -289,7 +310,7 @@ export class ChatService {
         } else {
           const subject = this.messagesCache.get(conversationId)!;
           const currentMessages = subject.value;
-          
+
           // Only update if there are new messages
           if (messages.length > currentMessages.length) {
             subject.next(messages);
@@ -306,7 +327,7 @@ export class ChatService {
 
   /**
    * Stop polling for a specific conversation
-   * 
+   *
    * @param conversationId The conversation to stop polling
    */
   stopPolling(conversationId: string): void {
@@ -344,7 +365,7 @@ export class ChatService {
     } else {
       const subject = this.messagesCache.get(conversationId)!;
       const currentMessages = subject.value;
-      
+
       // Check if message already exists (prevent duplicates)
       const exists = currentMessages.some(m => m.id === message.id);
       if (!exists) {
@@ -358,7 +379,7 @@ export class ChatService {
    */
   private enrichMessages(messages: MessageDto[]): ChatMessage[] {
     const currentUser = this.authService.getCurrentUser();
-    
+
     return messages.map(msg => ({
       ...msg,
       isOwnMessage: msg.senderUserId === currentUser?.userId,
@@ -381,7 +402,7 @@ export class ChatService {
     if (diffMins < 60) return `${diffMins}m ago`;
     if (diffHours < 24) return `${diffHours}h ago`;
     if (diffDays < 7) return `${diffDays}d ago`;
-    
+
     // Format as date
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   }
@@ -394,6 +415,100 @@ export class ChatService {
       this.loadingStates.set(conversationId, new BehaviorSubject<boolean>(loading));
     } else {
       this.loadingStates.get(conversationId)!.next(loading);
+    }
+  }
+
+  /**
+   * Initialize SignalR connection for booking chats (F7.2 Phase 2)
+   * Connection is shared across all booking conversations
+   */
+  private async initializeSignalR(): Promise<void> {
+    if (this.hubConnection) {
+      return; // Already initialized
+    }
+
+    // Build SignalR hub URL from environment API URL
+    const hubUrl = environment.apiUrl.replace('/api', '/hubs/booking-chat');
+
+    this.hubConnection = new signalR.HubConnectionBuilder()
+      .withUrl(hubUrl, {
+        withCredentials: true // Include cookies for authentication
+      })
+      .withAutomaticReconnect()
+      .configureLogging(signalR.LogLevel.Information)
+      .build();
+
+    // Listen for incoming messages
+    this.hubConnection.on('ReceiveMessage', (message: MessageDto) => {
+      console.log('[SignalR] Received message:', message);
+      this.addMessageToCache(message.conversationId, message);
+    });
+
+    try {
+      await this.hubConnection.start();
+      console.log('[SignalR] Connected to booking chat hub');
+    } catch (error) {
+      console.error('[SignalR] Connection failed:', error);
+      // Fallback to polling will be used
+    }
+  }
+
+  /**
+   * Join a booking's SignalR group to receive real-time messages
+   */
+  async connectToBookingChat(bookingId: string, conversationId: string): Promise<void> {
+    await this.initializeSignalR();
+
+    if (!this.hubConnection || this.hubConnection.state !== signalR.HubConnectionState.Connected) {
+      console.warn('[SignalR] Not connected, falling back to polling');
+      // Start polling as fallback
+      this.startPolling(conversationId, 'booking');
+      return;
+    }
+
+    try {
+      await this.hubConnection.invoke('JoinBookingGroup', bookingId);
+      this.connectedBookingIds.add(bookingId);
+      console.log(`[SignalR] Joined booking group: ${bookingId}`);
+
+      // Stop polling since we have SignalR
+      this.stopPolling(conversationId);
+    } catch (error) {
+      console.error('[SignalR] Failed to join booking group:', error);
+      // Fallback to polling
+      this.startPolling(conversationId, 'booking');
+    }
+  }
+
+  /**
+   * Leave a booking's SignalR group
+   */
+  async disconnectFromBookingChat(bookingId: string, conversationId: string): Promise<void> {
+    if (!this.hubConnection || !this.connectedBookingIds.has(bookingId)) {
+      return;
+    }
+
+    try {
+      await this.hubConnection.invoke('LeaveBookingGroup', bookingId);
+      this.connectedBookingIds.delete(bookingId);
+      console.log(`[SignalR] Left booking group: ${bookingId}`);
+    } catch (error) {
+      console.error('[SignalR] Failed to leave booking group:', error);
+    }
+
+    // Stop polling too
+    this.stopPolling(conversationId);
+  }
+
+  /**
+   * Disconnect SignalR connection (call on service destroy or logout)
+   */
+  async disconnectSignalR(): Promise<void> {
+    if (this.hubConnection) {
+      await this.hubConnection.stop();
+      this.hubConnection = null;
+      this.connectedBookingIds.clear();
+      console.log('[SignalR] Disconnected');
     }
   }
 }

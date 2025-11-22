@@ -24,14 +24,14 @@
 
   <!-- Dashboard Content -->
   <div class="dashboard-content" *ngIf="!loading() && !error()">
-    
+
     <!-- Next Ride Card (Highlighted) -->
     <section class="next-ride-section" *ngIf="nextBooking()">
       <h2 class="section-title">Next ride</h2>
       <div class="next-ride-card">
         <div class="next-ride-header">
           <h3 class="ride-title">{{ nextBooking()!.tourTitle }}</h3>
-          <span 
+          <span
             class="booking-status"
             [ngClass]="getStatusClass(nextBooking()!.status)"
           >
@@ -84,6 +84,14 @@
       [bookings]="upcomingBookings()"
       emptyMessage="No upcoming rides"
       emptyIcon="🏍️"
+    ></app-booking-section-list>
+
+    <!-- Stage F7.1: Declined Bookings Section -->
+    <app-booking-section-list
+      title="Declined bookings"
+      [bookings]="declinedBookings()"
+      emptyMessage="No declined bookings"
+      emptyIcon="❌"
     ></app-booking-section-list>
 
     <!-- Past Rides Section -->

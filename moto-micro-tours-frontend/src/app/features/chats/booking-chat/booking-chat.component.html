@@ -1,0 +1,44 @@
+<div class="chat-container">
+  <!-- Header -->
+  <div class="chat-header">
+    <div class="header-content">
+      <!-- Chat Info -->
+      <div class="chat-info">
+        <h3 class="chat-with-name">Chat avec {{ chatWithName || 'l\'autre participant' }}</h3>
+        @if (tourTitle) {
+          <p class="tour-subtitle">{{ tourTitle }}</p>
+        }
+      </div>
+    </div>
+
+    <!-- Booking Context Bar -->
+    @if (bookingStatus) {
+      <div class="booking-context-bar">
+        <div class="booking-details">
+          <div class="detail-item">
+            <span class="detail-label">Statut:</span>
+            <span class="detail-value status-{{ bookingStatus.toLowerCase() }}">{{ bookingStatus }}</span>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- Messages Area -->
+  <div class="chat-body">
+    <app-message-list
+      [messages]="messages()"
+      [loading]="loading()"
+      [error]="loadError()">
+    </app-message-list>
+  </div>
+
+  <!-- Input Area -->
+  <div class="chat-footer">
+    <app-message-input
+      [sending]="sending()"
+      [error]="sendError()"
+      (sendMessage)="onSendMessage($event)">
+    </app-message-input>
+  </div>
+</div>

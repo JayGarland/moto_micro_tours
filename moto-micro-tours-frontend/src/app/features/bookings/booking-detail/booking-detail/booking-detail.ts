@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
@@ -10,6 +10,8 @@ import { BookingsService } from '../../services/bookings';
 import { BookingDetail as BookingDetailModel, BookingStatus } from '../../models/booking.model';
 import { BookingStatusTimeline } from '../booking-status-timeline/booking-status-timeline';
 import { BookingActions } from '../booking-actions/booking-actions';
+import { BookingChatComponent } from '../../../chats/booking-chat/booking-chat.component';
+import { AuthService } from '../../../../core/services/auth.service';
 
 @Component({
   selector: 'app-booking-detail',
@@ -23,7 +25,8 @@ import { BookingActions } from '../booking-actions/booking-actions';
     MatProgressSpinnerModule,
     MatChipsModule,
     BookingStatusTimeline,
-    BookingActions
+    BookingActions,
+    BookingChatComponent
   ],
   templateUrl: './booking-detail.html',
   styleUrl: './booking-detail.scss',
@@ -32,6 +35,7 @@ export class BookingDetail implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly bookingsService = inject(BookingsService);
+  private readonly authService = inject(AuthService);
 
   // UI State
   isLoading = signal(true);
@@ -41,6 +45,35 @@ export class BookingDetail implements OnInit {
 
   // Expose enum for template
   BookingStatus = BookingStatus;
+
+  // F7.2: Computed properties for chat visibility and partner info
+  canShowChat = computed(() => {
+    const bookingData = this.booking();
+    const currentUser = this.authService.getCurrentUser();
+    if (!bookingData || !currentUser) return false;
+
+    // Check if user is participant or motard
+    const isParticipant = bookingData.participantId === currentUser.userId;
+    const isMotard = bookingData.motardUserId === currentUser.userId;
+    if (!isParticipant && !isMotard) return false;
+
+    // Check if booking status allows chat (Approved, Paid, Cancelled, CancelledExpired, Refunded)
+    return bookingData.status === BookingStatus.Approved ||
+           bookingData.status === BookingStatus.Paid ||
+           bookingData.status === BookingStatus.Cancelled ||
+           bookingData.status === BookingStatus.CancelledExpired ||
+           bookingData.status === BookingStatus.Refunded;
+  });
+
+  chatPartnerName = computed(() => {
+    const bookingData = this.booking();
+    const currentUser = this.authService.getCurrentUser();
+    if (!bookingData || !currentUser) return '';
+
+    // If current user is participant, show motard name. Otherwise, show participant name.
+    const isParticipant = bookingData.participantId === currentUser.userId;
+    return isParticipant ? bookingData.motardName : bookingData.participantName;
+  });
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('bookingId');

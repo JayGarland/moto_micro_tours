@@ -104,6 +104,17 @@
                     </div>
                   </div>
                 }
+
+                <!-- Stage F7.1: Show decline reason if booking was declined -->
+                @if (bookingData.status === BookingStatus.Declined && bookingData.declineReason) {
+                  <div class="info-item declined-reason">
+                    <mat-icon>info</mat-icon>
+                    <div>
+                      <span class="label">Decline Reason</span>
+                      <span class="value">{{ bookingData.declineReason }}</span>
+                    </div>
+                  </div>
+                }
               </div>
             </mat-card-content>
           </mat-card>
@@ -124,6 +135,24 @@
               </app-booking-status-timeline>
             </mat-card-content>
           </mat-card>
+
+          <!-- F7.2 Phase 1: Booking Chat Card -->
+          @if (canShowChat()) {
+            <mat-card class="chat-card">
+              <mat-card-header>
+                <mat-icon mat-card-avatar>chat</mat-icon>
+                <mat-card-title>Chat</mat-card-title>
+              </mat-card-header>
+              <mat-card-content>
+                <app-booking-chat
+                  [bookingId]="bookingData.bookingId"
+                  [chatWithName]="chatPartnerName()"
+                  [tourTitle]="bookingData.tourTitle"
+                  [bookingStatus]="getStatusLabel(bookingData.status)">
+                </app-booking-chat>
+              </mat-card-content>
+            </mat-card>
+          }
 
           <!-- Actions Card -->
           <mat-card class="actions-card">

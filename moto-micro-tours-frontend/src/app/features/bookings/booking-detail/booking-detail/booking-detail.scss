@@ -202,12 +202,31 @@
               color: #ff9800;
             }
           }
+
+          // Stage F7.1: Decline reason styling
+          &.declined-reason {
+            grid-column: 1 / -1;
+            padding: 12px;
+            background-color: #ffebee;
+            border-radius: 8px;
+            border-left: 4px solid #f44336;
+
+            mat-icon {
+              color: #f44336;
+            }
+
+            .value {
+              white-space: pre-wrap;
+              font-style: italic;
+            }
+          }
         }
       }
     }
 
-    // Timeline & Actions Cards
+    // Timeline, Chat, & Actions Cards
     .timeline-card,
+    .chat-card,
     .actions-card {
       border-radius: 12px;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
@@ -238,6 +257,19 @@
 
       mat-card-content {
         padding: 24px;
+      }
+    }
+
+    // F7.2: Chat card specific styling
+    .chat-card {
+      mat-card-content {
+        padding: 0; // Remove padding for chat component to handle its own spacing
+      }
+
+      app-booking-chat {
+        display: block;
+        height: 600px; // Fixed height for chat area
+        max-height: 600px;
       }
     }
 

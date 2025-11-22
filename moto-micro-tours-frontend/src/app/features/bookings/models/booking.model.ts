@@ -31,6 +31,8 @@ export interface BookingResponse {
   createdAt: string;
   approvedAt?: string;
   expiresAt?: string;
+  declinedAt?: string; // Stage F7.1
+  declineReason?: string; // Stage F7.1
   tourStartAt: string; // Added for filtering upcoming rides
   pricePerSeat: number; // Added for price display
 }
@@ -90,6 +92,8 @@ export interface BookingDetail {
   paidAt?: string;
   cancelledAt?: string;
   cancellationReason?: string;
+  declinedAt?: string; // Stage F7.1
+  declineReason?: string; // Stage F7.1
 
   // Payment information (if exists)
   payment?: PaymentInfo;

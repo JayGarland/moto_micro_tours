@@ -50,6 +50,16 @@ namespace moto_micro_tours.DTOs
         public int UnreadCount { get; set; }
     }
 
+    public class BookingConversationDto
+    {
+        public Guid BookingId { get; set; }
+        public Guid? ConversationId { get; set; }
+        public string? MotardUserId { get; set; }
+        public string? MotardName { get; set; }
+        public string? ParticipantUserId { get; set; }
+        public string? ParticipantName { get; set; }
+    }
+
     public static class ChatDtoExtensions
     {
         public static MessageDto ToDto(this Message m)

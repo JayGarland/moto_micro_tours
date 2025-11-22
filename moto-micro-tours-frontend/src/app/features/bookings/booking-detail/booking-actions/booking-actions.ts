@@ -40,13 +40,13 @@ export class BookingActions {
   getStatusMessage(): string {
     switch (this.status) {
       case BookingStatus.Pending:
-        return 'Your booking request has been sent to the motard. You\'ll be notified once they respond.';
+        return 'The booking request has been sent to the motard and is awaiting their response.';
       case BookingStatus.Approved:
-        return 'Your booking has been approved! Please complete the payment to confirm your spot.';
+        return 'The booking has been approved. Payment is required to confirm the reservation.';
       case BookingStatus.Paid:
-        return 'Payment completed! You\'re all set for the tour. You can now chat with the motard.';
+        return 'Payment completed. The tour is confirmed. Chat is now available between the participant and the motard.';
       case BookingStatus.Declined:
-        return 'Unfortunately, the motard declined this booking request.';
+        return 'The motard declined this booking request.';
       case BookingStatus.Cancelled:
         return 'This booking has been cancelled.';
       case BookingStatus.CancelledExpired:

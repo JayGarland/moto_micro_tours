@@ -42,7 +42,7 @@ export class ParticipantDashboardComponent implements OnInit {
       .filter(booking => {
         const tourDate = new Date(booking.tourStartAt);
         const isUpcoming = tourDate >= now;
-        const isConfirmed = booking.status === BookingStatus.Approved || 
+        const isConfirmed = booking.status === BookingStatus.Approved ||
                            booking.status === BookingStatus.Paid;
         return isUpcoming && isConfirmed;
       })
@@ -59,6 +59,13 @@ export class ParticipantDashboardComponent implements OnInit {
         return isPast && isCompleted;
       })
       .sort((a, b) => new Date(b.tourStartAt).getTime() - new Date(a.tourStartAt).getTime());
+  });
+
+  // Stage F7.1: Show declined bookings so participant can see decline reason
+  protected readonly declinedBookings = computed(() => {
+    return this.allBookings()
+      .filter(booking => booking.status === BookingStatus.Declined)
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   });
 
   protected readonly nextBooking = computed(() => {
@@ -125,6 +132,8 @@ export class ParticipantDashboardComponent implements OnInit {
         return 'status-approved';
       case BookingStatus.Paid:
         return 'status-paid';
+      case BookingStatus.Declined:
+        return 'status-declined';
       default:
         return '';
     }
@@ -138,6 +147,8 @@ export class ParticipantDashboardComponent implements OnInit {
         return 'Approved';
       case BookingStatus.Paid:
         return 'Paid';
+      case BookingStatus.Declined:
+        return 'Declined';
       default:
         return status;
     }

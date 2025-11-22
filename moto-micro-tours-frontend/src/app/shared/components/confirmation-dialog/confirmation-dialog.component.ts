@@ -3,6 +3,9 @@ import { CommonModule } from '@angular/common';
 import { MatDialogModule, MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { FormsModule } from '@angular/forms';
 
 export interface ConfirmationDialogData {
   title: string;
@@ -11,6 +14,14 @@ export interface ConfirmationDialogData {
   cancelText?: string;
   confirmColor?: 'primary' | 'accent' | 'warn';
   icon?: string;
+  showTextarea?: boolean; // Stage F7.1 - for decline reason
+  textareaPlaceholder?: string; // Stage F7.1
+  textareaLabel?: string; // Stage F7.1
+}
+
+export interface ConfirmationDialogResult {
+  confirmed: boolean;
+  textValue?: string; // Stage F7.1 - for decline reason
 }
 
 @Component({
@@ -20,7 +31,10 @@ export interface ConfirmationDialogData {
     CommonModule,
     MatDialogModule,
     MatButtonModule,
-    MatIconModule
+    MatIconModule,
+    MatFormFieldModule,
+    MatInputModule,
+    FormsModule
   ],
   template: `
     <div class="confirmation-dialog">
@@ -28,21 +42,34 @@ export interface ConfirmationDialogData {
         <mat-icon *ngIf="data.icon" class="dialog-icon">{{ data.icon }}</mat-icon>
         {{ data.title }}
       </h2>
-      
+
       <mat-dialog-content class="dialog-content">
         <p>{{ data.message }}</p>
+
+        <!-- Stage F7.1: Optional textarea for decline reason -->
+        <mat-form-field *ngIf="data.showTextarea" appearance="outline" class="textarea-field">
+          <mat-label>{{ data.textareaLabel || 'Reason' }}</mat-label>
+          <textarea
+            matInput
+            [(ngModel)]="textInput"
+            [placeholder]="data.textareaPlaceholder || 'Enter reason (optional)'"
+            rows="3"
+            maxlength="500"
+          ></textarea>
+          <mat-hint align="end">{{ textInput.length }} / 500</mat-hint>
+        </mat-form-field>
       </mat-dialog-content>
-      
+
       <mat-dialog-actions align="end" class="dialog-actions">
-        <button 
-          mat-button 
+        <button
+          mat-button
           (click)="onCancel()"
           class="cancel-button"
         >
           {{ data.cancelText || 'Cancel' }}
         </button>
-        <button 
-          mat-raised-button 
+        <button
+          mat-raised-button
           [color]="data.confirmColor || 'primary'"
           (click)="onConfirm()"
           class="confirm-button"
@@ -82,8 +109,13 @@ export interface ConfirmationDialogData {
       color: var(--color-text-secondary, #6b7280);
 
       p {
-        margin: 0;
+        margin: 0 0 1rem 0;
       }
+    }
+
+    .textarea-field {
+      width: 100%;
+      margin-top: 0.5rem;
     }
 
     .dialog-actions {
@@ -102,16 +134,26 @@ export interface ConfirmationDialogData {
   `]
 })
 export class ConfirmationDialogComponent {
+  textInput = ''; // Stage F7.1 - for decline reason
+
   constructor(
     public dialogRef: MatDialogRef<ConfirmationDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: ConfirmationDialogData
   ) {}
 
   onConfirm(): void {
-    this.dialogRef.close(true);
+    // Stage F7.1: Return both confirmation and text value
+    const result: ConfirmationDialogResult = {
+      confirmed: true,
+      textValue: this.data.showTextarea ? this.textInput : undefined
+    };
+    this.dialogRef.close(result);
   }
 
   onCancel(): void {
-    this.dialogRef.close(false);
+    const result: ConfirmationDialogResult = {
+      confirmed: false
+    };
+    this.dialogRef.close(result);
   }
 }

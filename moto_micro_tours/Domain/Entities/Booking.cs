@@ -18,6 +18,8 @@ public class Booking
     public DateTime? PaidAt { get; set; }
     public DateTime? CancelledAt { get; set; }
     public DateTime? RefundedAt { get; set; }
+    public DateTime? DeclinedAt { get; set; }
+    public string? DeclineReason { get; set; }
 
     /// <summary>
     /// RowVersion (DateTime) for optimistic concurrency control. MySQL/TIMESTAMP
