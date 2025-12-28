@@ -81,11 +81,7 @@ cd moto_micro_tours
 
 ### 2. Setup MySQL Database
 
-Start your MySQL server and create the database:
-
-```sql
-CREATE DATABASE moto_micro_tours;
-```
+Start your MySQL server
 
 ### 3. Backend Setup
 
@@ -95,6 +91,9 @@ cd moto_micro_tours
 
 # Restore NuGet packages
 dotnet restore
+
+# Restore local .NET tools (dotnet-ef)
+dotnet tool restore
 
 # Apply database migrations
 dotnet ef database update
@@ -125,6 +124,14 @@ Edit `moto_micro_tours/appsettings.json` and update the connection string:
 ```
 
 For development, you can also modify `appsettings.Development.json`.
+
+### Local Tooling (dotnet-ef)
+
+This repo uses a local tool manifest so new machines can restore the EF CLI with a pinned version:
+
+```powershell
+dotnet tool restore
+```
 
 ### Frontend Configuration
 
@@ -278,6 +285,7 @@ The production build will be in the `dist/` folder.
 **Port Already in Use:**
 - Backend: Change port in `Properties/launchSettings.json`
 - Frontend: Use `ng serve --port 4201`
+- If you use Uwamp/Apache and port 80 is taken (IIS), change Apache to 8080 in `httpd.conf` and use `http://localhost:8080`
 
 **Migration Issues:**
 ```powershell
