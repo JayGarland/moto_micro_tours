@@ -112,6 +112,7 @@ app.UseAuthorization();
 
 app.MapControllers();
 app.MapHub<moto_micro_tours.Hubs.BookingChatHub>("/hubs/booking-chat");
+app.MapHub<moto_micro_tours.Hubs.PreBookingChatHub>("/hubs/prebooking-chat");
 
 // Seed the database with happy path data if empty
 await moto_micro_tours.DbSeeder.SeedAsync(app.Services);

@@ -51,6 +51,10 @@ export class ChatService {
   private hubConnection: signalR.HubConnection | null = null;
   private connectedBookingIds = new Set<string>();
 
+  // SignalR connection for pre-booking chats
+  private preBookingHubConnection: signalR.HubConnection | null = null;
+  private connectedPreBookingIds = new Set<string>();
+
   // Polling interval in milliseconds (default: 3 seconds)
   private readonly POLLING_INTERVAL = 3000;
 
@@ -454,10 +458,50 @@ export class ChatService {
   }
 
   /**
+   * Initialize SignalR connection for pre-booking chats
+   */
+  private async initializePreBookingSignalR(): Promise<void> {
+    if (this.preBookingHubConnection) {
+      return; // Already initialized
+    }
+
+    const hubUrl = environment.apiUrl.replace('/api', '/hubs/prebooking-chat');
+
+    this.preBookingHubConnection = new signalR.HubConnectionBuilder()
+      .withUrl(hubUrl, {
+        withCredentials: true
+      })
+      .withAutomaticReconnect()
+      .configureLogging(signalR.LogLevel.Information)
+      .build();
+
+    this.preBookingHubConnection.on('ReceiveMessage', (message: MessageDto) => {
+      console.log('[SignalR] Received pre-booking message:', message);
+      this.addMessageToCache(message.conversationId, message);
+    });
+
+    try {
+      await this.preBookingHubConnection.start();
+      console.log('[SignalR] Connected to pre-booking chat hub');
+    } catch (error) {
+      console.error('[SignalR] Pre-booking connection failed:', error);
+    }
+  }
+
+  /**
    * Join a booking's SignalR group to receive real-time messages
    */
   async connectToBookingChat(bookingId: string, conversationId: string): Promise<void> {
     await this.initializeSignalR();
+
+    if (this.hubConnection?.state === signalR.HubConnectionState.Connecting) {
+      const connected = await this.waitForHubConnection(this.hubConnection);
+      if (!connected) {
+        console.warn('[SignalR] Not connected, falling back to polling');
+        this.startPolling(conversationId, 'booking');
+        return;
+      }
+    }
 
     if (!this.hubConnection || this.hubConnection.state !== signalR.HubConnectionState.Connected) {
       console.warn('[SignalR] Not connected, falling back to polling');
@@ -477,6 +521,40 @@ export class ChatService {
       console.error('[SignalR] Failed to join booking group:', error);
       // Fallback to polling
       this.startPolling(conversationId, 'booking');
+    }
+  }
+
+  /**
+   * Join a pre-booking SignalR group to receive real-time messages
+   */
+  async connectToPreBookingChat(conversationId: string): Promise<void> {
+    await this.initializePreBookingSignalR();
+
+    if (this.preBookingHubConnection?.state === signalR.HubConnectionState.Connecting) {
+      const connected = await this.waitForHubConnection(this.preBookingHubConnection);
+      if (!connected) {
+        console.warn('[SignalR] Pre-booking not connected, falling back to polling');
+        this.startPolling(conversationId, 'prebooking');
+        return;
+      }
+    }
+
+    if (!this.preBookingHubConnection || this.preBookingHubConnection.state !== signalR.HubConnectionState.Connected) {
+      console.warn('[SignalR] Pre-booking not connected, falling back to polling');
+      this.startPolling(conversationId, 'prebooking');
+      return;
+    }
+
+    try {
+      await this.preBookingHubConnection.invoke('JoinPreBookingGroup', conversationId);
+      this.connectedPreBookingIds.add(conversationId);
+      console.log(`[SignalR] Joined pre-booking group: ${conversationId}`);
+
+      // Stop polling since we have SignalR
+      this.stopPolling(conversationId);
+    } catch (error) {
+      console.error('[SignalR] Failed to join pre-booking group:', error);
+      this.startPolling(conversationId, 'prebooking');
     }
   }
 
@@ -501,6 +579,25 @@ export class ChatService {
   }
 
   /**
+   * Leave a pre-booking SignalR group
+   */
+  async disconnectFromPreBookingChat(conversationId: string): Promise<void> {
+    if (!this.preBookingHubConnection || !this.connectedPreBookingIds.has(conversationId)) {
+      return;
+    }
+
+    try {
+      await this.preBookingHubConnection.invoke('LeavePreBookingGroup', conversationId);
+      this.connectedPreBookingIds.delete(conversationId);
+      console.log(`[SignalR] Left pre-booking group: ${conversationId}`);
+    } catch (error) {
+      console.error('[SignalR] Failed to leave pre-booking group:', error);
+    }
+
+    this.stopPolling(conversationId);
+  }
+
+  /**
    * Disconnect SignalR connection (call on service destroy or logout)
    */
   async disconnectSignalR(): Promise<void> {
@@ -510,5 +607,29 @@ export class ChatService {
       this.connectedBookingIds.clear();
       console.log('[SignalR] Disconnected');
     }
+
+    if (this.preBookingHubConnection) {
+      await this.preBookingHubConnection.stop();
+      this.preBookingHubConnection = null;
+      this.connectedPreBookingIds.clear();
+      console.log('[SignalR] Disconnected pre-booking');
+    }
+  }
+
+  /**
+   * Wait briefly for a SignalR connection to transition out of Connecting.
+   */
+  private async waitForHubConnection(connection: signalR.HubConnection, timeoutMs = 3000): Promise<boolean> {
+    const start = Date.now();
+    while (Date.now() - start < timeoutMs) {
+      if (connection.state === signalR.HubConnectionState.Connected) {
+        return true;
+      }
+      if (connection.state === signalR.HubConnectionState.Disconnected) {
+        return false;
+      }
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+    return connection.state === signalR.HubConnectionState.Connected;
   }
 }

@@ -21,7 +21,8 @@ public class ChatsController : ControllerBase
     private readonly ILogger<ChatsController> _logger;
     private readonly IAuthorizationService _authService;
     private readonly UserManager<AppUser> _userManager;
-    private readonly IHubContext<BookingChatHub> _hubContext;
+    private readonly IHubContext<BookingChatHub> _bookingHubContext;
+    private readonly IHubContext<PreBookingChatHub> _preBookingHubContext;
 
     public ChatsController(
         AppDbContext db,
@@ -29,14 +30,16 @@ public class ChatsController : ControllerBase
         ILogger<ChatsController> logger,
         IAuthorizationService authService,
         UserManager<AppUser> userManager,
-        IHubContext<BookingChatHub> hubContext)
+        IHubContext<BookingChatHub> bookingHubContext,
+        IHubContext<PreBookingChatHub> preBookingHubContext)
     {
         _db = db;
         _messageService = messageService;
         _logger = logger;
         _authService = authService;
         _userManager = userManager;
-        _hubContext = hubContext;
+        _bookingHubContext = bookingHubContext;
+        _preBookingHubContext = preBookingHubContext;
     }
 
     /// <summary>
@@ -132,6 +135,11 @@ public class ChatsController : ControllerBase
 
         var created = await _messageService.CreateMessageAsync(message);
         var dto = created.ToDto();
+
+        // Broadcast message via SignalR to all clients in the prebooking group
+        await _preBookingHubContext.Clients.Group($"prebooking-{conv.Id}")
+            .SendAsync("ReceiveMessage", dto);
+
         return CreatedAtAction(nameof(GetPreBookingMessages), new { conversationId = conv.Id }, dto);
     }
 
@@ -300,7 +308,7 @@ public class ChatsController : ControllerBase
         var dto = created.ToDto();
 
         // Broadcast message via SignalR to all clients in the booking group
-        await _hubContext.Clients.Group($"booking-{booking.Id}")
+        await _bookingHubContext.Clients.Group($"booking-{booking.Id}")
             .SendAsync("ReceiveMessage", dto);
 
         return CreatedAtAction(nameof(GetBookingMessages), new { conversationId = conv.Id }, dto);

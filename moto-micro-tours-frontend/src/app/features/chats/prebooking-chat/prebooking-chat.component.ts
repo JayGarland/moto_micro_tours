@@ -88,7 +88,7 @@ export class PrebookingChatComponent implements OnInit, OnChanges, OnDestroy {
   ngOnDestroy(): void {
     // Stop polling when component is destroyed
     if (this.conversationId) {
-      this.chatService.stopPolling(this.conversationId);
+      this.chatService.disconnectFromPreBookingChat(this.conversationId);
     }
 
     this.destroy$.next();
@@ -132,8 +132,8 @@ export class PrebookingChatComponent implements OnInit, OnChanges, OnDestroy {
           // Now subscribe to the stream for live updates
           this.subscribeToMessageStream();
 
-          // Start polling for new messages
-          this.chatService.startPolling(this.conversationId!, 'prebooking');
+          // Try SignalR first, fallback to polling if needed
+          this.chatService.connectToPreBookingChat(this.conversationId!);
         },
         error: (error) => {
           console.error('Error loading messages:', error);
@@ -194,8 +194,8 @@ export class PrebookingChatComponent implements OnInit, OnChanges, OnDestroy {
             this.conversationId = message.conversationId;
             // Now subscribe to the stream for this new conversation
             this.subscribeToMessageStream();
-            // Start polling for new messages
-            this.chatService.startPolling(this.conversationId, 'prebooking');
+            // Try SignalR first, fallback to polling if needed
+            this.chatService.connectToPreBookingChat(this.conversationId);
           }
 
           // Clear input on success
