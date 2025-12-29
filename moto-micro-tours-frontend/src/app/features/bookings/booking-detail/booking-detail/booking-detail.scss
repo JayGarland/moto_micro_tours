@@ -203,6 +203,17 @@
             }
           }
 
+          &.full-width {
+            grid-column: 1 / -1;
+          }
+
+          &.message {
+            .value {
+              white-space: pre-wrap;
+              line-height: 1.5;
+            }
+          }
+
           // Stage F7.1: Decline reason styling
           &.declined-reason {
             grid-column: 1 / -1;

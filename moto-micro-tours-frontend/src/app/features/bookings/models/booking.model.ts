@@ -11,6 +11,7 @@ export interface CreateBookingRequest {
   tourMotardId: string;
   emergencyContact: string;
   costSharingOptIn: boolean;
+  messageToMotard?: string;
 }
 
 /**
@@ -28,6 +29,7 @@ export interface BookingResponse {
   status: BookingStatus;
   costSharingOptIn: boolean;
   emergencyContact: string;
+  messageToMotard?: string;
   createdAt: string;
   approvedAt?: string;
   expiresAt?: string;
@@ -86,6 +88,7 @@ export interface BookingDetail {
   status: BookingStatus;
   costSharingOptIn: boolean;
   emergencyContact: string;
+  messageToMotard?: string;
   createdAt: string;
   approvedAt?: string;
   expiresAt?: string;

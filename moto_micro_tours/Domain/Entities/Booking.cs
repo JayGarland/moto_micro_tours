@@ -12,6 +12,7 @@ public class Booking
     public CancelDecision CancelDecision { get; set; }
     public bool CostSharingOptIn { get; set; }
     public string? EmergencyContact { get; set; }
+    public string? MessageToMotard { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? ApprovedAt { get; set; }
     public DateTime? ExpiresAt { get; set; }

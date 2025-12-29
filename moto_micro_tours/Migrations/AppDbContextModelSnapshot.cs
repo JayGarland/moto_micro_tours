@@ -251,6 +251,9 @@ namespace moto_micro_tours.Migrations
                     b.Property<DateTime?>("ExpiresAt")
                         .HasColumnType("datetime(6)");
 
+                    b.Property<string>("MessageToMotard")
+                        .HasColumnType("longtext");
+
                     b.Property<DateTime?>("PaidAt")
                         .HasColumnType("datetime(6)");
 

@@ -155,7 +155,8 @@ export class BookingRequestForm implements OnInit {
       tourId: tour.tourId,
       tourMotardId: tour.tourMotardId,
       emergencyContact,
-      costSharingOptIn: formValue.costSharingOptIn || false
+      costSharingOptIn: formValue.costSharingOptIn || false,
+      messageToMotard: formValue.messageToMotard?.trim() || undefined
     };
 
     this.bookingsService.createBookingRequest(request).subscribe({

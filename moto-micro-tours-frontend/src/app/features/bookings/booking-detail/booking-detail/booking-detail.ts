@@ -65,6 +65,13 @@ export class BookingDetail implements OnInit {
            bookingData.status === BookingStatus.Refunded;
   });
 
+  isMotardViewer = computed(() => {
+    const bookingData = this.booking();
+    const currentUser = this.authService.getCurrentUser();
+    if (!bookingData || !currentUser) return false;
+    return bookingData.motardUserId === currentUser.userId;
+  });
+
   chatPartnerName = computed(() => {
     const bookingData = this.booking();
     const currentUser = this.authService.getCurrentUser();
@@ -73,6 +80,14 @@ export class BookingDetail implements OnInit {
     // If current user is participant, show motard name. Otherwise, show participant name.
     const isParticipant = bookingData.participantId === currentUser.userId;
     return isParticipant ? bookingData.motardName : bookingData.participantName;
+  });
+
+  counterpartLabel = computed(() => (this.isMotardViewer() ? 'Participant' : 'Motard'));
+
+  counterpartName = computed(() => {
+    const bookingData = this.booking();
+    if (!bookingData) return '';
+    return this.isMotardViewer() ? bookingData.participantName : bookingData.motardName;
   });
 
   ngOnInit(): void {

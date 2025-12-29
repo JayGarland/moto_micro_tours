@@ -24,6 +24,11 @@ public class CreateBookingRequestDto
     /// Whether participant opts in to cost-sharing (fuel/tolls)
     /// </summary>
     public bool CostSharingOptIn { get; set; }
+
+    /// <summary>
+    /// Optional additional message from participant
+    /// </summary>
+    public string? MessageToMotard { get; set; }
 }
 
 /// <summary>
@@ -53,6 +58,7 @@ public class BookingResponseDto
     public string Status { get; set; } = string.Empty;
     public bool CostSharingOptIn { get; set; }
     public string EmergencyContact { get; set; } = string.Empty;
+    public string? MessageToMotard { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? ApprovedAt { get; set; }
     public DateTime? ExpiresAt { get; set; }
@@ -90,6 +96,7 @@ public class BookingDetailDto
     public string Status { get; set; } = string.Empty;
     public bool CostSharingOptIn { get; set; }
     public string EmergencyContact { get; set; } = string.Empty;
+    public string? MessageToMotard { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? ApprovedAt { get; set; }
     public DateTime? ExpiresAt { get; set; }
