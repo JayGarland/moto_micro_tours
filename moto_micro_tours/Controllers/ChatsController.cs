@@ -170,7 +170,22 @@ public class ChatsController : ControllerBase
                 motardName = c.Motard!.UserName ?? "Unknown",
                 participantUserId = c.ParticipantUserId,
                 participantName = c.Participant!.UserName ?? "Unknown",
-                createdAt = c.CreatedAt
+                createdAt = c.CreatedAt,
+                lastMessage = _db.Messages
+                    .Where(m => m.PreBookingConversationId == c.Id)
+                    .OrderByDescending(m => m.SentAt)
+                    .Select(m => m.Content)
+                    .FirstOrDefault(),
+                lastMessageSenderId = _db.Messages
+                    .Where(m => m.PreBookingConversationId == c.Id)
+                    .OrderByDescending(m => m.SentAt)
+                    .Select(m => m.SenderUserId)
+                    .FirstOrDefault(),
+                lastMessageTime = _db.Messages
+                    .Where(m => m.PreBookingConversationId == c.Id)
+                    .OrderByDescending(m => m.SentAt)
+                    .Select(m => (DateTime?)m.SentAt)
+                    .FirstOrDefault()
             })
             .ToListAsync();
 
@@ -212,7 +227,22 @@ public class ChatsController : ControllerBase
                 participantUserId = c.Booking.ParticipantUserId,
                 participantName = c.Booking.Participant!.UserName ?? "Unknown",
                 bookingStatus = c.Booking.Status.ToString(),
-                createdAt = c.CreatedAt
+                createdAt = c.CreatedAt,
+                lastMessage = _db.Messages
+                    .Where(m => m.BookingConversationId == c.Id)
+                    .OrderByDescending(m => m.SentAt)
+                    .Select(m => m.Content)
+                    .FirstOrDefault(),
+                lastMessageSenderId = _db.Messages
+                    .Where(m => m.BookingConversationId == c.Id)
+                    .OrderByDescending(m => m.SentAt)
+                    .Select(m => m.SenderUserId)
+                    .FirstOrDefault(),
+                lastMessageTime = _db.Messages
+                    .Where(m => m.BookingConversationId == c.Id)
+                    .OrderByDescending(m => m.SentAt)
+                    .Select(m => (DateTime?)m.SentAt)
+                    .FirstOrDefault()
             })
             .ToListAsync();
 

@@ -119,8 +119,9 @@ export class ChatService {
           const otherUserId = isMotard ? conv.participantUserId : conv.motardUserId;
 
           // Check cache for last message
-          let lastMessage: string | undefined;
-          let lastMessageTime: string | undefined;
+          let lastMessage: string | undefined = conv.lastMessage;
+          let lastMessageTime: string | undefined = conv.lastMessageTime;
+          let lastMessageSenderId: string | undefined = conv.lastMessageSenderId;
 
           if (this.messagesCache.has(conv.conversationId)) {
             const messages = this.messagesCache.get(conv.conversationId)!.value;
@@ -128,6 +129,7 @@ export class ChatService {
               const last = messages[messages.length - 1];
               lastMessage = last.content;
               lastMessageTime = last.sentAt;
+              lastMessageSenderId = last.senderUserId;
             }
           }
 
@@ -136,6 +138,7 @@ export class ChatService {
             otherUserName,
             otherUserId,
             lastMessage,
+            lastMessageSenderId,
             lastMessageTime,
             displayTime: lastMessageTime
               ? this.formatMessageTime(lastMessageTime)

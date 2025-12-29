@@ -32,6 +32,9 @@ export interface ConversationSummaryDto {
   participantUserId: string;
   participantName: string;
   createdAt: string;
+  lastMessage?: string;
+  lastMessageSenderId?: string;
+  lastMessageTime?: string;
 }
 
 export interface BookingConversationSummaryDto {
@@ -45,6 +48,9 @@ export interface BookingConversationSummaryDto {
   participantName: string;
   bookingStatus: string;
   createdAt: string;
+  lastMessage?: string;
+  lastMessageSenderId?: string;
+  lastMessageTime?: string;
 }
 
 /**

@@ -37,6 +37,7 @@
         [class.selected]="isSelected(conv.conversationId)"
         (click)="onSelectConversation(conv)"
       >
+        <span class="unread-dot" *ngIf="hasUnread(conv)"></span>
         <!-- Avatar Placeholder -->
         <div class="conversation-avatar">
           {{ conv.otherUserName.charAt(0).toUpperCase() }}
