@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
-import { BehaviorSubject, Observable, throwError, interval, Subscription } from 'rxjs';
-import { tap, catchError, map, switchMap } from 'rxjs/operators';
+import { BehaviorSubject, Observable, throwError, interval, Subscription, of } from 'rxjs';
+import { tap, catchError, map, switchMap, startWith } from 'rxjs/operators';
 import * as signalR from '@microsoft/signalr';
 import { ApiService } from '../../../core/services/api.service';
 import { AuthService } from '../../../core/services/auth.service';
@@ -57,6 +57,13 @@ export class ChatService {
 
   // Polling interval in milliseconds (default: 3 seconds)
   private readonly POLLING_INTERVAL = 3000;
+
+  private readonly lastViewedStorageKey = 'prebookingLastViewed';
+  private lastViewed = new Map<string, number>();
+
+  constructor() {
+    this.loadLastViewed();
+  }
 
   /**
    * Send a pre-booking message
@@ -145,6 +152,43 @@ export class ChatService {
               : this.formatMessageTime(conv.createdAt)
           };
         });
+      })
+    );
+  }
+
+  /**
+   * Persist last viewed timestamp for a pre-booking conversation
+   */
+  markPreBookingConversationRead(conversationId: string, lastMessageTime?: string): void {
+    const timestamp = lastMessageTime ? new Date(lastMessageTime).getTime() : Date.now();
+    this.lastViewed.set(conversationId, timestamp);
+    this.saveLastViewed();
+  }
+
+  /**
+   * Check if a pre-booking conversation has unread messages for current user
+   */
+  isPreBookingConversationUnread(conversation: ConversationListItem): boolean {
+    const currentUser = this.authService.getCurrentUser();
+    if (!currentUser) return false;
+    if (conversation.lastMessageSenderId === currentUser.userId) return false;
+
+    const lastMessageTime = conversation.lastMessageTime || conversation.createdAt;
+    const lastViewed = this.lastViewed.get(conversation.conversationId) || 0;
+    return new Date(lastMessageTime).getTime() > lastViewed;
+  }
+
+  /**
+   * Polls unread status for pre-booking conversations
+   */
+  getPreBookingUnreadStatus(pollMs: number = 30000): Observable<boolean> {
+    return interval(pollMs).pipe(
+      startWith(0),
+      switchMap(() => this.getPreBookingConversationsForInbox()),
+      map(conversations => conversations.some(conv => this.isPreBookingConversationUnread(conv))),
+      catchError((error) => {
+        console.error('Error checking unread conversations:', error);
+        return of(false);
       })
     );
   }
@@ -412,6 +456,33 @@ export class ChatService {
 
     // Format as date
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  }
+
+  private loadLastViewed(): void {
+    try {
+      const raw = localStorage.getItem(this.lastViewedStorageKey);
+      if (!raw) return;
+      const parsed = JSON.parse(raw) as Record<string, number>;
+      Object.entries(parsed).forEach(([key, value]) => {
+        if (typeof value === 'number') {
+          this.lastViewed.set(key, value);
+        }
+      });
+    } catch (error) {
+      console.warn('Failed to load last viewed state:', error);
+    }
+  }
+
+  private saveLastViewed(): void {
+    try {
+      const payload: Record<string, number> = {};
+      this.lastViewed.forEach((value, key) => {
+        payload[key] = value;
+      });
+      localStorage.setItem(this.lastViewedStorageKey, JSON.stringify(payload));
+    } catch (error) {
+      console.warn('Failed to save last viewed state:', error);
+    }
   }
 
   /**

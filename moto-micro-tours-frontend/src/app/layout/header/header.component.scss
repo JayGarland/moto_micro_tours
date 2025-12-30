@@ -61,6 +61,22 @@
     }
   }
 
+  .messages-link {
+    position: relative;
+    padding-right: 20px;
+  }
+
+  .nav-unread-dot {
+    position: absolute;
+    top: 8px;
+    right: 6px;
+    width: 8px;
+    height: 8px;
+    background-color: #e53935;
+    border-radius: 50%;
+    box-shadow: 0 0 0 2px rgba(11, 60, 138, 0.9);
+  }
+
   @media (max-width: 768px) {
     gap: 0.25rem;
   }

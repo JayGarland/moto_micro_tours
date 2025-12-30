@@ -6,6 +6,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { AuthService } from '../../core/services/auth.service';
+import { ChatService } from '../../features/chats/services/chat.service';
 
 @Component({
   selector: 'app-header',
@@ -22,10 +23,15 @@ import { AuthService } from '../../core/services/auth.service';
   styleUrls: ['./header.component.scss']
 })
 export class HeaderComponent {
+  unreadMessages$!: ReturnType<ChatService['getPreBookingUnreadStatus']>;
+
   constructor(
     public authService: AuthService,
+    private chatService: ChatService,
     private router: Router
-  ) {}
+  ) {
+    this.unreadMessages$ = this.chatService.getPreBookingUnreadStatus();
+  }
 
   logout(): void {
     this.authService.logout().subscribe({

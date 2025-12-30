@@ -13,9 +13,10 @@
     @if (authService.getIsAuthenticated()) {
       <nav class="nav-links">
         <a mat-button routerLink="/tours" routerLinkActive="active">Tours</a>
-        <a mat-button routerLink="/messages" routerLinkActive="active">
+        <a mat-button routerLink="/messages" routerLinkActive="active" class="messages-link">
           <mat-icon>message</mat-icon>
           Messages
+          <span class="nav-unread-dot" *ngIf="unreadMessages$ | async"></span>
         </a>
 
         @if (authService.getIsMotard()) {

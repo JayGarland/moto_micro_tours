@@ -41,7 +41,6 @@ export class PrebookingInboxComponent implements OnInit, OnDestroy {
 
   // Current user
   currentUser = this.authService.getCurrentUser();
-  private lastViewedAt = new Map<string, number>();
 
   ngOnInit(): void {
     this.loadConversations();
@@ -89,7 +88,10 @@ export class PrebookingInboxComponent implements OnInit, OnDestroy {
     this.selectedConversationId.set(conversation.conversationId);
     this.selectedConversation.set(conversation);
     this.showChat.set(true);
-    this.lastViewedAt.set(conversation.conversationId, Date.now());
+    this.chatService.markPreBookingConversationRead(
+      conversation.conversationId,
+      conversation.lastMessageTime || conversation.createdAt
+    );
   }
 
   /**
@@ -115,15 +117,8 @@ export class PrebookingInboxComponent implements OnInit, OnDestroy {
    * Show unread indicator if latest message is newer than last viewed timestamp
    */
   hasUnread(conversation: ConversationListItem): boolean {
-    if (this.isSelected(conversation.conversationId)) {
-      return false;
-    }
-    if (conversation.lastMessageSenderId === this.currentUser?.userId) {
-      return false;
-    }
-    const lastMessageTime = conversation.lastMessageTime || conversation.createdAt;
-    const lastViewed = this.lastViewedAt.get(conversation.conversationId) || 0;
-    return new Date(lastMessageTime).getTime() > lastViewed;
+    if (this.isSelected(conversation.conversationId)) return false;
+    return this.chatService.isPreBookingConversationUnread(conversation);
   }
 
   /**
