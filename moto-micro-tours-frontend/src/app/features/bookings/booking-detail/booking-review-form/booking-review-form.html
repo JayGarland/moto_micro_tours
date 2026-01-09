@@ -1,0 +1,177 @@
+<div class="review-form">
+  <div class="review-form-header">
+    <h3>Share Your Experience</h3>
+    <p class="review-subtitle">
+      @if (isMotardViewer) {
+        Review the tour and/or the participant (at least one required)
+      } @else {
+        Review the tour and/or the motard (at least one required)
+      }
+    </p>
+  </div>
+
+  <form [formGroup]="reviewForm" (ngSubmit)="onSubmit()">
+
+    <!-- Tour Review Section -->
+    <div class="review-section tour-section">
+      <div class="section-header">
+        <mat-icon>two_wheeler</mat-icon>
+        <h4>Review the Tour: {{ tourTitle }}</h4>
+      </div>
+
+      <!-- Tour Star Rating -->
+      <div class="rating-section">
+        <label class="rating-label">Rate this tour</label>
+        <div class="stars">
+          @for (star of [1, 2, 3, 4, 5]; track star) {
+            <button
+              type="button"
+              class="star-button"
+              (click)="setTourRating(star)"
+              (mouseenter)="setHoveredTourRating(star)"
+              (mouseleave)="clearTourHover()"
+              [attr.aria-label]="star + ' stars for tour'"
+            >
+              <mat-icon [class.filled]="star <= (hoveredTourRating() || tourRating())">
+                {{ getTourStarIcon(star) }}
+              </mat-icon>
+            </button>
+          }
+        </div>
+        @if (tourRating() > 0) {
+          <p class="rating-text">{{ tourRating() }} out of 5 stars</p>
+        }
+      </div>
+
+      <!-- Tour Comment -->
+      <mat-form-field appearance="outline" class="comment-field">
+        <mat-label>Your Tour Review (Optional)</mat-label>
+        <textarea
+          matInput
+          formControlName="tourComment"
+          placeholder="Tell us about the tour route, scenery, stops..."
+          rows="3"
+          maxlength="500"
+        ></textarea>
+        <mat-hint align="end">{{ reviewForm.value.tourComment?.length || 0 }} / 500</mat-hint>
+      </mat-form-field>
+    </div>
+
+    <mat-divider></mat-divider>
+
+    <!-- Motard Review Section (for Participants) -->
+    @if (!isMotardViewer) {
+      <div class="review-section motard-section">
+        <div class="section-header">
+          <mat-icon>person</mat-icon>
+          <h4>Review the Motard: {{ motardName }}</h4>
+        </div>
+
+        <!-- Motard Star Rating -->
+        <div class="rating-section">
+          <label class="rating-label">Rate this motard</label>
+          <div class="stars">
+            @for (star of [1, 2, 3, 4, 5]; track star) {
+              <button
+                type="button"
+                class="star-button"
+                (click)="setMotardRating(star)"
+                (mouseenter)="setHoveredMotardRating(star)"
+                (mouseleave)="clearMotardHover()"
+                [attr.aria-label]="star + ' stars for motard'"
+              >
+                <mat-icon [class.filled]="star <= (hoveredMotardRating() || motardRating())">
+                  {{ getMotardStarIcon(star) }}
+                </mat-icon>
+              </button>
+            }
+          </div>
+          @if (motardRating() > 0) {
+            <p class="rating-text">{{ motardRating() }} out of 5 stars</p>
+          }
+        </div>
+
+        <!-- Motard Comment -->
+        <mat-form-field appearance="outline" class="comment-field">
+          <mat-label>Your Motard Review (Optional)</mat-label>
+          <textarea
+            matInput
+            formControlName="motardComment"
+            placeholder="Tell us about the motard's riding, communication, hospitality..."
+            rows="3"
+            maxlength="500"
+          ></textarea>
+          <mat-hint align="end">{{ reviewForm.value.motardComment?.length || 0 }} / 500</mat-hint>
+        </mat-form-field>
+      </div>
+    }
+
+    <!-- Participant Review Section (for Motards) -->
+    @if (isMotardViewer) {
+      <div class="review-section participant-section">
+        <div class="section-header">
+          <mat-icon>person</mat-icon>
+          <h4>Review the Participant: {{ participantName }}</h4>
+        </div>
+
+        <!-- Participant Star Rating -->
+        <div class="rating-section">
+          <label class="rating-label">Rate this participant</label>
+          <div class="stars">
+            @for (star of [1, 2, 3, 4, 5]; track star) {
+              <button
+                type="button"
+                class="star-button"
+                (click)="setParticipantRating(star)"
+                (mouseenter)="setHoveredParticipantRating(star)"
+                (mouseleave)="clearParticipantHover()"
+                [attr.aria-label]="star + ' stars for participant'"
+              >
+                <mat-icon [class.filled]="star <= (hoveredParticipantRating() || participantRating())">
+                  {{ getParticipantStarIcon(star) }}
+                </mat-icon>
+              </button>
+            }
+          </div>
+          @if (participantRating() > 0) {
+            <p class="rating-text">{{ participantRating() }} out of 5 stars</p>
+          }
+        </div>
+
+        <!-- Participant Comment -->
+        <mat-form-field appearance="outline" class="comment-field">
+          <mat-label>Your Participant Review (Optional)</mat-label>
+          <textarea
+            matInput
+            formControlName="participantComment"
+            placeholder="Tell us about the participant's behavior, communication, punctuality..."
+            rows="3"
+            maxlength="500"
+          ></textarea>
+          <mat-hint align="end">{{ reviewForm.value.participantComment?.length || 0 }} / 500</mat-hint>
+        </mat-form-field>
+      </div>
+    }
+
+    <!-- Action Buttons -->
+    <div class="form-actions">
+      <button
+        type="button"
+        mat-stroked-button
+        (click)="onCancel()"
+        [disabled]="isSubmitting"
+      >
+        Cancel
+      </button>
+      <button
+        type="submit"
+        mat-raised-button
+        color="primary"
+        [disabled]="(tourRating() === 0 && motardRating() === 0) || isSubmitting"
+      >
+        <mat-icon>send</mat-icon>
+        {{ isSubmitting ? 'Submitting...' : 'Submit Reviews' }}
+      </button>
+    </div>
+  </form>
+</div>

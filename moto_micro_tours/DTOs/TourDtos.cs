@@ -80,20 +80,6 @@ public class MotardProfileDto
 }
 
 /// <summary>
-/// Review left by a participant for a motard
-/// </summary>
-public class ReviewDto
-{
-    public Guid Id { get; set; }
-    public Guid AuthorId { get; set; }
-    public string AuthorName { get; set; } = string.Empty;
-    public int Rating { get; set; }
-    public string? Comment { get; set; }
-    public DateTime CreatedAt { get; set; }
-    public Guid BookingId { get; set; }
-}
-
-/// <summary>
 /// Summary of a tour that a motard is part of
 /// Used in MotardProfileDto to show upcoming/completed tours
 /// </summary>
@@ -163,14 +149,4 @@ public class CreateTourResponseDto
     public string Status { get; set; } = string.Empty;
     public Guid CreatorTourMotardId { get; set; }
     public string Message { get; set; } = string.Empty;
-}
-
-/// <summary>
-/// Request to create a review for a motard
-/// </summary>
-public class CreateReviewDto
-{
-    public Guid BookingId { get; set; }
-    public int Rating { get; set; } // 1-5
-    public string? Comment { get; set; }
 }

@@ -22,6 +22,11 @@ public class Booking
     public DateTime? DeclinedAt { get; set; }
     public string? DeclineReason { get; set; }
 
+    // F8: Booking completion handshake
+    public DateTime? CompletedByParticipantAtUtc { get; set; }
+    public DateTime? CompletedByMotardAtUtc { get; set; }
+    public DateTime? CompletedAtUtc { get; set; } // Set when both complete
+
     /// <summary>
     /// RowVersion (DateTime) for optimistic concurrency control. MySQL/TIMESTAMP
     /// is used as a concurrency token with value generated on add or update.
@@ -34,5 +39,5 @@ public class Booking
     public Payment? Payment { get; set; }
     public Payout? Payout { get; set; }
     public BookingConversation? BookingConversation { get; set; }
-    public Review? Review { get; set; }
+    public ICollection<Review> Reviews { get; set; } = new List<Review>();
 }

@@ -18,9 +18,18 @@ export class BookingActions {
   @Input() canCancel: boolean = false;
   @Input() expiresAt?: string;
 
+  // F8: Cancel and refund
+  @Input() canParticipantCancel: boolean = false;
+  @Input() canCancelPaidBooking: boolean = false;
+  @Input() isWithin24Hours: boolean = false;
+  @Input() canMotardRefund: boolean = false;
+  @Input() tourStartAt?: string;
+
   @Output() pay = new EventEmitter<void>();
   @Output() refresh = new EventEmitter<void>();
   @Output() openChat = new EventEmitter<void>();
+  @Output() cancel = new EventEmitter<void>();
+  @Output() refund = new EventEmitter<void>();
 
   // Expose enum for template
   BookingStatus = BookingStatus;
@@ -35,6 +44,14 @@ export class BookingActions {
 
   onOpenChat(): void {
     this.openChat.emit();
+  }
+
+  onCancel(): void {
+    this.cancel.emit();
+  }
+
+  onRefund(): void {
+    this.refund.emit();
   }
 
   getStatusMessage(): string {

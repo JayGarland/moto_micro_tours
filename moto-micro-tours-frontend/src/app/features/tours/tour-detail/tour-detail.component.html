@@ -122,5 +122,27 @@
         </mat-card>
       </div>
     </div>
+
+    <!-- Reviews Section -->
+    <div class="reviews-section">
+      <h2>Reviews ({{ reviews.length }})</h2>
+
+      <div class="loading-reviews" *ngIf="isLoadingReviews">
+        <mat-spinner diameter="40"></mat-spinner>
+        <p>Loading reviews...</p>
+      </div>
+
+      <div class="reviews-empty" *ngIf="!isLoadingReviews && reviews.length === 0">
+        <mat-icon>rate_review</mat-icon>
+        <p>No reviews yet for this tour</p>
+      </div>
+
+      <div class="reviews-list" *ngIf="!isLoadingReviews && reviews.length > 0">
+        <app-review-card
+          *ngFor="let review of reviews"
+          [review]="review"
+        ></app-review-card>
+      </div>
+    </div>
   </div>
 </div>

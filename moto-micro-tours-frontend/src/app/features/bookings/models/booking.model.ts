@@ -37,6 +37,9 @@ export interface BookingResponse {
   declineReason?: string; // Stage F7.1
   tourStartAt: string; // Added for filtering upcoming rides
   pricePerSeat: number; // Added for price display
+  completedByParticipantAtUtc?: string; // B1
+  completedByMotardAtUtc?: string; // B1
+  completedAtUtc?: string; // B1
 }
 
 /**
@@ -98,6 +101,11 @@ export interface BookingDetail {
   declinedAt?: string; // Stage F7.1
   declineReason?: string; // Stage F7.1
 
+  // Completion timestamps (F8 - Booking Completion Handshake)
+  completedByParticipantAtUtc?: string;
+  completedByMotardAtUtc?: string;
+  completedAtUtc?: string;
+
   // Payment information (if exists)
   payment?: PaymentInfo;
 
@@ -118,19 +126,4 @@ export interface PaymentConfirmation {
   payout?: PayoutInfo;
   tourTitle: string;
   motardName: string;
-}
-
-/**
- * Summary DTO for booking lists
- */
-export interface BookingSummary {
-  bookingId: string;
-  tourTitle: string;
-  motardName: string;
-  participantName: string;
-  tourStartAt: string;
-  status: BookingStatus;
-  pricePerSeat: number;
-  createdAt: string;
-  expiresAt?: string;
 }

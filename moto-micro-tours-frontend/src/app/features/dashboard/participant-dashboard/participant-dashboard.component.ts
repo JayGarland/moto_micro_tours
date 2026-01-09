@@ -2,7 +2,7 @@ import { Component, OnInit, inject, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { BookingsService } from '../../bookings/services/bookings';
-import { BookingSummary, BookingStatus } from '../../bookings/models/booking.model';
+import { BookingResponse, BookingStatus } from '../../bookings/models/booking.model';
 import { DashboardHeaderComponent } from '../components/dashboard-header/dashboard-header.component';
 import { BookingSectionListComponent } from '../components/booking-section-list/booking-section-list.component';
 import { EmptyStateComponent } from '../components/empty-state/empty-state.component';
@@ -25,7 +25,7 @@ export class ParticipantDashboardComponent implements OnInit {
   private readonly router = inject(Router);
 
   // Signals for state management
-  protected readonly allBookings = signal<BookingSummary[]>([]);
+  protected readonly allBookings = signal<BookingResponse[]>([]);
   protected readonly loading = signal(true);
   protected readonly error = signal<string | null>(null);
 
@@ -55,8 +55,9 @@ export class ParticipantDashboardComponent implements OnInit {
       .filter(booking => {
         const tourDate = new Date(booking.tourStartAt);
         const isPast = tourDate < now;
-        const isCompleted = booking.status === BookingStatus.Paid;
-        return isPast && isCompleted;
+        const isPaid = booking.status === BookingStatus.Paid;
+        // Show all past paid bookings (whether completed or not)
+        return isPast && isPaid;
       })
       .sort((a, b) => new Date(b.tourStartAt).getTime() - new Date(a.tourStartAt).getTime());
   });
@@ -65,6 +66,17 @@ export class ParticipantDashboardComponent implements OnInit {
   protected readonly declinedBookings = computed(() => {
     return this.allBookings()
       .filter(booking => booking.status === BookingStatus.Declined)
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  });
+
+  // F8: Show cancelled bookings
+  protected readonly cancelledBookings = computed(() => {
+    return this.allBookings()
+      .filter(booking =>
+        booking.status === BookingStatus.Cancelled ||
+        booking.status === BookingStatus.CancelledExpired ||
+        booking.status === BookingStatus.Refunded
+      )
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   });
 

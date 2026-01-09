@@ -1,0 +1,179 @@
+.review-form {
+  padding: 24px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+  margin-top: 16px;
+
+  .review-form-header {
+    margin-bottom: 24px;
+
+    h3 {
+      margin: 0 0 8px 0;
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: #333;
+    }
+
+    .review-subtitle {
+      margin: 0;
+      font-size: 0.875rem;
+      color: #666;
+    }
+  }
+
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  // Review Section (Tour or Motard)
+  .review-section {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 8px;
+
+      mat-icon {
+        font-size: 24px;
+        width: 24px;
+        height: 24px;
+        color: #3f51b5;
+      }
+
+      h4 {
+        margin: 0;
+        font-size: 1.1rem;
+        font-weight: 500;
+        color: #333;
+      }
+    }
+
+    &.tour-section .section-header mat-icon {
+      color: #ff9800;
+    }
+
+    &.motard-section .section-header mat-icon {
+      color: #3f51b5;
+    }
+  }
+
+  mat-divider {
+    margin: 8px 0;
+  }
+
+  // Star Rating Section
+  .rating-section {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+
+    .rating-label {
+      font-size: 0.95rem;
+      font-weight: 500;
+      color: #555;
+    }
+
+    .stars {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+
+      .star-button {
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 0;
+        transition: transform 0.2s ease;
+
+        &:hover {
+          transform: scale(1.15);
+        }
+
+        &:focus {
+          outline: 2px solid #3f51b5;
+          outline-offset: 2px;
+          border-radius: 50%;
+        }
+
+        mat-icon {
+          font-size: 32px;
+          width: 32px;
+          height: 32px;
+          color: #d0d0d0;
+          transition: color 0.2s ease;
+
+          &.filled {
+            color: #ffc107;
+          }
+        }
+      }
+    }
+
+    .rating-text {
+      margin: 0;
+      font-size: 0.875rem;
+      color: #666;
+      font-weight: 500;
+    }
+  }
+
+  // Comment Field
+  .comment-field {
+    width: 100%;
+
+    textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+  }
+
+  // Action Buttons
+  .form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 8px;
+
+    button {
+      min-width: 120px;
+
+      mat-icon {
+        margin-right: 8px;
+      }
+    }
+  }
+}
+
+// Responsive Design
+@media (max-width: 600px) {
+  .review-form {
+    padding: 16px;
+
+    .rating-section {
+      .stars {
+        .star-button {
+          mat-icon {
+            font-size: 28px;
+            width: 28px;
+            height: 28px;
+          }
+        }
+      }
+    }
+
+    .form-actions {
+      flex-direction: column-reverse;
+
+      button {
+        width: 100%;
+      }
+    }
+  }
+}

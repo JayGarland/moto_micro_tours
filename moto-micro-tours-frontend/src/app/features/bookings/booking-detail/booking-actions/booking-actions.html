@@ -18,6 +18,12 @@
 
     <!-- Pending Status Actions -->
     @if (status === BookingStatus.Pending) {
+      @if (canParticipantCancel) {
+        <button mat-stroked-button color="warn" (click)="onCancel()">
+          <mat-icon>cancel</mat-icon>
+          Cancel Booking
+        </button>
+      }
       <button mat-raised-button color="primary" (click)="onRefresh()">
         <mat-icon>refresh</mat-icon>
         Refresh Status
@@ -30,6 +36,12 @@
         <mat-icon>payment</mat-icon>
         Pay Now
       </button>
+      @if (canParticipantCancel) {
+        <button mat-stroked-button color="warn" (click)="onCancel()">
+          <mat-icon>cancel</mat-icon>
+          Cancel Booking
+        </button>
+      }
       <button mat-stroked-button (click)="onRefresh()">
         <mat-icon>refresh</mat-icon>
         Refresh Status
@@ -42,6 +54,31 @@
         <mat-icon>chat</mat-icon>
         Open Chat with Motard
       </button>
+
+      <!-- F8: Participant can cancel if >24h before tour -->
+      @if (canCancelPaidBooking) {
+        <button mat-stroked-button color="warn" (click)="onCancel()">
+          <mat-icon>cancel</mat-icon>
+          Cancel Booking
+        </button>
+      }
+
+      <!-- F8: Show warning if <24h (participant cannot cancel) -->
+      @if (!canCancelPaidBooking && isWithin24Hours && !canMotardRefund) {
+        <div class="cancel-blocked-notice">
+          <mat-icon>info</mat-icon>
+          <span>Less than 24h before tour — please contact the motard to cancel.</span>
+        </div>
+      }
+
+      <!-- F8: Motard can refund any paid booking -->
+      @if (canMotardRefund) {
+        <button mat-stroked-button color="warn" (click)="onRefund()">
+          <mat-icon>money_off</mat-icon>
+          Issue Refund
+        </button>
+      }
+
       <button mat-stroked-button (click)="onRefresh()">
         <mat-icon>refresh</mat-icon>
         Refresh

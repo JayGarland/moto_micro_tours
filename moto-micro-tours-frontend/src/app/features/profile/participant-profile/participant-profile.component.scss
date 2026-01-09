@@ -1,0 +1,159 @@
+.participant-profile-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.loading-container,
+.error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  gap: 1rem;
+
+  p {
+    color: #757575;
+  }
+
+  mat-icon {
+    font-size: 64px;
+    width: 64px;
+    height: 64px;
+  }
+}
+
+.error-message {
+  color: #f44336;
+  font-size: 1.125rem;
+}
+
+.back-btn {
+  margin-bottom: 1rem;
+}
+
+.profile-header-card {
+  margin-bottom: 2rem;
+  padding: 2rem;
+}
+
+.profile-header {
+  display: flex;
+  gap: 2rem;
+  align-items: flex-start;
+
+  .avatar-section {
+    .avatar-icon {
+      font-size: 120px;
+      width: 120px;
+      height: 120px;
+      color: #1976d2;
+    }
+  }
+
+  .info-section {
+    flex: 1;
+
+    h1 {
+      margin: 0 0 1.5rem 0;
+      font-size: 2rem;
+      font-weight: 700;
+      color: #212121;
+    }
+
+    .stats {
+      display: flex;
+      gap: 3rem;
+      margin-top: 1.5rem;
+
+      .stat-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+
+        mat-icon {
+          color: #ff9800;
+          font-size: 32px;
+          width: 32px;
+          height: 32px;
+        }
+
+        .stat-value {
+          font-size: 1.5rem;
+          font-weight: 700;
+          color: #212121;
+        }
+
+        .stat-label {
+          font-size: 0.875rem;
+          color: #757575;
+        }
+      }
+    }
+  }
+}
+
+.reviews-section {
+  h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    color: #212121;
+  }
+
+  .loading-reviews {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem;
+    gap: 1rem;
+
+    p {
+      color: #757575;
+    }
+  }
+
+  .reviews-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 3rem 2rem;
+    background: #f5f5f5;
+    border-radius: 8px;
+    gap: 1rem;
+
+    mat-icon {
+      font-size: 48px;
+      width: 48px;
+      height: 48px;
+      color: #bdbdbd;
+    }
+
+    p {
+      color: #757575;
+      margin: 0;
+    }
+  }
+
+  .reviews-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .profile-header {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+
+    .info-section {
+      .stats {
+        justify-content: center;
+      }
+    }
+  }
+}

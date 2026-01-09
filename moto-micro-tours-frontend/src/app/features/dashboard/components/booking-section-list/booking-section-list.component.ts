@@ -1,7 +1,7 @@
 import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { BookingSummary, BookingStatus } from '../../../bookings/models/booking.model';
+import { BookingResponse, BookingStatus } from '../../../bookings/models/booking.model';
 import { EmptyStateComponent } from '../empty-state/empty-state.component';
 
 @Component({
@@ -13,10 +13,10 @@ import { EmptyStateComponent } from '../empty-state/empty-state.component';
 })
 export class BookingSectionListComponent {
   @Input() title: string = '';
-  @Input() bookings: BookingSummary[] = [];
+  @Input() bookings: BookingResponse[] = [];
   @Input() emptyMessage: string = 'No bookings found';
   @Input() emptyIcon: string = '📭';
-  
+
   BookingStatus = BookingStatus;
 
   getStatusClass(status: BookingStatus): string {

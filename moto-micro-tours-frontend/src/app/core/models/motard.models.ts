@@ -3,6 +3,8 @@
  * Matching backend DTOs from TourDtos.cs
  */
 
+import { ReviewDto } from '../../features/bookings/models/review.models';
+
 /**
  * Complete motard profile with reviews and statistics
  */
@@ -31,19 +33,6 @@ export interface MotardProfileDto {
 }
 
 /**
- * Review left by a participant for a motard
- */
-export interface ReviewDto {
-  id: string;
-  authorId: string;
-  authorName: string;
-  rating: number; // 1-5
-  comment?: string;
-  createdAt: string; // ISO date string
-  bookingId: string;
-}
-
-/**
  * Summary of a tour that a motard is part of
  */
 export interface MotardTourSummaryDto {
@@ -54,15 +43,6 @@ export interface MotardTourSummaryDto {
   endLocationText: string;
   availableSeats: number;
   pricePerSeat: number;
-}
-
-/**
- * Request to create a review for a motard
- */
-export interface CreateReviewDto {
-  bookingId: string;
-  rating: number; // 1-5
-  comment?: string;
 }
 
 /**

@@ -60,6 +60,32 @@
     }
   }
 
+  // F8: Cancel Blocked Notice
+  .cancel-blocked-notice {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px;
+    background-color: #fff3e0;
+    border-radius: 8px;
+    border-left: 4px solid #ff9800;
+
+    mat-icon {
+      color: #ff9800;
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+    }
+
+    span {
+      margin: 0;
+      color: #333;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+  }
+
   // Action Buttons
   .action-buttons {
     display: flex;

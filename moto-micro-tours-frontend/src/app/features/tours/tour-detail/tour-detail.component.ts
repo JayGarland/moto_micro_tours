@@ -8,6 +8,9 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatChipsModule } from '@angular/material/chips';
 import { ToursService } from '../services/tours.service';
 import { TourDetailDto } from '../../../core/models/tour.models';
+import { ReviewsService } from '../../bookings/services/reviews.service';
+import { ReviewDto } from '../../bookings/models/review.models';
+import { ReviewCardComponent } from '../../profile/motard-profile/review-card.component';
 
 @Component({
   selector: 'app-tour-detail',
@@ -19,20 +22,24 @@ import { TourDetailDto } from '../../../core/models/tour.models';
     MatButtonModule,
     MatIconModule,
     MatProgressSpinnerModule,
-    MatChipsModule
+    MatChipsModule,
+    ReviewCardComponent
   ],
   templateUrl: './tour-detail.component.html',
   styleUrls: ['./tour-detail.component.scss']
 })
 export class TourDetailComponent implements OnInit {
   tour: TourDetailDto | null = null;
+  reviews: ReviewDto[] = [];
   isLoading = false;
+  isLoadingReviews = false;
   error: string | null = null;
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private toursService: ToursService,
+    private reviewsService: ReviewsService,
     private location: Location
   ) {}
 
@@ -51,11 +58,26 @@ export class TourDetailComponent implements OnInit {
       next: (tour) => {
         this.tour = tour;
         this.isLoading = false;
+        this.loadReviews(id);
       },
       error: (error) => {
         console.error('Error loading tour:', error);
         this.error = 'Failed to load tour details. Please try again.';
         this.isLoading = false;
+      }
+    });
+  }
+
+  loadReviews(tourId: string): void {
+    this.isLoadingReviews = true;
+    this.reviewsService.getReviewsByTour(tourId).subscribe({
+      next: (reviews: ReviewDto[]) => {
+        this.reviews = reviews;
+        this.isLoadingReviews = false;
+      },
+      error: (error: any) => {
+        console.error('Error loading reviews:', error);
+        this.isLoadingReviews = false;
       }
     });
   }

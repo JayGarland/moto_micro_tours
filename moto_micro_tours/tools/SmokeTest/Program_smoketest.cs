@@ -1,3 +1,4 @@
+// todo: write new smoke tests
 using System;
 using System.IO;
 using System.Text.Json;
@@ -37,7 +38,7 @@ class Program
         await conn.OpenAsync();
 
         // Row counts
-        var tables = new[] { "AspNetUsers","Tours","TourMotards","PreBookingConversations","Messages","Bookings","Payments","Payouts","Reviews" };
+        var tables = new[] { "AspNetUsers", "Tours", "TourMotards", "PreBookingConversations", "Messages", "Bookings", "Payments", "Payouts", "Reviews" };
         Console.WriteLine("Row counts:");
         foreach (var t in tables)
         {
@@ -49,8 +50,8 @@ class Program
 
         // Index checks
         Console.WriteLine("\nIndex checks:");
-    string[] checkTables = { "TourMotards", "PreBookingConversations", "BookingConversations", "Payments", "Payouts" };
-    foreach (var t in checkTables)
+        string[] checkTables = { "TourMotards", "PreBookingConversations", "BookingConversations", "Payments", "Payouts" };
+        foreach (var t in checkTables)
         {
             await using var cmd = conn.CreateCommand();
             cmd.CommandText = @"SELECT INDEX_NAME, GROUP_CONCAT(COLUMN_NAME ORDER BY SEQ_IN_INDEX) as cols, NON_UNIQUE FROM INFORMATION_SCHEMA.STATISTICS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME=@tbl GROUP BY INDEX_NAME";
@@ -69,19 +70,19 @@ class Program
         try
         {
             Console.WriteLine("Payments indexes:");
-        await using (var cmdPayments = conn.CreateCommand())
-        {
-            cmdPayments.CommandText = @"SELECT INDEX_NAME, GROUP_CONCAT(COLUMN_NAME ORDER BY SEQ_IN_INDEX) as cols, NON_UNIQUE FROM INFORMATION_SCHEMA.STATISTICS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='Payments' GROUP BY INDEX_NAME";
-            await using var readerPayments = await cmdPayments.ExecuteReaderAsync();
-            while (await readerPayments.ReadAsync()) Console.WriteLine($"{readerPayments.GetString(0)}: {readerPayments.GetString(1)} (non_unique={readerPayments.GetInt32(2)})");
-        }
+            await using (var cmdPayments = conn.CreateCommand())
+            {
+                cmdPayments.CommandText = @"SELECT INDEX_NAME, GROUP_CONCAT(COLUMN_NAME ORDER BY SEQ_IN_INDEX) as cols, NON_UNIQUE FROM INFORMATION_SCHEMA.STATISTICS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='Payments' GROUP BY INDEX_NAME";
+                await using var readerPayments = await cmdPayments.ExecuteReaderAsync();
+                while (await readerPayments.ReadAsync()) Console.WriteLine($"{readerPayments.GetString(0)}: {readerPayments.GetString(1)} (non_unique={readerPayments.GetInt32(2)})");
+            }
             Console.WriteLine("\nPayouts indexes:");
-        await using (var cmdPayouts = conn.CreateCommand())
-        {
-            cmdPayouts.CommandText = @"SELECT INDEX_NAME, GROUP_CONCAT(COLUMN_NAME ORDER BY SEQ_IN_INDEX) as cols, NON_UNIQUE FROM INFORMATION_SCHEMA.STATISTICS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='Payouts' GROUP BY INDEX_NAME";
-            await using var readerPayouts = await cmdPayouts.ExecuteReaderAsync();
-            while (await readerPayouts.ReadAsync()) Console.WriteLine($"{readerPayouts.GetString(0)}: {readerPayouts.GetString(1)} (non_unique={readerPayouts.GetInt32(2)})");
-        }
+            await using (var cmdPayouts = conn.CreateCommand())
+            {
+                cmdPayouts.CommandText = @"SELECT INDEX_NAME, GROUP_CONCAT(COLUMN_NAME ORDER BY SEQ_IN_INDEX) as cols, NON_UNIQUE FROM INFORMATION_SCHEMA.STATISTICS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='Payouts' GROUP BY INDEX_NAME";
+                await using var readerPayouts = await cmdPayouts.ExecuteReaderAsync();
+                while (await readerPayouts.ReadAsync()) Console.WriteLine($"{readerPayouts.GetString(0)}: {readerPayouts.GetString(1)} (non_unique={readerPayouts.GetInt32(2)})");
+            }
 
         }
         catch (Exception ex)
@@ -94,24 +95,24 @@ class Program
         try
         {
             Console.WriteLine("Message table CHECK constraints:");
-        await using (var cmdC = conn.CreateCommand())
-        {
-            cmdC.CommandText = @"SELECT CONSTRAINT_NAME, CHECK_CLAUSE FROM INFORMATION_SCHEMA.CHECK_CONSTRAINTS WHERE CONSTRAINT_SCHEMA=DATABASE() AND CONSTRAINT_NAME IN (SELECT CONSTRAINT_NAME FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS WHERE TABLE_NAME='Messages')";
-            await using var readerChecks = await cmdC.ExecuteReaderAsync();
-            var foundChecks = false;
-            while (await readerChecks.ReadAsync())
+            await using (var cmdC = conn.CreateCommand())
             {
-                foundChecks = true;
-                Console.WriteLine($"{readerChecks.GetString(0)}: {readerChecks.GetString(1)}");
+                cmdC.CommandText = @"SELECT CONSTRAINT_NAME, CHECK_CLAUSE FROM INFORMATION_SCHEMA.CHECK_CONSTRAINTS WHERE CONSTRAINT_SCHEMA=DATABASE() AND CONSTRAINT_NAME IN (SELECT CONSTRAINT_NAME FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS WHERE TABLE_NAME='Messages')";
+                await using var readerChecks = await cmdC.ExecuteReaderAsync();
+                var foundChecks = false;
+                while (await readerChecks.ReadAsync())
+                {
+                    foundChecks = true;
+                    Console.WriteLine($"{readerChecks.GetString(0)}: {readerChecks.GetString(1)}");
+                }
+                if (!foundChecks) Console.WriteLine("No CHECK constraints found on Messages table.");
             }
-            if (!foundChecks) Console.WriteLine("No CHECK constraints found on Messages table.");
-        }
         catch (Exception ex)
         {
             Console.WriteLine("Error checking message constraints: " + ex.Message);
         }
         Console.WriteLine("-- END Message CHECK constraint check --");
-        
+
         // XOR test: try to insert invalid message with both conversation ids set
         Console.WriteLine("\nTesting Message XOR constraint by attempting an insert with both conversation IDs set (rolled back):");
         // Need to get one PreBookingConversation and one BookingConversation ids
@@ -193,5 +194,6 @@ class Program
         Console.WriteLine("\nSmoke tests complete.");
         await conn.CloseAsync();
         return 0;
-    }}
+    }
+}
 }

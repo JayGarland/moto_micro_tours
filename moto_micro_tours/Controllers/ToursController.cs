@@ -33,26 +33,31 @@ public class ToursController : ControllerBase
     /// <param name="endDate">Filter by end date (inclusive) (format: yyyy-MM-dd)</param>
     /// <param name="area">Filter by location text (case-insensitive contains)</param>
     /// <param name="priceMax">Filter by maximum price per seat</param>
+    /// <param name="status">Filter by tour status (Draft=0, Published=1, Closed=2, Cancelled=3). If not specified, returns only Published tours</param>
     /// <returns>List of tours matching the criteria</returns>
     [HttpGet]
     public async Task<ActionResult<List<TourListDto>>> GetTours(
         [FromQuery] DateTime? startDate = null,
         [FromQuery] DateTime? endDate = null,
         [FromQuery] string? area = null,
-        [FromQuery] decimal? priceMax = null)
+        [FromQuery] decimal? priceMax = null,
+        [FromQuery] TourStatus? status = null)
     {
         try
         {
             _logger.LogInformation(
-                "GetTours called with filters - Date: {startDate}, {endDate}, Area: {Area}, PriceMax: {PriceMax}",
-                startDate, endDate, area, priceMax);
+                "GetTours called with filters - Date: {startDate}, {endDate}, Area: {Area}, PriceMax: {PriceMax}, Status: {Status}",
+                startDate, endDate, area, priceMax, status);
 
-            // Start with Published tours only (for public API)
+            // Start with Published tours by default (active tours only)
+            // If status is specified, filter by that status only
             var query = _context.Tours
                 .Include(t => t.TourMotards)
                     .ThenInclude(tm => tm.Motard!)
                     .ThenInclude(u => u.MotardProfile)
-                .Where(t => t.Status == TourStatus.Published);
+                .Where(t => status.HasValue
+                    ? t.Status == status.Value
+                    : t.Status == TourStatus.Published);
 
             // Apply date range filter
             // If both startDate and endDate provided, filter inclusive between dates (end of day inclusive)
@@ -158,7 +163,7 @@ public class ToursController : ControllerBase
                         User = tm.Motard,
                         Profile = tm.Motard!.MotardProfile,
                         AvgRating = _context.Reviews
-                            .Where(r => r.MotardUserId == tm.MotardUserId)
+                            .Where(r => r.TargetType == ReviewTargetType.User && r.TargetId == tm.MotardUserId)
                             .Average(r => (decimal?)r.Rating)
                     }).ToList()
                 })

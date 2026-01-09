@@ -5,18 +5,61 @@
       <mat-icon>person</mat-icon>
     </div>
     <div class="review-info">
-      <span class="reviewer-name">{{ review.authorName }}</span>
+      <span class="reviewer-name">{{ review.reviewerUsername }}</span>
       <div class="stars">
         <mat-icon *ngFor="let filled of getStarArray()" [class.filled]="filled">
           {{ filled ? 'star' : 'star_border' }}
         </mat-icon>
       </div>
     </div>
-    <span class="review-date">{{ review.createdAt | date:'mediumDate' }}</span>
+    <span class="review-date">{{ review.createdAtUtc | date:'mediumDate' }}</span>
   </div>
 
   <!-- Review Comment (2-3 lines) -->
   <div class="review-comment" *ngIf="review.comment">
     <p>{{ getTruncatedComment() }}</p>
+  </div>
+
+  <!-- Replies Section -->
+  <div class="replies-section" *ngIf="getSortedReplies().length > 0">
+    <div class="reply-item" *ngFor="let reply of getSortedReplies()">
+      <div class="reply-header">
+        <mat-icon class="reply-icon">subdirectory_arrow_right</mat-icon>
+        <span class="reply-author">{{ reply.authorUsername }}</span>
+        <span class="reply-date">{{ reply.createdAtUtc | date:'short' }}</span>
+      </div>
+      <p class="reply-message">{{ reply.message }}</p>
+    </div>
+  </div>
+
+  <!-- Add Update/Reply Button (for reviewer or target) -->
+  <div class="review-actions" *ngIf="canReply">
+    <button mat-button color="primary" (click)="toggleReplyForm()" *ngIf="!showReplyForm">
+      <mat-icon>{{ isReviewer ? 'edit' : 'reply' }}</mat-icon>
+      {{ isReviewer ? 'Add update' : 'Reply' }}
+    </button>
+  </div>
+
+  <!-- Reply Form -->
+  <div class="reply-form" *ngIf="showReplyForm && canReply">
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>{{ isReviewer ? 'Add an update' : 'Write a reply' }}</mat-label>
+      <textarea
+        matInput
+        [(ngModel)]="replyMessage"
+        placeholder="Share additional context or clarification..."
+        rows="3"
+        [disabled]="isSubmittingReply">
+      </textarea>
+    </mat-form-field>
+    <div class="form-actions">
+      <button mat-button (click)="toggleReplyForm()" [disabled]="isSubmittingReply">
+        Cancel
+      </button>
+      <button mat-raised-button color="primary" (click)="submitReply()" [disabled]="isSubmittingReply || !replyMessage.trim()">
+        <mat-icon>send</mat-icon>
+        {{ isSubmittingReply ? 'Submitting...' : (isReviewer ? 'Post update' : 'Post reply') }}
+      </button>
+    </div>
   </div>
 </div>

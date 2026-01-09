@@ -6,7 +6,6 @@ import {
   CreateBookingRequest,
   BookingResponse,
   BookingDetail,
-  BookingSummary,
   PaymentConfirmation
 } from '../models/booking.model';
 
@@ -51,10 +50,10 @@ export class BookingsService {
   /**
    * Get all bookings for the current participant
    * Endpoint: GET /api/bookings
-   * @returns Observable array of BookingSummary
+   * @returns Observable array of BookingResponse
    */
-  getParticipantBookings(): Observable<BookingSummary[]> {
-    return this.apiService.get<BookingSummary[]>('bookings')
+  getParticipantBookings(): Observable<BookingResponse[]> {
+    return this.apiService.get<BookingResponse[]>('bookings')
       .pipe(
         catchError(error => {
           console.error('Error fetching participant bookings:', error);
@@ -139,10 +138,16 @@ export class BookingsService {
    * @param bookingId - The booking ID
    * @param reason - Optional cancellation reason
    * @returns Observable of BookingDetail
-   * TODO: Implement in Stage F8
    */
   cancelBooking(bookingId: string, reason?: string): Observable<BookingDetail> {
-    throw new Error('Method not implemented - coming in Stage F8');
+    const body = reason ? { reason } : {};
+    return this.apiService.post<BookingDetail>(`bookings/${bookingId}/cancel`, body)
+      .pipe(
+        catchError(error => {
+          console.error('Error cancelling booking:', error);
+          return throwError(() => this.extractErrorMessage(error));
+        })
+      );
   }
 
   /**
@@ -150,10 +155,33 @@ export class BookingsService {
    * Endpoint: POST /api/bookings/{id}/refund
    * @param bookingId - The booking ID
    * @returns Observable of BookingDetail
-   * TODO: Implement in Stage F8
    */
   refundBooking(bookingId: string): Observable<BookingDetail> {
-    throw new Error('Method not implemented - coming in Stage F8');
+    return this.apiService.post<BookingDetail>(`bookings/${bookingId}/refund`, {})
+      .pipe(
+        catchError(error => {
+          console.error('Error refunding booking:', error);
+          return throwError(() => this.extractErrorMessage(error));
+        })
+      );
+  }
+
+  /**
+   * Mark booking as completed (F8 - Completion Handshake)
+   * Endpoint: POST /api/bookings/{id}/complete
+   * - Participant or motard marks their side as complete
+   * - When both sides complete, booking is fully completed
+   * @param bookingId - The booking ID
+   * @returns Observable of BookingResponse with updated completion timestamps
+   */
+  completeBooking(bookingId: string): Observable<BookingResponse> {
+    return this.apiService.post<BookingResponse>(`bookings/${bookingId}/complete`, {})
+      .pipe(
+        catchError(error => {
+          console.error('Error completing booking:', error);
+          return throwError(() => this.extractErrorMessage(error));
+        })
+      );
   }
 
   // ============================================

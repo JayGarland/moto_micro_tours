@@ -53,6 +53,10 @@ export const routes: Routes = [
     loadComponent: () => import('./features/profile/motard-profile/motard-profile.component').then(m => m.MotardProfileComponent)
   },
   {
+    path: 'participants/:userId',
+    loadComponent: () => import('./features/profile/participant-profile/participant-profile.component').then(m => m.ParticipantProfileComponent)
+  },
+  {
     path: 'messages',
     canActivate: [authGuard],
     loadComponent: () => import('./features/chats/inbox/prebooking-inbox.component').then(m => m.PrebookingInboxComponent)

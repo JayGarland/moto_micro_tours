@@ -27,20 +27,18 @@ export class ProfileRedirectComponent implements OnInit {
 
   ngOnInit(): void {
     const user = this.authService.getCurrentUser();
-    
+
     if (!user) {
       this.router.navigate(['/auth/login']);
       return;
     }
 
     // For now, redirect to motard profile if user is a motard
-    // In the future, we can create separate profile pages for participants
+    // Otherwise redirect to participant profile
     if (user.roles?.includes('Motard')) {
       this.router.navigate(['/motards', user.userId]);
     } else {
-      // For participants, redirect to their dashboard as a placeholder
-      // TODO: Create participant profile page in future stage
-      this.router.navigate(['/dashboard/participant']);
+      this.router.navigate(['/participants', user.userId]);
     }
   }
 }

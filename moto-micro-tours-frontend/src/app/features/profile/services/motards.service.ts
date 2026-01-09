@@ -3,10 +3,9 @@ import { Observable } from 'rxjs';
 import { ApiService } from '../../../core/services/api.service';
 import {
   MotardProfileDto,
-  CreateReviewDto,
-  ReviewDto,
   MotardProfileParams
 } from '../../../core/models/motard.models';
+import { CreateReviewDto, ReviewDto } from '../../bookings/models/review.models';
 
 @Injectable({
   providedIn: 'root'

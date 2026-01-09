@@ -498,6 +498,11 @@ public class BookingsController : ControllerBase
                 DeclinedAt = booking.DeclinedAt, // Stage F7.1
                 DeclineReason = booking.DeclineReason, // Stage F7.1
 
+                // Completion timestamps (F8 - Booking Completion Handshake)
+                CompletedByParticipantAtUtc = booking.CompletedByParticipantAtUtc,
+                CompletedByMotardAtUtc = booking.CompletedByMotardAtUtc,
+                CompletedAtUtc = booking.CompletedAtUtc,
+
                 // Payment information (if exists)
                 Payment = booking.Payment != null ? new PaymentInfoDto
                 {
@@ -621,7 +626,10 @@ public class BookingsController : ControllerBase
                 DeclinedAt = booking.DeclinedAt, // Stage F7.1
                 DeclineReason = booking.DeclineReason, // Stage F7.1
                 TourStartAt = booking.Tour?.StartAt ?? DateTime.MinValue,
-                PricePerSeat = booking.TourMotard?.PricePerSeat ?? 0
+                PricePerSeat = booking.TourMotard?.PricePerSeat ?? 0,
+                CompletedByParticipantAtUtc = booking.CompletedByParticipantAtUtc, // B1
+                CompletedByMotardAtUtc = booking.CompletedByMotardAtUtc, // B1
+                CompletedAtUtc = booking.CompletedAtUtc // B1
             }).ToList();
 
             _logger.LogInformation(
@@ -741,18 +749,27 @@ public class BookingsController : ControllerBase
             }
 
             // Cancel the booking
+            var wasPaid = booking.Status == BookingStatus.Paid;
             booking.Status = BookingStatus.Cancelled;
             booking.CancelledAt = DateTime.UtcNow;
 
-            // Increase motard's available capacity
-            if (booking.TourMotard != null)
+            // Only free capacity if booking was Paid (seats were actually reserved)
+            // Pending/Approved bookings don't reserve seats yet
+            if (wasPaid && booking.TourMotard != null)
             {
                 booking.TourMotard.SeatsBooked -= 1;
                 _logger.LogInformation(
-                    "TourMotard {TourMotardId} capacity freed: {SeatsBooked}/{CapacitySeats}",
+                    "TourMotard {TourMotardId} capacity freed (was paid): {SeatsBooked}/{CapacitySeats}",
                     booking.TourMotardId,
                     booking.TourMotard.SeatsBooked,
                     booking.TourMotard.CapacitySeats);
+            }
+            else
+            {
+                _logger.LogInformation(
+                    "TourMotard {TourMotardId} capacity not freed (booking was {Status}, not Paid)",
+                    booking.TourMotardId,
+                    booking.Status);
             }
 
             // Mock refund if needed
@@ -1034,9 +1051,166 @@ public class BookingsController : ControllerBase
         }
     }
 
-    // TODO: Implement `POST /bookings/{id}/request-cancel` for participants to request cancellation, setting status to `CancelRequested`.
-    // TODO: Implement `POST /bookings/{id}/decide-cancel` for motards to approve or decline cancellation, updating status to `Refunded` or reverting to `Paid`.
+    /// <summary>
+    /// F8: Mark booking as completed by participant or motard
+    /// POST /api/bookings/{id}/complete
+    /// - Sets CompletedByParticipantAtUtc or CompletedByMotardAtUtc based on caller
+    /// - When both are set, sets CompletedAtUtc
+    /// - Idempotent: calling twice doesn't break
+    /// </summary>
+    /// <param name="id">Booking ID</param>
+    /// <returns>Updated booking with completion timestamps</returns>
+    [HttpPost("{id}/complete")]
+    [Authorize]
+    public async Task<ActionResult<BookingResponseDto>> CompleteBooking(Guid id)
+    {
+        try
+        {
+            _logger.LogInformation("Marking booking {BookingId} as completed", id);
+
+            // Get current user
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
+            {
+                return Unauthorized(new { error = "You must be logged in to complete bookings" });
+            }
+
+            // Load booking with related entities
+            var booking = await _context.Bookings
+                .Include(b => b.Tour)
+                .Include(b => b.TourMotard)
+                .Include(b => b.Participant)
+                .FirstOrDefaultAsync(b => b.Id == id);
+
+            if (booking == null)
+            {
+                _logger.LogWarning("Booking {BookingId} not found", id);
+                return NotFound(new { error = $"Booking with ID {id} not found" });
+            }
+
+            // Verify user is participant or motard
+            bool isParticipant = booking.ParticipantUserId == currentUser.Id;
+            bool isMotard = booking.TourMotard?.MotardUserId == currentUser.Id;
+
+            if (!isParticipant && !isMotard)
+            {
+                _logger.LogWarning(
+                    "User {UserId} attempted to complete booking {BookingId} they're not part of",
+                    currentUser.Id, id);
+                return Forbid();
+            }
+
+            // Validate booking must be Paid
+            if (booking.Status != BookingStatus.Paid)
+            {
+                _logger.LogWarning(
+                    "Cannot complete booking {BookingId} with status {Status}",
+                    id, booking.Status);
+                return BadRequest(new
+                {
+                    error = $"Can only complete paid bookings. Current status: {booking.Status}"
+                });
+            }
+
+            // Validate tour must have started
+            if (booking.Tour == null)
+            {
+                return BadRequest(new { error = "Tour information not found" });
+            }
+
+            if (booking.Tour.StartAt > DateTime.UtcNow)
+            {
+                _logger.LogWarning(
+                    "Cannot complete booking {BookingId} - tour hasn't started yet (starts: {StartAt})",
+                    id, booking.Tour.StartAt);
+                return BadRequest(new
+                {
+                    error = "Cannot complete booking before tour starts",
+                    tourStartAt = booking.Tour.StartAt
+                });
+            }
+
+            // Set completion timestamp (idempotent)
+            var now = DateTime.UtcNow;
+            bool timestampUpdated = false;
+
+            if (isParticipant && !booking.CompletedByParticipantAtUtc.HasValue)
+            {
+                booking.CompletedByParticipantAtUtc = now;
+                timestampUpdated = true;
+                _logger.LogInformation(
+                    "Booking {BookingId} marked as completed by participant {UserId}",
+                    id, currentUser.Id);
+            }
+            else if (isMotard && !booking.CompletedByMotardAtUtc.HasValue)
+            {
+                booking.CompletedByMotardAtUtc = now;
+                timestampUpdated = true;
+                _logger.LogInformation(
+                    "Booking {BookingId} marked as completed by motard {UserId}",
+                    id, currentUser.Id);
+            }
+            else
+            {
+                // Already completed by this user - idempotent, no error
+                _logger.LogInformation(
+                    "Booking {BookingId} already marked as completed by {Role}",
+                    id, isParticipant ? "participant" : "motard");
+            }
+
+            // Save individual timestamp first
+            if (timestampUpdated)
+            {
+                await _context.SaveChangesAsync();
+
+                // Reload to get latest state (race safety: other party may have just completed)
+                await _context.Entry(booking).ReloadAsync();
+            }
+
+            // Check if both sides have now completed and set CompletedAtUtc
+            if (booking.CompletedByParticipantAtUtc.HasValue &&
+                booking.CompletedByMotardAtUtc.HasValue &&
+                !booking.CompletedAtUtc.HasValue)
+            {
+                booking.CompletedAtUtc = DateTime.UtcNow; // Use fresh timestamp
+                await _context.SaveChangesAsync();
+                _logger.LogInformation(
+                    "Booking {BookingId} fully completed by both parties",
+                    id);
+            }
+
+            // Return booking response
+            return Ok(new BookingResponseDto
+            {
+                BookingId = booking.Id,
+                TourId = booking.TourId,
+                TourTitle = booking.Tour?.Title ?? string.Empty,
+                TourMotardId = booking.TourMotardId,
+                MotardName = booking.TourMotard?.Motard?.UserName ?? string.Empty,
+                ParticipantId = Guid.Parse(booking.ParticipantUserId),
+                ParticipantName = booking.Participant?.UserName ?? string.Empty,
+                Status = booking.Status.ToString(),
+                CostSharingOptIn = booking.CostSharingOptIn,
+                EmergencyContact = booking.EmergencyContact ?? string.Empty,
+                MessageToMotard = booking.MessageToMotard,
+                CreatedAt = booking.CreatedAt,
+                ApprovedAt = booking.ApprovedAt,
+                ExpiresAt = booking.ExpiresAt,
+                DeclinedAt = booking.DeclinedAt,
+                DeclineReason = booking.DeclineReason,
+                TourStartAt = booking.Tour?.StartAt ?? DateTime.MinValue,
+                PricePerSeat = booking.TourMotard?.PricePerSeat ?? 0
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error completing booking {BookingId}", id);
+            return StatusCode(500, new { error = "An error occurred while completing the booking" });
+        }
+    }
+
+
     // TODO: Implement logic to allow refunded bookings to leave reviews.
     // TODO: Add logic to block new bookings and prevent payments for tours with status Cancelled.
-    // TODO: Implement logic to enforce rate limits using the RateLimitCounter entity.
+    // TODO: in a far future, not scheduled, Implement logic to enforce rate limits using the RateLimitCounter entity.
 }

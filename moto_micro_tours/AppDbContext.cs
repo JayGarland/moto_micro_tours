@@ -19,6 +19,7 @@ namespace moto_micro_tours
         public DbSet<Message> Messages { get; set; }
         public DbSet<IdempotencyKey> IdempotencyKeys { get; set; }
         public DbSet<Review> Reviews { get; set; }
+        public DbSet<ReviewReply> ReviewReplies { get; set; }
         public DbSet<UserRole> AppUserRoles { get; set; }
         public DbSet<RateLimitCounter> RateLimitCounters { get; set; }
 
@@ -79,21 +80,49 @@ namespace moto_micro_tours
                 ));
             // If migration fails, enforce in service layer and leave a TODO.
 
-            // Review: Unique (BookingId), FK to MotardUserId and AuthorUserId
+            // Review: Unique constraint on (BookingId, ReviewerUserId, TargetType, TargetId)
+            // Prevents duplicate reviews for same target on same booking
             modelBuilder.Entity<Review>()
-                .HasIndex(x => x.BookingId).IsUnique();
+                .HasIndex(x => new { x.BookingId, x.ReviewerUserId, x.TargetType, x.TargetId })
+                .IsUnique();
 
             modelBuilder.Entity<Review>()
-                .HasOne(r => r.Motard)
+                .HasOne(r => r.Booking)
+                .WithMany(b => b.Reviews)
+                .HasForeignKey(r => r.BookingId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Review>()
+                .HasOne(r => r.Reviewer)
                 .WithMany()
-                .HasForeignKey(r => r.MotardUserId)
+                .HasForeignKey(r => r.ReviewerUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Review>()
+                .Property(r => r.Rating)
                 .IsRequired();
 
             modelBuilder.Entity<Review>()
-                .HasOne(r => r.Author)
+                .Property(r => r.TargetId)
+                .HasMaxLength(450); // Same as UserId max length
+
+            // ReviewReply: Only author of original review can add replies
+            modelBuilder.Entity<ReviewReply>()
+                .HasOne(rr => rr.Review)
+                .WithMany(r => r.Replies)
+                .HasForeignKey(rr => rr.ReviewId)
+                .OnDelete(DeleteBehavior.Cascade); // Delete replies when review is deleted
+
+            modelBuilder.Entity<ReviewReply>()
+                .HasOne(rr => rr.Author)
                 .WithMany()
-                .HasForeignKey(r => r.AuthorUserId)
-                .IsRequired();
+                .HasForeignKey(rr => rr.AuthorUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<ReviewReply>()
+                .Property(rr => rr.Message)
+                .IsRequired()
+                .HasMaxLength(1000);
 
             // Booking FK configuration (explicit for Participant relationship)
             modelBuilder.Entity<Booking>()

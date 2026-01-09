@@ -23,6 +23,9 @@ export class BookingStatusTimeline {
   @Input() approvedAt?: string;
   @Input() paidAt?: string;
   @Input() cancelledAt?: string;
+  @Input() completedByParticipantAtUtc?: string;
+  @Input() completedByMotardAtUtc?: string;
+  @Input() completedAtUtc?: string;
 
   get steps(): TimelineStep[] {
     const steps: TimelineStep[] = [];
@@ -92,6 +95,22 @@ export class BookingStatusTimeline {
       steps.push({
         label: 'Ready for Tour',
         icon: 'two_wheeler',
+        state: this.completedAtUtc ? 'completed' : 'current'
+      });
+    }
+
+    // Step 5: Completion (if both confirmed)
+    if (this.completedAtUtc) {
+      steps.push({
+        label: 'Tour Completed',
+        icon: 'verified',
+        date: this.completedAtUtc,
+        state: 'current'
+      });
+    } else if (this.completedByParticipantAtUtc || this.completedByMotardAtUtc) {
+      steps.push({
+        label: 'Awaiting Completion Confirmation',
+        icon: 'hourglass_empty',
         state: 'current'
       });
     }

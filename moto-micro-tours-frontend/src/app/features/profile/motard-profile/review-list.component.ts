@@ -1,7 +1,7 @@
 import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
-import { ReviewDto } from '../../../core/models/motard.models';
+import { ReviewDto } from '../../bookings/models/review.models';
 import { ReviewCardComponent } from './review-card.component';
 
 @Component({

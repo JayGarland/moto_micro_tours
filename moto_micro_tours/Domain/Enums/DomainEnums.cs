@@ -46,3 +46,9 @@ public enum PayoutStatus
     Settled,
     Failed
 }
+
+public enum ReviewTargetType
+{
+    Tour,
+    User
+}

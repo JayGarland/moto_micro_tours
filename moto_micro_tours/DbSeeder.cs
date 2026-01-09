@@ -122,7 +122,7 @@ namespace moto_micro_tours
             var tour = new Tour
             {
                 Title = "Normandy Coast Loop",
-                StartAt = new DateTime(2025, 11, 25, 10, 0, 0, DateTimeKind.Utc),
+                StartAt = new DateTime(2026, 1, 4, 10, 0, 0, DateTimeKind.Utc),
                 StartLocationText = "Rouen Central Station",
                 EndLocationText = "Rouen Central Station",
                 Status = TourStatus.Published,
@@ -207,7 +207,10 @@ namespace moto_micro_tours
                 EmergencyContact = "+33 6 12 34 56 78",
                 CreatedAt = DateTime.UtcNow.AddDays(-30),
                 ApprovedAt = DateTime.UtcNow.AddDays(-29),
-                PaidAt = DateTime.UtcNow.AddDays(-29)
+                PaidAt = DateTime.UtcNow.AddDays(-29),
+                CompletedByParticipantAtUtc = DateTime.UtcNow.AddDays(-25),
+                CompletedByMotardAtUtc = DateTime.UtcNow.AddDays(-24),
+                CompletedAtUtc = DateTime.UtcNow.AddDays(-24)
             };
             db.Bookings.Add(booking1);
             await db.SaveChangesAsync();
@@ -222,30 +225,36 @@ namespace moto_micro_tours
                 EmergencyContact = "+33 6 98 76 54 32",
                 CreatedAt = DateTime.UtcNow.AddDays(-28),
                 ApprovedAt = DateTime.UtcNow.AddDays(-27),
-                PaidAt = DateTime.UtcNow.AddDays(-27)
+                PaidAt = DateTime.UtcNow.AddDays(-27),
+                CompletedByParticipantAtUtc = DateTime.UtcNow.AddDays(-23),
+                CompletedByMotardAtUtc = DateTime.UtcNow.AddDays(-22),
+                CompletedAtUtc = DateTime.UtcNow.AddDays(-22)
             };
             db.Bookings.Add(booking2);
             await db.SaveChangesAsync();
 
             // 10. Add reviews for organizer (from past tour)
+            // Reviews now target either Tour or User (motard)
             var review1 = new Review
             {
-                MotardUserId = organizer.Id,
-                AuthorUserId = participant1.Id,
                 BookingId = booking1.Id,
+                ReviewerUserId = participant1.Id,
+                TargetType = ReviewTargetType.User, // Reviewing the motard
+                TargetId = organizer.Id,
                 Rating = 5,
                 Comment = "Excellent guide! Very knowledgeable about the Loire Valley and kept us safe throughout. Highly recommend!",
-                CreatedAt = DateTime.UtcNow.AddDays(-25)
+                CreatedAtUtc = DateTime.UtcNow.AddDays(-25)
             };
 
             var review2 = new Review
             {
-                MotardUserId = organizer.Id,
-                AuthorUserId = participant2.Id,
                 BookingId = booking2.Id,
+                ReviewerUserId = participant2.Id,
+                TargetType = ReviewTargetType.User, // Reviewing the motard
+                TargetId = organizer.Id,
                 Rating = 4,
                 Comment = "Great experience overall. Bike was comfortable and the route was scenic. Only minor issue was running a bit behind schedule.",
-                CreatedAt = DateTime.UtcNow.AddDays(-24)
+                CreatedAtUtc = DateTime.UtcNow.AddDays(-24)
             };
 
             db.Reviews.AddRange(review1, review2);

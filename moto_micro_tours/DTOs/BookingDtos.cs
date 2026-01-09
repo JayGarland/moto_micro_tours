@@ -66,45 +66,28 @@ public class BookingResponseDto
     public string? DeclineReason { get; set; } // Stage F7.1
     public DateTime TourStartAt { get; set; } // Added for filtering upcoming rides
     public decimal PricePerSeat { get; set; } // Added for price display
+    public DateTime? CompletedByParticipantAtUtc { get; set; } // B1
+    public DateTime? CompletedByMotardAtUtc { get; set; } // B1
+    public DateTime? CompletedAtUtc { get; set; } // B1
 }
 
 /// <summary>
 /// Detailed booking information including tour and payment details
+/// Inherits all fields from BookingResponseDto and adds location, payment, and cancellation details
 /// </summary>
-public class BookingDetailDto
+public class BookingDetailDto : BookingResponseDto
 {
-    public Guid BookingId { get; set; }
-
-    // Tour information
-    public Guid TourId { get; set; }
-    public string TourTitle { get; set; } = string.Empty;
-    public DateTime TourStartAt { get; set; }
+    // Additional tour location information
     public string StartLocationText { get; set; } = string.Empty;
     public string EndLocationText { get; set; } = string.Empty;
 
-    // Motard information
-    public Guid TourMotardId { get; set; }
+    // Additional motard information
     public string MotardUserId { get; set; } = string.Empty;
-    public string MotardName { get; set; } = string.Empty;
-    public decimal PricePerSeat { get; set; }
 
-    // Participant information
-    public Guid ParticipantId { get; set; }
-    public string ParticipantName { get; set; } = string.Empty;
-
-    // Booking details
-    public string Status { get; set; } = string.Empty;
-    public bool CostSharingOptIn { get; set; }
-    public string EmergencyContact { get; set; } = string.Empty;
-    public string? MessageToMotard { get; set; }
-    public DateTime CreatedAt { get; set; }
-    public DateTime? ApprovedAt { get; set; }
-    public DateTime? ExpiresAt { get; set; }
+    // Additional booking status timestamps
     public DateTime? PaidAt { get; set; }
     public DateTime? CancelledAt { get; set; }
     public string? CancellationReason { get; set; }
-    public DateTime? DeclinedAt { get; set; } // Stage F7.1
-    public string? DeclineReason { get; set; } // Stage F7.1
 
     // Payment information (if exists)
     public PaymentInfoDto? Payment { get; set; }

@@ -94,6 +94,14 @@
       emptyIcon="❌"
     ></app-booking-section-list>
 
+    <!-- F8: Cancelled Bookings Section -->
+    <app-booking-section-list
+      title="Cancelled bookings"
+      [bookings]="cancelledBookings()"
+      emptyMessage="No cancelled bookings"
+      emptyIcon="🚫"
+    ></app-booking-section-list>
+
     <!-- Past Rides Section -->
     <app-booking-section-list
       title="Past rides"

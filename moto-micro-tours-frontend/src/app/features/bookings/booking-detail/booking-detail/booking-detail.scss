@@ -357,6 +357,185 @@
       }
     }
   }
+
+  // Review Card
+  .review-card {
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+
+    mat-card-header {
+      background: linear-gradient(135deg, #ff6f00 0%, #ff8f00 100%);
+      color: white;
+      padding: 16px;
+      border-radius: 10px 10px 0 0;
+
+      mat-icon[mat-card-avatar] {
+        background-color: rgba(255, 255, 255, 0.2);
+        color: white;
+        font-size: 24px;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+      }
+
+      mat-card-title {
+        color: white;
+        font-size: 18px;
+        font-weight: 600;
+      }
+    }
+
+    mat-card-content {
+      padding: 20px;
+
+      .review-prompt {
+        font-size: 14px;
+        color: #666;
+        margin-bottom: 16px;
+      }
+
+      button {
+        width: 100%;
+      }
+    }
+  }
+
+  // F8: Completion Card Styles
+  .completion-card {
+    mat-card-header {
+      mat-icon {
+        &.completed {
+          color: #4caf50;
+        }
+      }
+    }
+
+    .completion-status {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      padding: 16px;
+      border-radius: 8px;
+      margin-bottom: 16px;
+
+      mat-icon {
+        font-size: 32px;
+        width: 32px;
+        height: 32px;
+      }
+
+      div {
+        flex: 1;
+
+        strong {
+          display: block;
+          font-size: 16px;
+          margin-bottom: 8px;
+        }
+
+        p {
+          margin: 4px 0;
+          color: #666;
+        }
+
+        .timestamp {
+          font-size: 14px;
+          color: #888;
+          margin-top: 8px;
+        }
+
+        .other-confirmed {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          margin-top: 12px;
+          padding: 8px;
+          background: #e3f2fd;
+          border-radius: 4px;
+          color: #1976d2;
+
+          mat-icon {
+            font-size: 20px;
+            width: 20px;
+            height: 20px;
+          }
+        }
+      }
+
+      &.completed {
+        background: #e8f5e9;
+        border-left: 4px solid #4caf50;
+
+        mat-icon {
+          color: #4caf50;
+        }
+      }
+
+      &.waiting {
+        background: #fff3e0;
+        border-left: 4px solid #ff9800;
+
+        mat-icon {
+          color: #ff9800;
+        }
+      }
+
+      &.pending {
+        background: #e3f2fd;
+        border-left: 4px solid #2196f3;
+
+        mat-icon {
+          color: #2196f3;
+        }
+      }
+    }
+
+    .complete-button {
+      width: 100%;
+
+      mat-icon {
+        margin-right: 8px;
+      }
+    }
+  }
+
+  // Reviews List Card
+  .reviews-list-card {
+    margin-top: 24px;
+
+    .loading-reviews {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+      gap: 16px;
+
+      p {
+        color: #666;
+        font-size: 14px;
+      }
+    }
+
+    .reviews-list {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+
+      // Add spacing between review cards
+      app-review-card {
+        display: block;
+        margin-bottom: 16px;
+
+        &:last-child {
+          margin-bottom: 0;
+        }
+      }
+    }
+  }
 }
 
 // Responsive Design

@@ -1,165 +1,27 @@
 ###
-# Stage G - Step 3: Reviews Testing
-# Tests the POST /motards/{userId}/reviews endpoint
-# Current date: Nov 13, 2025 (future tour: Nov 25, past tour: Sept 15)
+# Stage F8 - Task 3: Dual-Target Reviews Testing
+# Tests POST /api/reviews (create review for Tour OR User)
+# Tests POST /api/reviews/{id}/replies (add reply to review)
+# Tests GET /api/bookings/{id}/reviews, GET /api/tours/{id}/reviews, GET /api/users/{id}/reviews
 ###
 
 @baseUrl = http://localhost:5256/api
-@organizerId = 998d74ae-4e06-4933-88e1-78d4cc7c7be8
-@participant1Id = participant1
-@participant2Id = participant2
 
 ###
-# Setup: Login as participant1 (alice@example.com / Test123!)
+# 1. Login as participant1 (participant1 / pass)
 POST {{baseUrl}}/auth/login
 Content-Type: application/json
 
 {
-    "username": "participant1",
-  "email": "alice@example.com",
+  "EmailOrUsername": "participant1",
   "password": "pass"
 }
 
-###
-# 1. Get the future tour (Nov 25) to create new booking
-GET {{baseUrl}}/tours
-
-### from bookings get past tourid and use it to get detail of the tour
-GET {{baseUrl}}/bookings
-###
-GET {{baseUrl}}/tours/08de22ba-5ec7-4245-82b9-bb8d05993d0f
-###
-# 2. Create a new booking on future tour (for testing "tour not started yet" error)
-# @name createBooking
-POST {{baseUrl}}/bookings/request
-Content-Type: application/json
-
-{
-  "tourId": "08de22ba-5ebb-4451-837a-e5daca1bc210",
-  "tourMotardId": "08de22ba-5ec0-479c-8161-0da0d711864a",
-  "emergencyContact": "+33 6 11 22 33 44"
-}
+### Response: Copy the token
+@participant1Token = ..
 
 ###
-@createFutureBooking = {{createBooking.response.body.bookingId}}
-
-###
-# 2b. Logout participant1, login as motard1 to approve
-POST {{baseUrl}}/auth/logout
-
-###
-POST {{baseUrl}}/auth/login
-Content-Type: application/json
-
-{
-  "username": "motard1",
-  "email": "charlie@example.com",
-  "password": "pass"
-}
-
-###
-# 2c. Approve the booking
-POST {{baseUrl}}/bookings/{{createFutureBooking}}/approve
-Content-Type: application/json
-
-###
-# 2d. Logout organizer, login back as participant1
-POST {{baseUrl}}/auth/logout
-
-###
-POST {{baseUrl}}/auth/login
-Content-Type: application/json
-
-{
-    "username": "participant1",
-  "email": "alice@example.com",
-  "password": "pass"
-}
-
-###
-# 2e. Pay for the booking
-POST {{baseUrl}}/payments/pay/{{createFutureBooking}}
-# Content-Type: application/json
-
-# {
-#   "bookingId": "{{createFutureBooking}}",
-#   "paymentMethod": "CreditCard"
-# }
-
-###
-# 3. ❌ Try to review BEFORE tour date - should fail (400)
-# Now the booking is Paid, but tour hasn't happened yet (Nov 25 > Nov 13)
-POST {{baseUrl}}/motards/cf8152ba-b995-4c0e-afe3-60512d7f4e66/reviews
-Content-Type: application/json
-
-{
-  "bookingId": "{{createFutureBooking}}",
-  "rating": 5,
-  "comment": "Trying to review before tour happens"
-}
-
-###
-# 4. ✅ Create review on PAST tour (Sept 15) - should succeed
-# Past tour booking1 is participant1 → organizer (paid, completed)
-# Booking IDs are dynamic, so we need to get them first
-GET {{baseUrl}}/bookings
-
-###
-# @name getPastBooking
-# Find the paid booking for past tour (you'll need to copy bookingId from response)
-
-###
-# 5. ✅ Submit valid review with comment (use actual bookingId from GET /bookings)
-# @name createReview
-POST {{baseUrl}}/motards/{{organizerId}}/reviews
-Content-Type: application/json
-
-{
-  "bookingId": "08de22ba-5ec8-40c1-82c0-39ea79af0cc1",
-  "rating": 4,
-  "comment": "Great experience! Very professional and safe riding."
-}
-
-###
-# 6. ❌ Try to review same booking again - should fail (400 duplicate)
-POST {{baseUrl}}/motards/{{organizerId}}/reviews
-Content-Type: application/json
-
-{
-  "bookingId": "08de22ba-5ec8-40c1-82c0-39ea79af0cc1",
-  "rating": 5,
-  "comment": "Another review"
-}
-
-###
-# 7. ❌ Invalid rating (0) - should fail (400)
-POST {{baseUrl}}/motards/{{organizerId}}/reviews
-Content-Type: application/json
-
-{
-  "bookingId": "08de22ba-5ec8-40c1-82c0-39ea79af0cc1",
-  "rating": 0,
-  "comment": "Invalid rating test"
-}
-
-###
-# 8. ❌ Invalid rating (6) - should fail (400)
-POST {{baseUrl}}/motards/{{organizerId}}/reviews
-Content-Type: application/json
-
-{
-  "bookingId": "08de22ba-5ec8-40c1-82c0-39ea79af0cc1",
-  "rating": 6,
-  "comment": "Invalid rating test"
-}
-
-###
-# 9. ✅ Review without comment (optional comment) - should succeed
-# Need another past booking - participant2 has one on same past tour
-# Logout and login as participant2
-POST {{baseUrl}}/auth/logout
-
-###
+# 2. Login as participant2 (participant2 / pass)
 POST {{baseUrl}}/auth/login
 Content-Type: application/json
 
@@ -168,67 +30,144 @@ Content-Type: application/json
   "password": "pass"
 }
 
-###
-# 10. Get participant2's bookings
-GET {{baseUrl}}/bookings
+### Response: Copy the token
+@participant2Token = <paste token here>
 
 ###
-# 11. ✅ Review without comment (use participant2's past booking ID)
-POST {{baseUrl}}/motards/{{organizerId}}/reviews
-Content-Type: application/json
-
-{
-  "bookingId": "08de22ba-5ecd-4831-8785-258b8d13e00a",
-  "rating": 3
-}
-
-###
-# 12. ❌ Try to review someone else's booking - should fail (403)
-# Still logged in as participant2, try to use participant1's booking
-POST {{baseUrl}}/motards/{{organizerId}}/reviews
-Content-Type: application/json
-
-{
-  "bookingId": "08de22ba-5ec8-40c1-82c0-39ea79af0cc1",
-  "rating": 4,
-  "comment": "Trying to review someone else's booking"
-}
-
-###
-# 13. ❌ Motard tries to review (wrong role) - should fail (403)
-POST {{baseUrl}}/auth/logout
-
-###
+# 3. Login as organizer (organizer / pass)
 POST {{baseUrl}}/auth/login
 Content-Type: application/json
 
 {
-  "username": "motard1",
+  "EmailOrUsername": "organizer1",
   "password": "pass"
 }
 
+### Response: Copy the token
+@organizerToken = <paste token here>
+
 ###
-POST {{baseUrl}}/motards/{{organizerId}}/reviews
+# 4. Get participant1's bookings to find the past tour booking
+GET {{baseUrl}}/bookings
+
+### Response: Copy bookingId from a completed (Paid status) booking
+@bookingId = 08de494c-78f1-496b-86e6-3dd5eef0d8d3
+
+### Also note the TourId and MotardUserId from the booking
+@tourId = 08de494c-78f0-46c0-8e54-544e3f63adf5
+@organizerUserId = e723975b-1110-4942-a786-cb0cd65717e6
+
+###
+# 5. GET existing reviews for this booking (should show 2 reviews we seeded)
+GET {{baseUrl}}/bookings/{{bookingId}}/reviews
+
+###
+# 6. Test GET review by ID
+GET {{baseUrl}}/reviews/08de494d-0001-0000-0000-000000000001
+
+###
+# 7. Test GET reviews for tour
+GET {{baseUrl}}/tours/{{tourId}}/reviews
+
+###
+# 8. Test GET reviews for user (organizer)
+GET {{baseUrl}}/users/{{organizerUserId}}/reviews
+
+###
+# 9. Test POST reply to review (organizer replies to their review)
+# First, get a review ID from step 5 where TargetType=1 (User review of organizer)
+@reviewIdForReply = 08de494d-0001-0000-0000-000000000001
+
+POST {{baseUrl}}/reviews/{{reviewIdForReply}}/replies
 Content-Type: application/json
 
 {
-  "bookingId": "08de22ba-5ec8-40c1-82c0-39ea79af0cc1",
-  "rating": 5,
-  "comment": "Motard trying to review"
+  "message": "Thank you so much! It was a pleasure riding with you. Hope to see you on another tour soon!"
 }
 
 ###
-# 14. View organizer profile with aggregated reviews
-GET {{baseUrl}}/motards/{{organizerId}}
+# 10. Test POST create new review for Tour (participant1 reviews the tour itself)
+POST {{baseUrl}}/reviews
+Content-Type: application/json
+
+{
+  "bookingId": "{{bookingId}}",
+  "targetType": 0,
+  "targetId": "{{tourId}}",
+  "rating": 5,
+  "comment": "Amazing tour route through Loire Valley! Beautiful scenery and well-organized stops."
+}
 
 ###
-# Expected Results Summary:
-# Test 3: 400 - Cannot review before tour date
-# Test 5: 201 - Review created successfully (with comment)
-# Test 6: 400 - Duplicate review error
-# Test 7: 400 - Rating must be 1-5
-# Test 8: 400 - Rating must be 1-5
-# Test 11: 201 - Review created (no comment is OK)
-# Test 12: 403 - Cannot review other's booking
-# Test 13: 403 - Wrong role (Motard cannot review)
-# Test 14: 200 - Profile shows reviews including new ones
+# 11. Test duplicate review (should return 409 Conflict)
+POST {{baseUrl}}/reviews
+Content-Type: application/json
+
+{
+  "bookingId": "{{bookingId}}",
+  "targetType": 1,
+  "targetId": "{{organizerUserId}}",
+  "rating": 4,
+  "comment": "This should fail because participant1 already reviewed this motard for this booking"
+}
+
+###
+# 12. Test invalid TargetId (motard not on tour - should return 400)
+POST {{baseUrl}}/reviews
+Content-Type: application/json
+
+{
+  "bookingId": "{{bookingId}}",
+  "targetType": 1,
+  "targetId": "11111111-1111-1111-1111-111111111111",
+  "rating": 5,
+  "comment": "This should fail - invalid motard"
+}
+
+###
+# 13. Test review for tour that hasn't started (create future booking first)
+# Get future tours
+GET {{baseUrl}}/tours
+
+### Use the future tour ID (StartAt > now)
+@futureTourId = 08de494c-78e1-46a9-8585-2d44da7672d6
+@futureTourMotardId = 08de494c-78e8-4755-8281-e7f0a083aff8
+
+# Create future booking
+POST {{baseUrl}}/bookings/request
+Content-Type: application/json
+
+{
+  "tourId": "{{futureTourId}}",
+  "tourMotardId": "{{futureTourMotardId}}",
+  "emergencyContact": "+33 6 12 34 56 78",
+  "costSharingOptIn": true
+}
+
+### Get booking ID from response
+@futureBookingId = d4bf4f95-31c2-48b3-93a4-9cbd6f5aa137
+
+# Try to review future booking (should fail with 400)
+POST {{baseUrl}}/reviews
+Content-Type: application/json
+
+{
+  "bookingId": "{{futureBookingId}}",
+  "targetType": 0,
+  "targetId": "{{futureTourId}}",
+  "rating": 5,
+  "comment": "This should fail - tour hasn't started yet"
+}
+
+###
+# 14. Test reply from non-target user (should return 403 Forbidden)
+POST {{baseUrl}}/reviews/{{reviewIdForReply}}/replies
+Content-Type: application/json
+
+{
+  "message": "I'm not the target of this review, this should fail"
+}
+
+###
+# END OF TESTS
+

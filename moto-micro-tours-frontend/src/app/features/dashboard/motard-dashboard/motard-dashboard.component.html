@@ -130,7 +130,7 @@
               <h3 class="booking-title">{{ booking.tourTitle }}</h3>
               <p class="participant-name">Participant: {{ booking.participantName }}</p>
             </div>
-            <span 
+            <span
               class="status-badge"
               [ngClass]="booking.status === BookingStatus.Paid ? 'status-paid' : 'status-approved'"
             >
@@ -143,7 +143,7 @@
               <span class="detail-icon">📅</span>
               <span class="detail-text">{{ formatDate(booking.tourStartAt) }}</span>
             </div>
-            
+
             <div class="detail-item" *ngIf="booking.pricePerSeat != null">
               <span class="detail-icon">💰</span>
               <span class="detail-text">{{ formatPrice(booking.pricePerSeat) }}</span>
@@ -161,6 +161,14 @@
         </div>
       </div>
     </section>
+
+    <!-- Past Rides Section -->
+    <app-booking-section-list
+      title="Past rides"
+      [bookings]="pastRides()"
+      emptyMessage="No past rides yet"
+      emptyIcon="📜"
+    ></app-booking-section-list>
 
     <!-- My Tours Section -->
     <section class="my-tours-section">

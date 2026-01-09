@@ -170,7 +170,10 @@
                 [createdAt]="bookingData.createdAt"
                 [approvedAt]="bookingData.approvedAt"
                 [paidAt]="bookingData.paidAt"
-                [cancelledAt]="bookingData.cancelledAt">
+                [cancelledAt]="bookingData.cancelledAt"
+                [completedByParticipantAtUtc]="bookingData.completedByParticipantAtUtc"
+                [completedByMotardAtUtc]="bookingData.completedByMotardAtUtc"
+                [completedAtUtc]="bookingData.completedAtUtc">
               </app-booking-status-timeline>
             </mat-card-content>
           </mat-card>
@@ -202,12 +205,122 @@
                 [canPay]="canPay()"
                 [canCancel]="canCancel()"
                 [expiresAt]="bookingData.expiresAt"
+                [canParticipantCancel]="canParticipantCancel()"
+                [canCancelPaidBooking]="canCancelPaidBooking()"
+                [isWithin24Hours]="isWithin24Hours()"
+                [canMotardRefund]="canMotardRefund()"
+                [tourStartAt]="bookingData.tourStartAt"
                 (pay)="onPay()"
                 (refresh)="onRefresh()"
-                (openChat)="onOpenChat()">
+                (openChat)="onOpenChat()"
+                (cancel)="onCancelBooking()"
+                (refund)="onRefundBooking()">
               </app-booking-actions>
             </mat-card-content>
           </mat-card>
+
+          <!-- F8: Booking Completion Card -->
+          @if (canMarkComplete() || isWaitingForOtherSide() || isFullyCompleted()) {
+            <mat-card class="completion-card">
+              <mat-card-header>
+                <mat-icon mat-card-avatar [class.completed]="isFullyCompleted()">
+                  {{ isFullyCompleted() ? 'check_circle' : 'pending' }}
+                </mat-icon>
+                <mat-card-title>Booking Completion</mat-card-title>
+              </mat-card-header>
+              <mat-card-content>
+                @if (isFullyCompleted()) {
+                  <div class="completion-status completed">
+                    <mat-icon>check_circle</mat-icon>
+                    <div>
+                      <strong>Booking Completed</strong>
+                      <p>Both parties have confirmed completion on {{ formatDate(bookingData.completedAtUtc) }}</p>
+                    </div>
+                  </div>
+                } @else if (isWaitingForOtherSide()) {
+                  <div class="completion-status waiting">
+                    <mat-icon>hourglass_empty</mat-icon>
+                    <div>
+                      <strong>Waiting for Confirmation</strong>
+                      <p>You marked this booking as complete. Waiting for the {{ counterpartLabel().toLowerCase() }} to confirm.</p>
+                      <p class="timestamp">Marked complete: {{ formatDate(booking()?.completedByParticipantAtUtc || booking()?.completedByMotardAtUtc) }}</p>
+                    </div>
+                  </div>
+                } @else if (canMarkComplete()) {
+                  <div class="completion-status pending">
+                    <mat-icon>assignment_turned_in</mat-icon>
+                    <div>
+                      <strong>Mark as Completed</strong>
+                      <p>Has the tour been completed? Confirm completion once the ride is finished.</p>
+                      @if (bookingData.completedByParticipantAtUtc || bookingData.completedByMotardAtUtc) {
+                        <p class="other-confirmed">
+                          <mat-icon>info</mat-icon>
+                          The {{ counterpartLabel().toLowerCase() }} has already confirmed completion.
+                        </p>
+                      }
+                    </div>
+                  </div>
+                  <button mat-raised-button color="primary" (click)="onMarkComplete()" class="complete-button">
+                    <mat-icon>check_circle</mat-icon>
+                    Mark as Completed
+                  </button>
+                }
+              </mat-card-content>
+            </mat-card>
+          }
+
+          <!-- Review Card -->
+          @if (canLeaveReview()) {
+            <mat-card class="review-card">
+              <mat-card-header>
+                <mat-icon mat-card-avatar>rate_review</mat-icon>
+                <mat-card-title>Leave a Review</mat-card-title>
+              </mat-card-header>
+              <mat-card-content>
+                @if (!showReviewForm()) {
+                  <p class="review-prompt">Share your experience with this tour!</p>
+                  <button mat-raised-button color="primary" (click)="onShowReviewForm()">
+                    <mat-icon>star</mat-icon>
+                    Write Review
+                  </button>
+                } @else {
+                  <app-booking-review-form
+                    [isMotardViewer]="isMotardViewer()"
+                    [motardName]="bookingData.motardName"
+                    [participantName]="bookingData.participantName"
+                    [tourTitle]="bookingData.tourTitle"
+                    [isSubmitting]="isSubmittingReview()"
+                    (submitReviews)="onSubmitReview($event)"
+                    (cancel)="onCancelReview()">
+                  </app-booking-review-form>
+                }
+              </mat-card-content>
+            </mat-card>
+          }
+
+          <!-- Existing Reviews Section -->
+          @if (bookingReviews().length > 0) {
+            <mat-card class="reviews-list-card">
+              <mat-card-header>
+                <mat-icon mat-card-avatar>reviews</mat-icon>
+                <mat-card-title>Reviews from this Booking</mat-card-title>
+              </mat-card-header>
+              <mat-card-content>
+                @if (isLoadingReviews()) {
+                  <div class="loading-reviews">
+                    <mat-spinner diameter="40"></mat-spinner>
+                    <p>Loading reviews...</p>
+                  </div>
+                } @else {
+                  <div class="reviews-list">
+                    @for (review of bookingReviews(); track review.reviewId) {
+                      <app-review-card [review]="review"></app-review-card>
+                    }
+                  </div>
+                }
+              </mat-card-content>
+            </mat-card>
+          }
 
         </div>
 
@@ -262,6 +375,10 @@
                     <span>{{ bookingData.costSharingOptIn ? 'Cost-sharing opted in' : 'Cost-sharing not opted in' }}</span>
                   </div>
                 </div>
+                <a [routerLink]="['/participants', bookingData.participantId]" mat-stroked-button color="primary" class="view-profile-btn">
+                  <mat-icon>account_circle</mat-icon>
+                  View Participant Profile
+                </a>
               </mat-card-content>
             </mat-card>
           } @else {
