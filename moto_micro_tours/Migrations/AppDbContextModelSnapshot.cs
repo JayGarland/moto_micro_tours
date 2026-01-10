@@ -627,8 +627,8 @@ namespace moto_micro_tours.Migrations
 
                     b.Property<string>("Message")
                         .IsRequired()
-                        .HasMaxLength(1000)
-                        .HasColumnType("varchar(1000)");
+                        .HasMaxLength(2000)
+                        .HasColumnType("varchar(2000)");
 
                     b.Property<Guid>("ReviewId")
                         .HasColumnType("char(36)");

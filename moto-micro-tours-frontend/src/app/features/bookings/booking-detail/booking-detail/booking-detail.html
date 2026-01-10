@@ -313,8 +313,12 @@
                   </div>
                 } @else {
                   <div class="reviews-list">
-                    @for (review of bookingReviews(); track review.reviewId) {
-                      <app-review-card [review]="review"></app-review-card>
+                    @for (review of bookingReviews(); track review.id) {
+                      <app-review-card 
+                        [review]="review" 
+                        [expanded]="true"
+                        [currentUserId]="authService.getCurrentUser()?.userId">
+                      </app-review-card>
                     }
                   </div>
                 }

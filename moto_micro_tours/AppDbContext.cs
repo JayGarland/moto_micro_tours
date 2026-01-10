@@ -122,7 +122,7 @@ namespace moto_micro_tours
             modelBuilder.Entity<ReviewReply>()
                 .Property(rr => rr.Message)
                 .IsRequired()
-                .HasMaxLength(1000);
+                .HasMaxLength(2000); // Match controller validation
 
             // Booking FK configuration (explicit for Participant relationship)
             modelBuilder.Entity<Booking>()

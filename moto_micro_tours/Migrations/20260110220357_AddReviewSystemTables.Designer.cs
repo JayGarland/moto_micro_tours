@@ -12,7 +12,7 @@ using moto_micro_tours;
 namespace moto_micro_tours.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260102121354_AddReviewSystemTables")]
+    [Migration("20260110220357_AddReviewSystemTables")]
     partial class AddReviewSystemTables
     {
         /// <inheritdoc />
@@ -630,8 +630,8 @@ namespace moto_micro_tours.Migrations
 
                     b.Property<string>("Message")
                         .IsRequired()
-                        .HasMaxLength(1000)
-                        .HasColumnType("varchar(1000)");
+                        .HasMaxLength(2000)
+                        .HasColumnType("varchar(2000)");
 
                     b.Property<Guid>("ReviewId")
                         .HasColumnType("char(36)");
