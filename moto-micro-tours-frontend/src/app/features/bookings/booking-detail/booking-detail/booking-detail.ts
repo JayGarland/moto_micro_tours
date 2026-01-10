@@ -19,6 +19,7 @@ import { AuthService } from '../../../../core/services/auth.service';
 import { ConfirmationDialogComponent, ConfirmationDialogData } from '../../../../shared/components/confirmation-dialog/confirmation-dialog.component';
 import { ReviewsService } from '../../services/reviews.service';
 import { ReviewTargetType } from '../../models/review.models';
+import { extractErrorMessage } from '../../../../shared/utils';
 
 @Component({
   selector: 'app-booking-detail',
@@ -407,7 +408,7 @@ export class BookingDetail implements OnInit {
             this.loadBooking();
           },
           error: (error) => {
-            this.snackBar.open(error || 'Failed to cancel booking', 'Close', { duration: 5000 });
+            this.snackBar.open(extractErrorMessage(error, 'Failed to cancel booking'), 'Close', { duration: 5000 });
             this.isLoading.set(false);
           }
         });
@@ -438,7 +439,7 @@ export class BookingDetail implements OnInit {
             this.loadBooking();
           },
           error: (error) => {
-            this.snackBar.open(error || 'Failed to refund booking', 'Close', { duration: 5000 });
+            this.snackBar.open(extractErrorMessage(error, 'Failed to refund booking'), 'Close', { duration: 5000 });
             this.isLoading.set(false);
           }
         });
@@ -490,7 +491,7 @@ export class BookingDetail implements OnInit {
             this.loadBooking();
           },
           error: (error) => {
-            this.snackBar.open(error || 'Failed to mark booking as complete', 'Close', { duration: 5000 });
+            this.snackBar.open(extractErrorMessage(error, 'Failed to mark booking as complete'), 'Close', { duration: 5000 });
             this.isLoading.set(false);
           }
         });
@@ -570,39 +571,10 @@ export class BookingDetail implements OnInit {
         this.loadBookingReviews();
       },
       (error) => {
-        const errorMsg = this.extractErrorMessage(error);
+        const errorMsg = extractErrorMessage(error, 'Failed to submit reviews');
         this.snackBar.open(errorMsg, 'Close', { duration: 5000 });
         this.isSubmittingReview.set(false);
       }
     );
-  }
-
-  /**
-   * Extract readable error message from HTTP error response
-   */
-  private extractErrorMessage(error: any): string {
-    if (!error) return 'Failed to submit reviews';
-
-    // Handle HttpErrorResponse with error.error.error structure
-    if (error.error?.error) {
-      return error.error.error;
-    }
-
-    // Handle direct error message
-    if (typeof error.error === 'string') {
-      return error.error;
-    }
-
-    // Handle status-specific messages
-    if (error.status === 409) {
-      return 'You have already reviewed this target for this booking';
-    }
-
-    if (error.status === 400) {
-      return 'Invalid review data. Please check your input.';
-    }
-
-    // Fallback
-    return error.message || 'Failed to submit reviews';
   }
 }

@@ -9,6 +9,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { ReviewDto } from '../../bookings/models/review.models';
 import { ReviewsService } from '../../bookings/services/reviews.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { extractErrorMessage } from '../../../shared/utils';
 
 @Component({
   selector: 'app-review-card',
@@ -124,7 +125,7 @@ export class ReviewCardComponent {
       },
       error: (error) => {
         this.isSubmittingReply = false;
-        const errorMsg = error?.error?.error || 'Failed to add update';
+        const errorMsg = extractErrorMessage(error, 'Failed to add update');
         this.snackBar.open(errorMsg, 'Close', { duration: 5000 });
       }
     });

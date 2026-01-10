@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { ApiService } from '../../../core/services/api.service';
+import { extractErrorMessage } from '../../../shared/utils';
 import {
   CreateBookingRequest,
   BookingResponse,
@@ -26,7 +27,7 @@ export class BookingsService {
       .pipe(
         catchError(error => {
           console.error('Error creating booking request:', error);
-          return throwError(() => this.extractErrorMessage(error));
+          return throwError(() => extractErrorMessage(error));
         })
       );
   }
@@ -42,7 +43,7 @@ export class BookingsService {
       .pipe(
         catchError(error => {
           console.error('Error fetching booking details:', error);
-          return throwError(() => this.extractErrorMessage(error));
+          return throwError(() => extractErrorMessage(error));
         })
       );
   }
@@ -57,7 +58,7 @@ export class BookingsService {
       .pipe(
         catchError(error => {
           console.error('Error fetching participant bookings:', error);
-          return throwError(() => this.extractErrorMessage(error));
+          return throwError(() => extractErrorMessage(error));
         })
       );
   }
@@ -73,7 +74,7 @@ export class BookingsService {
       .pipe(
         catchError(error => {
           console.error('Error processing payment:', error);
-          return throwError(() => this.extractErrorMessage(error));
+          return throwError(() => extractErrorMessage(error));
         })
       );
   }
@@ -93,7 +94,7 @@ export class BookingsService {
       .pipe(
         catchError(error => {
           console.error('Error fetching motard booking requests:', error);
-          return throwError(() => this.extractErrorMessage(error));
+          return throwError(() => extractErrorMessage(error));
         })
       );
   }
@@ -109,7 +110,7 @@ export class BookingsService {
       .pipe(
         catchError(error => {
           console.error('Error approving booking:', error);
-          return throwError(() => this.extractErrorMessage(error));
+          return throwError(() => extractErrorMessage(error));
         })
       );
   }
@@ -127,7 +128,7 @@ export class BookingsService {
       .pipe(
         catchError(error => {
           console.error('Error declining booking:', error);
-          return throwError(() => this.extractErrorMessage(error));
+          return throwError(() => extractErrorMessage(error));
         })
       );
   }
@@ -145,7 +146,7 @@ export class BookingsService {
       .pipe(
         catchError(error => {
           console.error('Error cancelling booking:', error);
-          return throwError(() => this.extractErrorMessage(error));
+          return throwError(() => extractErrorMessage(error));
         })
       );
   }
@@ -161,7 +162,7 @@ export class BookingsService {
       .pipe(
         catchError(error => {
           console.error('Error refunding booking:', error);
-          return throwError(() => this.extractErrorMessage(error));
+          return throwError(() => extractErrorMessage(error));
         })
       );
   }
@@ -179,62 +180,8 @@ export class BookingsService {
       .pipe(
         catchError(error => {
           console.error('Error completing booking:', error);
-          return throwError(() => this.extractErrorMessage(error));
+          return throwError(() => extractErrorMessage(error));
         })
       );
-  }
-
-  // ============================================
-  // Private Helper Methods
-  // ============================================
-
-  /**
-   * Extract user-friendly error message from HTTP error response
-   * @param error - The error object from HTTP call
-   * @returns User-friendly error message
-   */
-  private extractErrorMessage(error: any): string {
-    // Check for backend error message
-    if (error?.error?.error) {
-      return error.error.error;
-    }
-
-    // Check for message field
-    if (error?.error?.message) {
-      return error.error.message;
-    }
-
-    // Check for string error
-    if (typeof error?.error === 'string') {
-      return error.error;
-    }
-
-    // HTTP status-based messages
-    if (error?.status) {
-      switch (error.status) {
-        case 400:
-          return 'Invalid request. Please check your input.';
-        case 401:
-          return 'You must be logged in to perform this action.';
-        case 403:
-          return 'You do not have permission to perform this action.';
-        case 404:
-          return 'The requested resource was not found.';
-        case 409:
-          return 'This action conflicts with existing data.';
-        case 500:
-          return 'Server error. Please try again later.';
-        default:
-          return `An error occurred (${error.status}). Please try again.`;
-      }
-    }
-
-    // Network error
-    if (error?.message?.includes('Http failure')) {
-      return 'Network error. Please check your connection.';
-    }
-
-    // Fallback
-    return error?.message || 'An unexpected error occurred. Please try again.';
   }
 }

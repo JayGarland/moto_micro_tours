@@ -13,6 +13,7 @@ import { DashboardHeaderComponent } from '../components/dashboard-header/dashboa
 import { BookingSectionListComponent } from '../components/booking-section-list/booking-section-list.component';
 import { EmptyStateComponent } from '../components/empty-state/empty-state.component';
 import { ConfirmationDialogComponent, ConfirmationDialogData, ConfirmationDialogResult } from '../../../shared/components/confirmation-dialog/confirmation-dialog.component';
+import { extractErrorMessage } from '../../../shared/utils';
 
 @Component({
   selector: 'app-motard-dashboard',
@@ -168,7 +169,7 @@ export class MotardDashboardComponent implements OnInit {
         this.processingBookingId.set(null);
         console.error('Error approving booking:', err);
         this.snackBar.open(
-          typeof err === 'string' ? err : 'Failed to approve booking. Please try again.',
+          extractErrorMessage(err, 'Failed to approve booking. Please try again.'),
           'Close',
           {
             duration: 5000,
@@ -224,7 +225,7 @@ export class MotardDashboardComponent implements OnInit {
         this.processingBookingId.set(null);
         console.error('Error declining booking:', err);
         this.snackBar.open(
-          typeof err === 'string' ? err : 'Failed to decline booking. Please try again.',
+          extractErrorMessage(err, 'Failed to decline booking. Please try again.'),
           'Close',
           {
             duration: 5000,
