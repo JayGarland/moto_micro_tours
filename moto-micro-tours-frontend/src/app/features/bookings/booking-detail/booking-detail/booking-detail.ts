@@ -45,7 +45,7 @@ export class BookingDetail implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly bookingsService = inject(BookingsService);
-  private readonly authService = inject(AuthService);
+  readonly authService = inject(AuthService); // Public for template access
   private readonly dialog = inject(MatDialog);
   private readonly snackBar = inject(MatSnackBar);
   private readonly reviewsService = inject(ReviewsService);

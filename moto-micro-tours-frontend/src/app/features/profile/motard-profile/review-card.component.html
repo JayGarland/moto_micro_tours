@@ -49,8 +49,10 @@
         [(ngModel)]="replyMessage"
         placeholder="Share additional context or clarification..."
         rows="3"
+        maxlength="2000"
         [disabled]="isSubmittingReply">
       </textarea>
+      <mat-hint align="end">{{ replyMessage.length || 0 }} / 2000</mat-hint>
     </mat-form-field>
     <div class="form-actions">
       <button mat-button (click)="toggleReplyForm()" [disabled]="isSubmittingReply">

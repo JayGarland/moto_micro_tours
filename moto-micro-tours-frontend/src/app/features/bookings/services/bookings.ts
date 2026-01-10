@@ -1,8 +1,6 @@
 import { Injectable, inject } from '@angular/core';
-import { Observable, throwError } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { Observable } from 'rxjs';
 import { ApiService } from '../../../core/services/api.service';
-import { extractErrorMessage } from '../../../shared/utils';
 import {
   CreateBookingRequest,
   BookingResponse,
@@ -23,13 +21,7 @@ export class BookingsService {
    * @returns Observable of BookingResponse
    */
   createBookingRequest(request: CreateBookingRequest): Observable<BookingResponse> {
-    return this.apiService.post<BookingResponse>('bookings/request', request)
-      .pipe(
-        catchError(error => {
-          console.error('Error creating booking request:', error);
-          return throwError(() => extractErrorMessage(error));
-        })
-      );
+    return this.apiService.post<BookingResponse>('bookings/request', request);
   }
 
   /**
@@ -39,13 +31,7 @@ export class BookingsService {
    * @returns Observable of BookingDetail
    */
   getBookingById(bookingId: string): Observable<BookingDetail> {
-    return this.apiService.get<BookingDetail>(`bookings/${bookingId}`)
-      .pipe(
-        catchError(error => {
-          console.error('Error fetching booking details:', error);
-          return throwError(() => extractErrorMessage(error));
-        })
-      );
+    return this.apiService.get<BookingDetail>(`bookings/${bookingId}`);
   }
 
   /**
@@ -54,13 +40,7 @@ export class BookingsService {
    * @returns Observable array of BookingResponse
    */
   getParticipantBookings(): Observable<BookingResponse[]> {
-    return this.apiService.get<BookingResponse[]>('bookings')
-      .pipe(
-        catchError(error => {
-          console.error('Error fetching participant bookings:', error);
-          return throwError(() => extractErrorMessage(error));
-        })
-      );
+    return this.apiService.get<BookingResponse[]>('bookings');
   }
 
   /**
@@ -70,13 +50,7 @@ export class BookingsService {
    * @returns Observable of PaymentConfirmation
    */
   markBookingAsPaid(bookingId: string): Observable<PaymentConfirmation> {
-    return this.apiService.post<PaymentConfirmation>(`payments/pay/${bookingId}`, {})
-      .pipe(
-        catchError(error => {
-          console.error('Error processing payment:', error);
-          return throwError(() => extractErrorMessage(error));
-        })
-      );
+    return this.apiService.post<PaymentConfirmation>(`payments/pay/${bookingId}`, {});
   }
 
   // ============================================
@@ -90,13 +64,7 @@ export class BookingsService {
    * @returns Observable array of BookingResponse (used as BookingSummary)
    */
   getMotardBookingRequests(): Observable<BookingResponse[]> {
-    return this.apiService.get<BookingResponse[]>('bookings')
-      .pipe(
-        catchError(error => {
-          console.error('Error fetching motard booking requests:', error);
-          return throwError(() => extractErrorMessage(error));
-        })
-      );
+    return this.apiService.get<BookingResponse[]>('bookings');
   }
 
   /**
@@ -106,13 +74,7 @@ export class BookingsService {
    * @returns Observable of BookingDetail
    */
   approveBooking(bookingId: string): Observable<BookingDetail> {
-    return this.apiService.post<BookingDetail>(`bookings/${bookingId}/approve`, {})
-      .pipe(
-        catchError(error => {
-          console.error('Error approving booking:', error);
-          return throwError(() => extractErrorMessage(error));
-        })
-      );
+    return this.apiService.post<BookingDetail>(`bookings/${bookingId}/approve`, {});
   }
 
   /**
@@ -124,13 +86,7 @@ export class BookingsService {
    */
   declineBooking(bookingId: string, reason?: string): Observable<BookingDetail> {
     const body = reason ? { reason } : {};
-    return this.apiService.post<BookingDetail>(`bookings/${bookingId}/decline`, body)
-      .pipe(
-        catchError(error => {
-          console.error('Error declining booking:', error);
-          return throwError(() => extractErrorMessage(error));
-        })
-      );
+    return this.apiService.post<BookingDetail>(`bookings/${bookingId}/decline`, body);
   }
 
   /**
@@ -142,13 +98,7 @@ export class BookingsService {
    */
   cancelBooking(bookingId: string, reason?: string): Observable<BookingDetail> {
     const body = reason ? { reason } : {};
-    return this.apiService.post<BookingDetail>(`bookings/${bookingId}/cancel`, body)
-      .pipe(
-        catchError(error => {
-          console.error('Error cancelling booking:', error);
-          return throwError(() => extractErrorMessage(error));
-        })
-      );
+    return this.apiService.post<BookingDetail>(`bookings/${bookingId}/cancel`, body);
   }
 
   /**
@@ -158,13 +108,7 @@ export class BookingsService {
    * @returns Observable of BookingDetail
    */
   refundBooking(bookingId: string): Observable<BookingDetail> {
-    return this.apiService.post<BookingDetail>(`bookings/${bookingId}/refund`, {})
-      .pipe(
-        catchError(error => {
-          console.error('Error refunding booking:', error);
-          return throwError(() => extractErrorMessage(error));
-        })
-      );
+    return this.apiService.post<BookingDetail>(`bookings/${bookingId}/refund`, {});
   }
 
   /**
@@ -176,12 +120,6 @@ export class BookingsService {
    * @returns Observable of BookingResponse with updated completion timestamps
    */
   completeBooking(bookingId: string): Observable<BookingResponse> {
-    return this.apiService.post<BookingResponse>(`bookings/${bookingId}/complete`, {})
-      .pipe(
-        catchError(error => {
-          console.error('Error completing booking:', error);
-          return throwError(() => extractErrorMessage(error));
-        })
-      );
+    return this.apiService.post<BookingResponse>(`bookings/${bookingId}/complete`, {});
   }
 }
