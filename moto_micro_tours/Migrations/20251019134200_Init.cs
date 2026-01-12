@@ -506,32 +506,23 @@ namespace moto_micro_tours.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
-                    MotardUserId = table.Column<string>(type: "longtext", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    AuthorUserId = table.Column<string>(type: "longtext", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
                     BookingId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    ReviewerUserId = table.Column<string>(type: "varchar(255)", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    TargetType = table.Column<int>(type: "int", nullable: false),
+                    TargetId = table.Column<string>(type: "varchar(450)", maxLength: 450, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
                     Rating = table.Column<int>(type: "int", nullable: false),
                     Comment = table.Column<string>(type: "longtext", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
-                    MotardId = table.Column<string>(type: "varchar(255)", nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    AuthorId = table.Column<string>(type: "varchar(255)", nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4")
+                    CreatedAtUtc = table.Column<DateTime>(type: "datetime(6)", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Reviews", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Reviews_AspNetUsers_AuthorId",
-                        column: x => x.AuthorId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_Reviews_AspNetUsers_MotardId",
-                        column: x => x.MotardId,
+                        name: "FK_Reviews_AspNetUsers_ReviewerUserId",
+                        column: x => x.ReviewerUserId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
@@ -579,6 +570,36 @@ namespace moto_micro_tours.Migrations
                         name: "FK_Messages_PreBookingConversations_PreBookingConversationId",
                         column: x => x.PreBookingConversationId,
                         principalTable: "PreBookingConversations",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "ReviewReplies",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    ReviewId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    AuthorUserId = table.Column<string>(type: "varchar(255)", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Message = table.Column<string>(type: "varchar(2000)", maxLength: 2000, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    CreatedAtUtc = table.Column<DateTime>(type: "datetime(6)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ReviewReplies", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ReviewReplies_Reviews_ReviewId",
+                        column: x => x.ReviewId,
+                        principalTable: "Reviews",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_ReviewReplies_AspNetUsers_AuthorUserId",
+                        column: x => x.AuthorUserId,
+                        principalTable: "AspNetUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                 })
@@ -747,20 +768,25 @@ namespace moto_micro_tours.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_Reviews_AuthorId",
-                table: "Reviews",
-                column: "AuthorId");
+                name: "IX_ReviewReplies_ReviewId",
+                table: "ReviewReplies",
+                column: "ReviewId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Reviews_BookingId",
+                name: "IX_ReviewReplies_AuthorUserId",
+                table: "ReviewReplies",
+                column: "AuthorUserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Reviews_BookingId_ReviewerUserId_TargetType_TargetId",
                 table: "Reviews",
-                column: "BookingId",
+                columns: new[] { "BookingId", "ReviewerUserId", "TargetType", "TargetId" },
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_Reviews_MotardId",
+                name: "IX_Reviews_ReviewerUserId",
                 table: "Reviews",
-                column: "MotardId");
+                column: "ReviewerUserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_TourMotards_MotardId",
@@ -862,6 +888,9 @@ namespace moto_micro_tours.Migrations
 
             migrationBuilder.DropTable(
                 name: "RateLimitCounters");
+
+            migrationBuilder.DropTable(
+                name: "ReviewReplies");
 
             migrationBuilder.DropTable(
                 name: "Reviews");
