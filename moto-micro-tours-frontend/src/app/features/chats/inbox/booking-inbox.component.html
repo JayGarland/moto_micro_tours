@@ -1,0 +1,62 @@
+<div class="inbox-container">
+  <!-- Header -->
+  <div class="inbox-header">
+    <h1>Booking Chats</h1>
+    <button mat-icon-button (click)="loadConversations()" [disabled]="loading()">
+      <mat-icon>refresh</mat-icon>
+    </button>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading()" class="loading-state">
+    <div class="spinner"></div>
+    <p>Loading booking conversations...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error() && !loading()" class="error-state">
+    <p>{{ error() }}</p>
+    <button mat-raised-button color="primary" (click)="loadConversations()">Retry</button>
+  </div>
+
+  <!-- Main Content: Conversation List -->
+  <div *ngIf="!loading() && !error()" class="inbox-content">
+    <!-- Empty State -->
+    <div *ngIf="conversations().length === 0" class="empty-state">
+      <mat-icon class="empty-icon">chat_bubble_outline</mat-icon>
+      <p>No booking chats yet</p>
+      <p class="empty-subtitle">Booking chats are available once a booking is approved or paid</p>
+    </div>
+
+    <!-- Conversation Items -->
+    <div
+      *ngFor="let conv of conversations()"
+      class="conversation-card"
+      (click)="onSelectConversation(conv)"
+    >
+      <!-- Conversation Header -->
+      <div class="conversation-header">
+        <div class="header-left">
+          <div class="conversation-avatar">
+            {{ conv.otherUserName.charAt(0).toUpperCase() }}
+          </div>
+          <div class="conversation-info">
+            <h3 class="other-user-name">{{ conv.otherUserName }}</h3>
+            <p class="tour-title">{{ conv.tourTitle }}</p>
+          </div>
+        </div>
+        <div class="header-right">
+          <mat-chip [color]="getStatusColor(conv.bookingStatus)">
+            {{ conv.bookingStatus }}
+          </mat-chip>
+        </div>
+      </div>
+
+      <!-- Last Message Preview -->
+      <div class="conversation-body">
+        <p class="last-message">{{ truncateMessage(conv.lastMessage) }}</p>
+        <span class="conversation-time">{{ conv.displayTime }}</span>
+      </div>
+    </div>
+  </div>
+</div>

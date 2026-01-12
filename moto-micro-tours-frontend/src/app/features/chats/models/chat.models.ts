@@ -83,3 +83,12 @@ export interface ConversationListItem extends ConversationSummaryDto {
   lastMessageTime?: string; // ISO string or formatted time
   displayTime?: string; // Formatted for UI (e.g. "2h ago", "Yesterday")
 }
+
+/**
+ * UI-enriched booking conversation summary for inbox display
+ */
+export interface BookingConversationListItem extends BookingConversationSummaryDto {
+  otherUserName: string; // Name of the other participant (not current user)
+  otherUserId: string; // ID of the other participant
+  displayTime?: string; // Formatted for UI
+}

@@ -59,7 +59,21 @@ export const routes: Routes = [
   {
     path: 'messages',
     canActivate: [authGuard],
-    loadComponent: () => import('./features/chats/inbox/prebooking-inbox.component').then(m => m.PrebookingInboxComponent)
+    children: [
+      {
+        path: '',
+        redirectTo: 'prebooking',
+        pathMatch: 'full'
+      },
+      {
+        path: 'prebooking',
+        loadComponent: () => import('./features/chats/inbox/prebooking-inbox.component').then(m => m.PrebookingInboxComponent)
+      },
+      {
+        path: 'bookings',
+        loadComponent: () => import('./features/chats/inbox/booking-inbox.component').then(m => m.BookingInboxComponent)
+      }
+    ]
   },
   {
     path: 'bookings',

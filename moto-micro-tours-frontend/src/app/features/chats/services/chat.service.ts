@@ -13,7 +13,8 @@ import {
   BookingConversationSummaryDto,
   BookingConversationDto,
   ChatMessage,
-  ConversationListItem
+  ConversationListItem,
+  BookingConversationListItem
 } from '../models/chat.models';
 
 /**
@@ -201,6 +202,35 @@ export class ChatService {
       catchError((error) => {
         console.error('Error fetching booking conversations:', error);
         return throwError(() => error);
+      })
+    );
+  }
+
+  /**
+   * Get enriched booking conversation list for inbox display
+   * Adds: other user name/id, formatted time
+   */
+  getBookingConversationsForInbox(): Observable<BookingConversationListItem[]> {
+    return this.getBookingConversations().pipe(
+      map((conversations) => {
+        const currentUser = this.authService.getCurrentUser();
+        if (!currentUser) return [];
+
+        return conversations.map(conv => {
+          // Determine who the "other" user is
+          const isMotard = conv.motardUserId === currentUser.userId;
+          const otherUserName = isMotard ? conv.participantName : conv.motardName;
+          const otherUserId = isMotard ? conv.participantUserId : conv.motardUserId;
+
+          return {
+            ...conv,
+            otherUserName,
+            otherUserId,
+            displayTime: conv.lastMessageTime
+              ? this.formatMessageTime(conv.lastMessageTime)
+              : this.formatMessageTime(conv.createdAt)
+          };
+        });
       })
     );
   }

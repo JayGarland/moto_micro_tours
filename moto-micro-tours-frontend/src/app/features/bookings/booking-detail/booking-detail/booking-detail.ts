@@ -300,15 +300,13 @@ export class BookingDetail implements OnInit {
     const bookingData = this.booking();
     if (!bookingData) return;
 
-    // If there's a preBookingConversationId, navigate directly to it
-    // Otherwise, use motardId + tourId for conversation creation flow
-    this.router.navigate(['/messages'], {
-      queryParams: {
-        conversationId: (bookingData as any).preBookingConversationId,
-        motardId: bookingData.motardUserId,
-        tourId: bookingData.tourId
+    // For bookings with chat enabled, scroll to the booking chat section
+    setTimeout(() => {
+      const chatElement = document.getElementById('booking-chat-section');
+      if (chatElement) {
+        chatElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
-    });
+    }, 100);
   }
 
   getStatusColor(status: BookingStatus): string {

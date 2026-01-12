@@ -13,11 +13,25 @@
     @if (authService.getIsAuthenticated()) {
       <nav class="nav-links">
         <a mat-button routerLink="/tours" routerLinkActive="active">Tours</a>
-        <a mat-button routerLink="/messages" routerLinkActive="active" class="messages-link">
+        
+        <!-- Messages Menu with Dropdown -->
+        <button mat-button [matMenuTriggerFor]="messagesMenu" class="messages-button">
           <mat-icon>message</mat-icon>
           Messages
           <span class="nav-unread-dot" *ngIf="unreadMessages$ | async"></span>
-        </a>
+          <mat-icon class="dropdown-icon">arrow_drop_down</mat-icon>
+        </button>
+        <mat-menu #messagesMenu="matMenu">
+          <button mat-menu-item routerLink="/messages/prebooking">
+            <mat-icon>chat</mat-icon>
+            <span>Pre-booking Messages</span>
+            <span class="menu-unread-dot" *ngIf="unreadMessages$ | async"></span>
+          </button>
+          <button mat-menu-item routerLink="/messages/bookings">
+            <mat-icon>calendar_today</mat-icon>
+            <span>Booking Chats</span>
+          </button>
+        </mat-menu>
 
         @if (authService.getIsMotard()) {
           <a mat-button routerLink="/dashboard/motard" routerLinkActive="active">Dashboard</a>
