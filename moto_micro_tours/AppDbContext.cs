@@ -131,6 +131,13 @@ namespace moto_micro_tours
                 .HasForeignKey(b => b.ParticipantUserId)
                 .IsRequired();
 
+            // Phase 1: Tour.Organizer navigation uses OrganizerUserId as FK
+            modelBuilder.Entity<Tour>()
+                .HasOne(t => t.Organizer)
+                .WithMany()
+                .HasForeignKey(t => t.OrganizerUserId)
+                .IsRequired();
+
             // RateLimitCounter: Unique (ParticipantUserId, Date)
             modelBuilder.Entity<RateLimitCounter>()
                 .HasIndex(x => new { x.ParticipantUserId, x.Date }).IsUnique();

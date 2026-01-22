@@ -78,6 +78,9 @@ builder.Services.AddAuthorization(options =>
         policy.Requirements.Add(new moto_micro_tours.Authorization.BookingAccessRequirement()));
 });
 
+// Phase 1: Register authorization helpers
+builder.Services.AddScoped<moto_micro_tours.Services.IAuthorizationHelpers, moto_micro_tours.Services.AuthorizationHelpers>();
+
 builder.Services.AddScoped<Microsoft.AspNetCore.Authorization.IAuthorizationHandler, moto_micro_tours.Authorization.PreBookingConversationHandler>();
 builder.Services.AddScoped<Microsoft.AspNetCore.Authorization.IAuthorizationHandler, moto_micro_tours.Authorization.BookingConversationHandler>();
 builder.Services.AddScoped<Microsoft.AspNetCore.Authorization.IAuthorizationHandler, moto_micro_tours.Authorization.BookingAccessHandler>();

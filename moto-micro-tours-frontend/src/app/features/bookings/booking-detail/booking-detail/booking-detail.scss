@@ -403,6 +403,75 @@
     }
   }
 
+  // Option E: Approval Card Styles
+  .approval-card {
+    margin-bottom: 24px;
+
+    .approval-info {
+      .approval-detail {
+        display: flex;
+        align-items: flex-start;
+        gap: 16px;
+        padding: 16px;
+        background: #e8f5e9;
+        border-radius: 8px;
+        margin-bottom: 16px;
+
+        mat-icon {
+          font-size: 32px;
+          width: 32px;
+          height: 32px;
+          color: #4caf50;
+        }
+
+        strong {
+          display: block;
+          color: #2e7d32;
+          margin-bottom: 8px;
+        }
+
+        p {
+          margin: 0;
+          color: #1b5e20;
+
+          &.reason {
+            margin-top: 8px;
+            font-style: italic;
+            color: #388e3c;
+          }
+        }
+      }
+
+      .note {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px;
+        background: #fff3e0;
+        border-radius: 8px;
+        color: #e65100;
+        font-size: 14px;
+
+        mat-icon {
+          font-size: 20px;
+          width: 20px;
+          height: 20px;
+        }
+      }
+    }
+
+    .approval-action {
+      p {
+        margin: 0 0 16px 0;
+        color: #666;
+      }
+
+      button {
+        width: 100%;
+      }
+    }
+  }
+
   // F8: Completion Card Styles
   .completion-card {
     mat-card-header {

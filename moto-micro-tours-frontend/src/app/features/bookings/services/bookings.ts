@@ -5,7 +5,8 @@ import {
   CreateBookingRequest,
   BookingResponse,
   BookingDetail,
-  PaymentConfirmation
+  PaymentConfirmation,
+  ApproveStartTimeRequest
 } from '../models/booking.model';
 
 @Injectable({
@@ -112,10 +113,24 @@ export class BookingsService {
   }
 
   /**
+   * Approve effective start time for booking completion (Option E)
+   * Endpoint: POST /api/bookings/{id}/approve-start-time
+   * - Allows organizer (motard) to set earlier effective start time
+   * - Enables completion before Tour.StartAt if needed
+   * @param bookingId - The booking ID
+   * @param request - Approved start time and optional reason
+   * @returns Observable of BookingResponse with updated approval fields
+   */
+  approveStartTime(bookingId: string, request: ApproveStartTimeRequest): Observable<BookingResponse> {
+    return this.apiService.post<BookingResponse>(`bookings/${bookingId}/approve-start-time`, request);
+  }
+
+  /**
    * Mark booking as completed (F8 - Completion Handshake)
    * Endpoint: POST /api/bookings/{id}/complete
    * - Participant or motard marks their side as complete
    * - When both sides complete, booking is fully completed
+   * - Option E: Uses EffectiveStartAtUtc (ApprovedStartAtUtc ?? Tour.StartAt) for gate
    * @param bookingId - The booking ID
    * @returns Observable of BookingResponse with updated completion timestamps
    */

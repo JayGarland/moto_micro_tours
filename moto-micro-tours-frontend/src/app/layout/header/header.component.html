@@ -13,7 +13,7 @@
     @if (authService.getIsAuthenticated()) {
       <nav class="nav-links">
         <a mat-button routerLink="/tours" routerLinkActive="active">Tours</a>
-        
+
         <!-- Messages Menu with Dropdown -->
         <button mat-button [matMenuTriggerFor]="messagesMenu" class="messages-button">
           <mat-icon>message</mat-icon>

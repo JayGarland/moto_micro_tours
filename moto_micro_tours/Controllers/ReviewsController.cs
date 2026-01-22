@@ -143,7 +143,7 @@ public class ReviewsController : ControllerBase
                   ex.InnerException?.Message.Contains("UNIQUE") == true)
         {
             _logger.LogWarning("Duplicate review detected for BookingId={BookingId}", dto.BookingId);
-            
+
             // Race condition: another request created review between check and insert
             // Reload to get the existing review and return it (idempotent behavior)
             var existingReviewReloaded = await _db.Reviews
@@ -154,20 +154,20 @@ public class ReviewsController : ControllerBase
                     r.ReviewerUserId == userId &&
                     r.TargetType == dto.TargetType &&
                     r.TargetId == targetId);
-                
+
             if (existingReviewReloaded != null)
             {
                 _logger.LogInformation(
                     "Returning existing review after race condition: ReviewId={ReviewId}",
                     existingReviewReloaded.Id);
-                    
+
                 // Return existing review as if we created it (idempotent)
                 return CreatedAtAction(
                     nameof(GetReview),
                     new { id = existingReviewReloaded.Id },
                     MapReviewToDto(existingReviewReloaded));
             }
-            
+
             // If we still can't find it, return conflict
             return Conflict(new { error = "You have already reviewed this target for this booking" });
         }

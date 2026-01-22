@@ -15,6 +15,14 @@ export interface CreateBookingRequest {
 }
 
 /**
+ * Request DTO for approving effective start time (Option E)
+ */
+export interface ApproveStartTimeRequest {
+  approvedStartAtUtc: string;
+  reason?: string;
+}
+
+/**
  * Response DTO after creating a booking
  * Also used for booking list summaries in dashboards (same as BookingSummary)
  */
@@ -40,6 +48,12 @@ export interface BookingResponse {
   completedByParticipantAtUtc?: string; // B1
   completedByMotardAtUtc?: string; // B1
   completedAtUtc?: string; // B1
+
+  // Option E: Organizer-approved effective start time
+  approvedStartAtUtc?: string;
+  approvedStartReason?: string;
+  approvedAtUtc?: string; // Phase 1: When approval was recorded
+  approvedByUserId?: string; // Phase 1: Who approved (booking motard or tour organizer)
 }
 
 /**
@@ -105,6 +119,12 @@ export interface BookingDetail {
   completedByParticipantAtUtc?: string;
   completedByMotardAtUtc?: string;
   completedAtUtc?: string;
+
+  // Option E: Organizer-approved effective start time
+  approvedStartAtUtc?: string;
+  approvedStartReason?: string;
+  approvedAtUtc?: string; // Phase 1: When approval was recorded
+  approvedByUserId?: string; // Phase 1: Who approved (booking motard or tour organizer)
 
   // Payment information (if exists)
   payment?: PaymentInfo;

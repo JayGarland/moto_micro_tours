@@ -8,6 +8,7 @@ export interface TourListDto {
   endLocationText: string;
   status: string;
   notes?: string;
+  organizerUserId?: string; // Phase 1: Explicit tour organizer
 
   // Aggregated info
   totalCapacity: number;
@@ -36,6 +37,7 @@ export interface TourDetailDto {
   endLocationText: string;
   status: string;
   notes?: string;
+  organizerUserId?: string; // Phase 1: Explicit tour organizer
 
   motards: TourMotardDetailDto[];
 }

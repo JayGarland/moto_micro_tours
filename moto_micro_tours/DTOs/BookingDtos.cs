@@ -43,6 +43,22 @@ public class DeclineBookingRequestDto
 }
 
 /// <summary>
+/// Request DTO for approving effective start time (Phase 1, formerly Option E)
+/// </summary>
+public class ApproveStartTimeRequest
+{
+    /// <summary>
+    /// Approved effective start time for completion gate
+    /// </summary>
+    public DateTime ApprovedStartAtUtc { get; set; }
+
+    /// <summary>
+    /// Optional reason for approving earlier start time
+    /// </summary>
+    public string? Reason { get; set; }
+}
+
+/// <summary>
 /// Response DTO after creating a booking
 /// Also used for booking list summaries in dashboards
 /// </summary>
@@ -69,6 +85,12 @@ public class BookingResponseDto
     public DateTime? CompletedByParticipantAtUtc { get; set; } // B1
     public DateTime? CompletedByMotardAtUtc { get; set; } // B1
     public DateTime? CompletedAtUtc { get; set; } // B1
+
+    // Phase 1: Start time override audit
+    public DateTime? ApprovedStartAtUtc { get; set; }
+    public string? ApprovedStartReason { get; set; }
+    public DateTime? ApprovedAtUtc { get; set; } // Phase 1: When approved
+    public string? ApprovedByUserId { get; set; } // Phase 1: Who approved
 }
 
 /// <summary>

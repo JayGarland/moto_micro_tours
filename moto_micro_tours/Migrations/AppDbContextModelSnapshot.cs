@@ -227,6 +227,18 @@ namespace moto_micro_tours.Migrations
                     b.Property<DateTime?>("ApprovedAt")
                         .HasColumnType("datetime(6)");
 
+                    b.Property<DateTime?>("ApprovedAtUtc")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("ApprovedByUserId")
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<DateTime?>("ApprovedStartAtUtc")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("ApprovedStartReason")
+                        .HasColumnType("longtext");
+
                     b.Property<int>("CancelDecision")
                         .HasColumnType("int");
 
@@ -286,6 +298,8 @@ namespace moto_micro_tours.Migrations
                         .HasColumnType("char(36)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ApprovedByUserId");
 
                     b.HasIndex("ParticipantUserId");
 
@@ -655,6 +669,10 @@ namespace moto_micro_tours.Migrations
                     b.Property<string>("Notes")
                         .HasColumnType("longtext");
 
+                    b.Property<string>("OrganizerUserId")
+                        .IsRequired()
+                        .HasColumnType("varchar(255)");
+
                     b.Property<DateTime>("StartAt")
                         .HasColumnType("datetime(6)");
 
@@ -670,6 +688,8 @@ namespace moto_micro_tours.Migrations
                         .HasColumnType("longtext");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("OrganizerUserId");
 
                     b.ToTable("Tours");
                 });
@@ -787,6 +807,11 @@ namespace moto_micro_tours.Migrations
 
             modelBuilder.Entity("moto_micro_tours.Domain.Entities.Booking", b =>
                 {
+                    b.HasOne("moto_micro_tours.Domain.Entities.AppUser", "ApprovedByUser")
+                        .WithMany()
+                        .HasForeignKey("ApprovedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("moto_micro_tours.Domain.Entities.AppUser", "Participant")
                         .WithMany()
                         .HasForeignKey("ParticipantUserId")
@@ -804,6 +829,8 @@ namespace moto_micro_tours.Migrations
                         .HasForeignKey("TourMotardId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("ApprovedByUser");
 
                     b.Navigation("Participant");
 
@@ -969,6 +996,17 @@ namespace moto_micro_tours.Migrations
                     b.Navigation("Author");
 
                     b.Navigation("Review");
+                });
+
+            modelBuilder.Entity("moto_micro_tours.Domain.Entities.Tour", b =>
+                {
+                    b.HasOne("moto_micro_tours.Domain.Entities.AppUser", "Organizer")
+                        .WithMany()
+                        .HasForeignKey("OrganizerUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Organizer");
                 });
 
             modelBuilder.Entity("moto_micro_tours.Domain.Entities.TourMotard", b =>

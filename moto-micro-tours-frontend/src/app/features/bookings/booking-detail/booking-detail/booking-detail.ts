@@ -9,7 +9,7 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { BookingsService } from '../../services/bookings';
-import { BookingDetail as BookingDetailModel, BookingStatus } from '../../models/booking.model';
+import { BookingDetail as BookingDetailModel, BookingStatus, ApproveStartTimeRequest } from '../../models/booking.model';
 import { BookingStatusTimeline } from '../booking-status-timeline/booking-status-timeline';
 import { BookingActions } from '../booking-actions/booking-actions';
 import { BookingChatComponent } from '../../../chats/booking-chat/booking-chat.component';
@@ -204,10 +204,10 @@ export class BookingDetail implements OnInit {
     // Must be Paid status
     if (bookingData.status !== BookingStatus.Paid) return false;
 
-    // Tour must have started
-    const tourDate = new Date(bookingData.tourStartAt);
+    // Option E: Use EffectiveStartAtUtc (ApprovedStartAtUtc ?? TourStartAt)
+    const effectiveStartTime = new Date(bookingData.approvedStartAtUtc || bookingData.tourStartAt);
     const now = new Date();
-    if (tourDate > now) return false;
+    if (effectiveStartTime > now) return false;
 
     // Check if user already marked as complete
     if (isParticipant && bookingData.completedByParticipantAtUtc) return false;
@@ -575,4 +575,69 @@ export class BookingDetail implements OnInit {
       }
     );
   }
+
+  // Option E: Approve start time (motard only)
+  onApproveStartTime(): void {
+    const bookingData = this.booking();
+    if (!bookingData) return;
+
+    // Prompt for approved start time
+    const now = new Date();
+    const defaultTime = now.toISOString().slice(0, 16); // Format: YYYY-MM-DDTHH:mm
+
+    const approvedTime = prompt(
+      'Enter approved start time (YYYY-MM-DDTHH:mm format):',
+      defaultTime
+    );
+
+    if (!approvedTime) return;
+
+    const reason = prompt('Enter reason for approving early start (optional):', '');
+
+    const request: ApproveStartTimeRequest = {
+      approvedStartAtUtc: new Date(approvedTime).toISOString(),
+      reason: reason || undefined
+    };
+
+    this.isLoading.set(true);
+    this.bookingsService.approveStartTime(bookingData.bookingId, request).subscribe({
+      next: () => {
+        this.snackBar.open('Effective start time approved successfully', 'Close', { duration: 5000 });
+        this.loadBooking();
+      },
+      error: (error) => {
+        this.snackBar.open(extractErrorMessage(error, 'Failed to approve start time'), 'Close', { duration: 5000 });
+        this.isLoading.set(false);
+      }
+    });
+  }
+
+  // Option E: Check if motard can approve start time
+  canApproveStartTime = computed(() => {
+    const bookingData = this.booking();
+    const currentUser = this.authService.getCurrentUser();
+    if (!bookingData || !currentUser) return false;
+
+    // Must be the motard
+    const isMotard = bookingData.motardUserId === currentUser.userId;
+    if (!isMotard) return false;
+
+    // Must be Paid status
+    if (bookingData.status !== BookingStatus.Paid) return false;
+
+    // Don't show if already approved
+    if (bookingData.approvedStartAtUtc) return false;
+
+    return true;
+  });
+
+  // Option E: Get effective start time
+  getEffectiveStartTime(): Date {
+    const bookingData = this.booking();
+    if (!bookingData) return new Date();
+
+    // EffectiveStartAtUtc = ApprovedStartAtUtc ?? TourStartAt
+    return new Date(bookingData.approvedStartAtUtc || bookingData.tourStartAt);
+  }
 }
+

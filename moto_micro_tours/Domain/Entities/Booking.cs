@@ -27,6 +27,13 @@ public class Booking
     public DateTime? CompletedByMotardAtUtc { get; set; }
     public DateTime? CompletedAtUtc { get; set; } // Set when both complete
 
+    // Phase 1: Explicit start time override (replaces Option E terminology)
+    public DateTime? ApprovedStartAtUtc { get; set; } // Booking's motard or tour organizer can approve
+    public string? ApprovedStartReason { get; set; } // Optional reason for start time override
+    public DateTime? ApprovedAtUtc { get; set; } // Audit timestamp for approval (replaces ApprovedStartByMotardAtUtc)
+    public string? ApprovedByUserId { get; set; } // Audit: who approved (motard or organizer)
+    public AppUser? ApprovedByUser { get; set; } // Navigation property
+
     /// <summary>
     /// RowVersion (DateTime) for optimistic concurrency control. MySQL/TIMESTAMP
     /// is used as a concurrency token with value generated on add or update.

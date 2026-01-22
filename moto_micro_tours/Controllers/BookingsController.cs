@@ -16,17 +16,20 @@ public class BookingsController : ControllerBase
     private readonly UserManager<AppUser> _userManager;
     private readonly ILogger<BookingsController> _logger;
     private readonly IAuthorizationService _authorizationService;
+    private readonly moto_micro_tours.Services.IAuthorizationHelpers _authHelpers; // Phase 1
 
     public BookingsController(
         AppDbContext context,
         UserManager<AppUser> userManager,
         ILogger<BookingsController> logger,
-        IAuthorizationService authorizationService)
+        IAuthorizationService authorizationService,
+        moto_micro_tours.Services.IAuthorizationHelpers authHelpers) // Phase 1
     {
         _context = context;
         _userManager = userManager;
         _logger = logger;
         _authorizationService = authorizationService;
+        _authHelpers = authHelpers; // Phase 1
     }
 
     /// <summary>
@@ -144,7 +147,11 @@ public class BookingsController : ControllerBase
                 ApprovedAt = booking.ApprovedAt,
                 ExpiresAt = booking.ExpiresAt,
                 TourStartAt = tour.StartAt,
-                PricePerSeat = tourMotard.PricePerSeat
+                PricePerSeat = tourMotard.PricePerSeat,
+                ApprovedStartAtUtc = booking.ApprovedStartAtUtc,
+                ApprovedStartReason = booking.ApprovedStartReason,
+                ApprovedAtUtc = booking.ApprovedAtUtc,
+                ApprovedByUserId = booking.ApprovedByUserId
             };
 
             return CreatedAtAction(
@@ -279,7 +286,11 @@ public class BookingsController : ControllerBase
                 ApprovedAt = booking.ApprovedAt,
                 ExpiresAt = booking.ExpiresAt,
                 TourStartAt = booking.Tour?.StartAt ?? DateTime.MinValue,
-                PricePerSeat = booking.TourMotard?.PricePerSeat ?? 0
+                PricePerSeat = booking.TourMotard?.PricePerSeat ?? 0,
+                ApprovedStartAtUtc = booking.ApprovedStartAtUtc,
+                ApprovedStartReason = booking.ApprovedStartReason,
+                ApprovedAtUtc = booking.ApprovedAtUtc,
+                ApprovedByUserId = booking.ApprovedByUserId
             };
 
             return Ok(response);
@@ -396,7 +407,11 @@ public class BookingsController : ControllerBase
                 DeclinedAt = booking.DeclinedAt,
                 DeclineReason = booking.DeclineReason,
                 TourStartAt = booking.Tour?.StartAt ?? DateTime.MinValue,
-                PricePerSeat = booking.TourMotard?.PricePerSeat ?? 0
+                PricePerSeat = booking.TourMotard?.PricePerSeat ?? 0,
+                ApprovedStartAtUtc = booking.ApprovedStartAtUtc,
+                ApprovedStartReason = booking.ApprovedStartReason,
+                ApprovedAtUtc = booking.ApprovedAtUtc,
+                ApprovedByUserId = booking.ApprovedByUserId
             };
 
             return Ok(response);
@@ -502,6 +517,12 @@ public class BookingsController : ControllerBase
                 CompletedByParticipantAtUtc = booking.CompletedByParticipantAtUtc,
                 CompletedByMotardAtUtc = booking.CompletedByMotardAtUtc,
                 CompletedAtUtc = booking.CompletedAtUtc,
+
+                // Phase 1: Start time override audit
+                ApprovedStartAtUtc = booking.ApprovedStartAtUtc,
+                ApprovedStartReason = booking.ApprovedStartReason,
+                ApprovedAtUtc = booking.ApprovedAtUtc,
+                ApprovedByUserId = booking.ApprovedByUserId,
 
                 // Payment information (if exists)
                 Payment = booking.Payment != null ? new PaymentInfoDto
@@ -629,7 +650,11 @@ public class BookingsController : ControllerBase
                 PricePerSeat = booking.TourMotard?.PricePerSeat ?? 0,
                 CompletedByParticipantAtUtc = booking.CompletedByParticipantAtUtc, // B1
                 CompletedByMotardAtUtc = booking.CompletedByMotardAtUtc, // B1
-                CompletedAtUtc = booking.CompletedAtUtc // B1
+                CompletedAtUtc = booking.CompletedAtUtc, // B1
+                ApprovedStartAtUtc = booking.ApprovedStartAtUtc, // Phase 1
+                ApprovedStartReason = booking.ApprovedStartReason, // Phase 1
+                ApprovedAtUtc = booking.ApprovedAtUtc, // Phase 1
+                ApprovedByUserId = booking.ApprovedByUserId // Phase 1
             }).ToList();
 
             _logger.LogInformation(
@@ -805,7 +830,11 @@ public class BookingsController : ControllerBase
                 ApprovedAt = booking.ApprovedAt,
                 ExpiresAt = booking.ExpiresAt,
                 TourStartAt = booking.Tour?.StartAt ?? DateTime.MinValue,
-                PricePerSeat = booking.TourMotard?.PricePerSeat ?? 0
+                PricePerSeat = booking.TourMotard?.PricePerSeat ?? 0,
+                ApprovedStartAtUtc = booking.ApprovedStartAtUtc,
+                ApprovedStartReason = booking.ApprovedStartReason,
+                ApprovedAtUtc = booking.ApprovedAtUtc,
+                ApprovedByUserId = booking.ApprovedByUserId
             };
 
             return Ok(response);
@@ -957,7 +986,11 @@ public class BookingsController : ControllerBase
                 ApprovedAt = booking.ApprovedAt,
                 ExpiresAt = booking.ExpiresAt,
                 TourStartAt = booking.Tour?.StartAt ?? DateTime.MinValue,
-                PricePerSeat = booking.TourMotard?.PricePerSeat ?? 0
+                PricePerSeat = booking.TourMotard?.PricePerSeat ?? 0,
+                ApprovedStartAtUtc = booking.ApprovedStartAtUtc,
+                ApprovedStartReason = booking.ApprovedStartReason,
+                ApprovedAtUtc = booking.ApprovedAtUtc,
+                ApprovedByUserId = booking.ApprovedByUserId
             };
 
             return Ok(response);
@@ -1052,11 +1085,133 @@ public class BookingsController : ControllerBase
     }
 
     /// <summary>
+    /// Phase 1: Approve effective start time for booking completion (formerly Option E)
+    /// POST /api/bookings/{id}/approve-start-time
+    /// - Allows booking's motard OR tour organizer to set earlier effective start time
+    /// - Enables completion before Tour.StartAt if needed
+    /// - Audit trail via ApprovedAtUtc and ApprovedByUserId
+    /// </summary>
+    /// <param name="id">Booking ID</param>
+    /// <param name="request">Approved start time and optional reason</param>
+    /// <returns>Updated booking</returns>
+    [HttpPost("{id}/approve-start-time")]
+    [Authorize]
+    public async Task<ActionResult<BookingResponseDto>> ApproveStartTime(
+        Guid id,
+        [FromBody] ApproveStartTimeRequest request)
+    {
+        try
+        {
+            _logger.LogInformation(
+                "Approving start time for booking {BookingId} to {ApprovedTime}",
+                id, request.ApprovedStartAtUtc);
+
+            // Get current user
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
+            {
+                return Unauthorized(new { error = "You must be logged in" });
+            }
+
+            // Load booking with related entities
+            var booking = await _context.Bookings
+                .Include(b => b.Tour)
+                .Include(b => b.TourMotard)
+                .FirstOrDefaultAsync(b => b.Id == id);
+
+            if (booking == null)
+            {
+                _logger.LogWarning("Booking {BookingId} not found", id);
+                return NotFound(new { error = $"Booking with ID {id} not found" });
+            }
+
+            // Phase 1: Verify user is EITHER booking's motard OR tour organizer
+            bool isBookingMotard = await _authHelpers.IsBookingMotardAsync(currentUser.Id, id);
+            bool isTourOrganizer = booking.Tour != null &&
+                await _authHelpers.IsTourOrganizerAsync(currentUser.Id, booking.Tour.Id);
+
+            if (!isBookingMotard && !isTourOrganizer)
+            {
+                _logger.LogWarning(
+                    "User {UserId} attempted to approve start time for booking {BookingId} " +
+                    "but is neither the booking's motard nor the tour organizer",
+                    currentUser.Id, id);
+                return Forbid();
+            }
+
+            string approverRole = isTourOrganizer ? "tour organizer" : "booking motard";
+            _logger.LogInformation(
+                "User {UserId} authorized as {Role} to approve start time for booking {BookingId}",
+                currentUser.Id, approverRole, id);
+
+            // Validate booking status (prefer Paid)
+            if (booking.Status != BookingStatus.Paid)
+            {
+                _logger.LogWarning(
+                    "Cannot approve start time for booking {BookingId} with status {Status}",
+                    id, booking.Status);
+                return BadRequest(new
+                {
+                    error = $"Can only approve start time for paid bookings. Current status: {booking.Status}"
+                });
+            }
+
+            // Validate approved time is reasonable (not too far in future)
+            if (request.ApprovedStartAtUtc > DateTime.UtcNow.AddDays(365))
+            {
+                return BadRequest(new { error = "Approved start time cannot be more than 1 year in the future" });
+            }
+
+            // Set approval fields (Phase 1: temporary, will update in Task 9)
+            booking.ApprovedStartAtUtc = request.ApprovedStartAtUtc;
+            booking.ApprovedStartReason = request.Reason;
+            booking.ApprovedAtUtc = DateTime.UtcNow;
+            booking.ApprovedByUserId = currentUser.Id;
+
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation(
+                "Booking {BookingId} start time approved by {Role} {UserId}. Effective start: {EffectiveStart}",
+                id, approverRole, currentUser.Id, request.ApprovedStartAtUtc);
+
+            return Ok(new BookingResponseDto
+            {
+                BookingId = booking.Id,
+                TourId = booking.TourId,
+                TourTitle = booking.Tour?.Title ?? string.Empty,
+                TourMotardId = booking.TourMotardId,
+                MotardName = booking.TourMotard?.Motard?.UserName ?? string.Empty,
+                ParticipantId = Guid.Parse(booking.ParticipantUserId),
+                ParticipantName = booking.Participant?.UserName ?? string.Empty,
+                Status = booking.Status.ToString(),
+                CostSharingOptIn = booking.CostSharingOptIn,
+                EmergencyContact = booking.EmergencyContact ?? string.Empty,
+                MessageToMotard = booking.MessageToMotard,
+                CreatedAt = booking.CreatedAt,
+                ApprovedAt = booking.ApprovedAt,
+                ExpiresAt = booking.ExpiresAt,
+                TourStartAt = booking.Tour?.StartAt ?? DateTime.MinValue,
+                PricePerSeat = booking.TourMotard?.PricePerSeat ?? 0,
+                ApprovedStartAtUtc = booking.ApprovedStartAtUtc,
+                ApprovedStartReason = booking.ApprovedStartReason,
+                ApprovedAtUtc = booking.ApprovedAtUtc, // Phase 1
+                ApprovedByUserId = booking.ApprovedByUserId // Phase 1
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error approving start time for booking {BookingId}", id);
+            return StatusCode(500, new { error = "An error occurred while approving start time" });
+        }
+    }
+
+    /// <summary>
     /// F8: Mark booking as completed by participant or motard
     /// POST /api/bookings/{id}/complete
     /// - Sets CompletedByParticipantAtUtc or CompletedByMotardAtUtc based on caller
     /// - When both are set, sets CompletedAtUtc
     /// - Idempotent: calling twice doesn't break
+    /// - Phase 1: Uses EffectiveStartAtUtc (ApprovedStartAtUtc ?? Tour.StartAt) for gate
     /// </summary>
     /// <param name="id">Booking ID</param>
     /// <returns>Updated booking with completion timestamps</returns>
@@ -1112,21 +1267,28 @@ public class BookingsController : ControllerBase
                 });
             }
 
-            // Validate tour must have started
+            // Phase 1: Calculate effective start time
+            // EffectiveStartAtUtc = ApprovedStartAtUtc ?? Tour.StartAt
             if (booking.Tour == null)
             {
                 return BadRequest(new { error = "Tour information not found" });
             }
 
-            if (booking.Tour.StartAt > DateTime.UtcNow)
+            var effectiveStartAtUtc = booking.ApprovedStartAtUtc ?? booking.Tour.StartAt;
+
+            // Validate effective start time has passed
+            if (effectiveStartAtUtc > DateTime.UtcNow)
             {
-                _logger.LogWarning(
-                    "Cannot complete booking {BookingId} - tour hasn't started yet (starts: {StartAt})",
-                    id, booking.Tour.StartAt);
+                var startType = booking.ApprovedStartAtUtc.HasValue ? "approved" : "scheduled";
+                _logger.LogInformation(
+                    "Cannot complete booking {BookingId} - {StartType} start time hasn't passed yet (starts: {StartAt}). Using EffectiveStartAtUtc.",
+                    id, startType, effectiveStartAtUtc);
                 return BadRequest(new
                 {
-                    error = "Cannot complete booking before tour starts",
-                    tourStartAt = booking.Tour.StartAt
+                    error = $"Cannot complete booking before {startType} start time",
+                    effectiveStartAtUtc = effectiveStartAtUtc,
+                    tourStartAt = booking.Tour.StartAt,
+                    approvedStartAtUtc = booking.ApprovedStartAtUtc
                 });
             }
 
@@ -1199,7 +1361,14 @@ public class BookingsController : ControllerBase
                 DeclinedAt = booking.DeclinedAt,
                 DeclineReason = booking.DeclineReason,
                 TourStartAt = booking.Tour?.StartAt ?? DateTime.MinValue,
-                PricePerSeat = booking.TourMotard?.PricePerSeat ?? 0
+                PricePerSeat = booking.TourMotard?.PricePerSeat ?? 0,
+                CompletedByParticipantAtUtc = booking.CompletedByParticipantAtUtc,
+                CompletedByMotardAtUtc = booking.CompletedByMotardAtUtc,
+                CompletedAtUtc = booking.CompletedAtUtc,
+                ApprovedStartAtUtc = booking.ApprovedStartAtUtc,
+                ApprovedStartReason = booking.ApprovedStartReason,
+                ApprovedAtUtc = booking.ApprovedAtUtc,
+                ApprovedByUserId = booking.ApprovedByUserId
             });
         }
         catch (Exception ex)

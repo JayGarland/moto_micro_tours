@@ -18,6 +18,9 @@ public abstract class TourBaseDto
     public string EndLocationText { get; set; } = string.Empty;
     public string Status { get; set; } = string.Empty;
     public string? Notes { get; set; }
+
+    // Phase 1: Expose organizer ID
+    public string? OrganizerUserId { get; set; }
 }
 
 /// <summary>

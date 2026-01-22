@@ -18,6 +18,10 @@ public class Tour
     public TourStatus Status { get; set; }
     public string? Notes { get; set; }
 
+    // Phase 1: Explicit organizer (tour creator)
+    public string OrganizerUserId { get; set; } = null!;
+    public AppUser Organizer { get; set; } = null!;
+
     public ICollection<TourMotard> TourMotards { get; set; } = new List<TourMotard>();
     public ICollection<Booking> Bookings { get; set; } = new List<Booking>();
     public ICollection<PreBookingConversation> PreBookingConversations { get; set; } = new List<PreBookingConversation>();

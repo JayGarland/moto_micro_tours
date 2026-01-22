@@ -13,7 +13,7 @@
   align-items: center;
   padding: 1rem;
   border-bottom: 1px solid var(--border-color, #e0e0e0);
-  
+
   h1 {
     margin: 0;
     font-size: 1.5rem;
@@ -29,7 +29,7 @@
   justify-content: center;
   padding: 3rem;
   text-align: center;
-  
+
   .spinner {
     width: 40px;
     height: 40px;
@@ -60,7 +60,7 @@
   padding: 3rem;
   text-align: center;
   color: var(--text-secondary, #666);
-  
+
   .empty-icon {
     font-size: 4rem;
     width: 4rem;
@@ -68,10 +68,10 @@
     margin-bottom: 1rem;
     opacity: 0.5;
   }
-  
+
   p {
     margin: 0.5rem 0;
-    
+
     &.empty-subtitle {
       font-size: 0.875rem;
       color: var(--text-tertiary, #999);
@@ -87,12 +87,12 @@
   margin-bottom: 1rem;
   cursor: pointer;
   transition: all 0.2s ease;
-  
+
   &:hover {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     border-color: var(--primary-color, #3f51b5);
   }
-  
+
   &:last-child {
     margin-bottom: 0;
   }
@@ -103,13 +103,13 @@
   justify-content: space-between;
   align-items: flex-start;
   margin-bottom: 0.75rem;
-  
+
   .header-left {
     display: flex;
     gap: 0.75rem;
     flex: 1;
   }
-  
+
   .header-right {
     margin-left: 1rem;
   }
@@ -132,14 +132,14 @@
 .conversation-info {
   flex: 1;
   min-width: 0;
-  
+
   .other-user-name {
     margin: 0 0 0.25rem 0;
     font-size: 1rem;
     font-weight: 600;
     color: var(--text-primary, #333);
   }
-  
+
   .tour-title {
     margin: 0;
     font-size: 0.875rem;
@@ -155,7 +155,7 @@
   justify-content: space-between;
   align-items: center;
   gap: 1rem;
-  
+
   .last-message {
     flex: 1;
     margin: 0;
@@ -165,7 +165,7 @@
     text-overflow: ellipsis;
     white-space: nowrap;
   }
-  
+
   .conversation-time {
     font-size: 0.75rem;
     color: var(--text-tertiary, #999);
@@ -178,15 +178,15 @@
   .inbox-container {
     padding: 0.5rem;
   }
-  
+
   .inbox-header h1 {
     font-size: 1.25rem;
   }
-  
+
   .conversation-card {
     padding: 0.75rem;
   }
-  
+
   .conversation-avatar {
     width: 40px;
     height: 40px;

@@ -12,7 +12,7 @@ import { MatChipsModule } from '@angular/material/chips';
 /**
  * BookingInboxComponent
  * Option B: Inbox for booking conversations (post-approval/paid)
- * 
+ *
  * Responsibilities:
  * - Load all booking conversations for current user (participant or motard)
  * - Display conversation list with booking status, last message preview
@@ -66,7 +66,7 @@ export class BookingInboxComponent implements OnInit, OnDestroy {
             const timeB = new Date(b.lastMessageTime || b.createdAt).getTime();
             return timeB - timeA; // Descending
           });
-          
+
           this.conversations.set(sorted);
           this.loading.set(false);
         },
@@ -90,8 +90,8 @@ export class BookingInboxComponent implements OnInit, OnDestroy {
    */
   truncateMessage(message: string | undefined, maxLength: number = 50): string {
     if (!message) return 'No messages yet';
-    return message.length > maxLength 
-      ? message.substring(0, maxLength) + '...' 
+    return message.length > maxLength
+      ? message.substring(0, maxLength) + '...'
       : message;
   }
 

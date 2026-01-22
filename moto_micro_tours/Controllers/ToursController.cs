@@ -112,6 +112,7 @@ public class ToursController : ControllerBase
                 EndLocationText = t.EndLocationText,
                 Status = t.Status.ToString(),
                 Notes = t.Notes,
+                OrganizerUserId = t.OrganizerUserId, // Phase 1
                 TotalCapacity = t.TourMotards.Sum(tm => tm.CapacitySeats),
                 TotalSeatsBooked = t.TourMotards.Sum(tm => tm.SeatsBooked),
                 MinPrice = t.TourMotards.Any() ? t.TourMotards.Min(tm => tm.PricePerSeat) : 0,
@@ -184,6 +185,7 @@ public class ToursController : ControllerBase
                 EndLocationText = tour.Tour.EndLocationText,
                 Status = tour.Tour.Status.ToString(),
                 Notes = tour.Tour.Notes,
+                OrganizerUserId = tour.Tour.OrganizerUserId, // Phase 1
                 Motards = tour.Motards.Select(m => new TourMotardDetailDto
                 {
                     TourMotardId = m.TourMotard.Id,
@@ -273,7 +275,8 @@ public class ToursController : ControllerBase
                 StartLocationText = request.StartLocationText,
                 EndLocationText = request.EndLocationText,
                 Notes = request.Notes,
-                Status = request.PublishImmediately ? TourStatus.Published : TourStatus.Draft
+                Status = request.PublishImmediately ? TourStatus.Published : TourStatus.Draft,
+                OrganizerUserId = user.Id // Phase 1: Set tour creator as organizer
             };
 
             _context.Tours.Add(tour);

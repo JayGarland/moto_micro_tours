@@ -219,6 +219,44 @@
             </mat-card-content>
           </mat-card>
 
+          <!-- Option E: Approved Start Time Card -->
+          @if (bookingData.approvedStartAtUtc || canApproveStartTime()) {
+            <mat-card class="approval-card">
+              <mat-card-header>
+                <mat-icon mat-card-avatar>schedule</mat-icon>
+                <mat-card-title>Effective Start Time</mat-card-title>
+              </mat-card-header>
+              <mat-card-content>
+                @if (bookingData.approvedStartAtUtc) {
+                  <div class="approval-info">
+                    <div class="approval-detail">
+                      <mat-icon>check_circle</mat-icon>
+                      <div>
+                        <strong>Approved Start Time</strong>
+                        <p>{{ formatDate(bookingData.approvedStartAtUtc) }}</p>
+                        @if (bookingData.approvedStartReason) {
+                          <p class="reason">Reason: {{ bookingData.approvedStartReason }}</p>
+                        }
+                      </div>
+                    </div>
+                    <p class="note">
+                      <mat-icon>info</mat-icon>
+                      Completion can be marked after this approved time instead of the original tour start time.
+                    </p>
+                  </div>
+                } @else if (canApproveStartTime()) {
+                  <div class="approval-action">
+                    <p>As the organizer, you can approve an earlier effective start time to allow completion before the scheduled tour start.</p>
+                    <button mat-raised-button color="accent" (click)="onApproveStartTime()">
+                      <mat-icon>schedule</mat-icon>
+                      Approve Start Time
+                    </button>
+                  </div>
+                }
+              </mat-card-content>
+            </mat-card>
+          }
+
           <!-- F8: Booking Completion Card -->
           @if (canMarkComplete() || isWaitingForOtherSide() || isFullyCompleted()) {
             <mat-card class="completion-card">
@@ -314,8 +352,8 @@
                 } @else {
                   <div class="reviews-list">
                     @for (review of bookingReviews(); track review.id) {
-                      <app-review-card 
-                        [review]="review" 
+                      <app-review-card
+                        [review]="review"
                         [expanded]="true"
                         [currentUserId]="authService.getCurrentUser()?.userId">
                       </app-review-card>
