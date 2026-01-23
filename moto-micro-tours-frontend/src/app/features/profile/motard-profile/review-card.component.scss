@@ -43,10 +43,38 @@
       gap: 0.25rem;
       flex: 1;
 
+      .reviewer-line {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+      }
+
       .reviewer-name {
         font-size: 14px;
         font-weight: 600;
         color: #212121;
+      }
+
+      .target-label {
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.3px;
+        text-transform: uppercase;
+        padding: 2px 8px;
+        border-radius: 999px;
+        background: #e3f2fd;
+        color: #1565c0;
+      }
+
+      .target-tour {
+        background: #e8f5e9;
+        color: #2e7d32;
+      }
+
+      .target-user {
+        background: #e3f2fd;
+        color: #1565c0;
       }
 
       .stars {

@@ -6,7 +6,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { FormsModule } from '@angular/forms';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { ReviewDto } from '../../bookings/models/review.models';
+import { ReviewDto, ReviewTargetType } from '../../bookings/models/review.models';
 import { ReviewsService } from '../../bookings/services/reviews.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { extractErrorMessage } from '../../../shared/utils';
@@ -64,6 +64,33 @@ export class ReviewCardComponent {
     const currentUser = this.authService.getCurrentUser();
     if (!currentUser) return false;
     return this.review.reviewerUserId === currentUser.userId;
+  }
+
+  getTargetLabel(): string {
+    if (this.review.targetType === ReviewTargetType.Tour) {
+      return 'Tour review';
+    }
+
+    const currentUser = this.authService.getCurrentUser();
+    if (!currentUser) return 'User review';
+
+    if (this.review.targetId === currentUser.userId) {
+      return 'About you';
+    }
+
+    if (this.authService.getIsMotard()) {
+      return 'Participant review';
+    }
+
+    if (this.authService.getIsParticipant()) {
+      return 'Motard review';
+    }
+
+    return 'User review';
+  }
+
+  getTargetLabelClass(): string {
+    return this.review.targetType === ReviewTargetType.Tour ? 'target-tour' : 'target-user';
   }
 
   /**

@@ -5,7 +5,10 @@
       <mat-icon>person</mat-icon>
     </div>
     <div class="review-info">
-      <span class="reviewer-name">{{ review.reviewerUsername }}</span>
+      <div class="reviewer-line">
+        <span class="reviewer-name">{{ review.reviewerUsername }}</span>
+        <span class="target-label" [ngClass]="getTargetLabelClass()">{{ getTargetLabel() }}</span>
+      </div>
       <div class="stars">
         <mat-icon *ngFor="let filled of getStarArray()" [class.filled]="filled">
           {{ filled ? 'star' : 'star_border' }}
