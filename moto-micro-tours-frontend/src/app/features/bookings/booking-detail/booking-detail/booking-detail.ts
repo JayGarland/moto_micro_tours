@@ -618,9 +618,10 @@ export class BookingDetail implements OnInit {
     const currentUser = this.authService.getCurrentUser();
     if (!bookingData || !currentUser) return false;
 
-    // Must be the motard
+    // Must be the motard or tour organizer
     const isMotard = bookingData.motardUserId === currentUser.userId;
-    if (!isMotard) return false;
+    const isOrganizer = bookingData.organizerUserId === currentUser.userId;
+    if (!isMotard && !isOrganizer) return false;
 
     // Must be Paid status
     if (bookingData.status !== BookingStatus.Paid) return false;

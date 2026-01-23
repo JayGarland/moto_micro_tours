@@ -105,6 +105,7 @@ public class BookingDetailDto : BookingResponseDto
 
     // Additional motard information
     public string MotardUserId { get; set; } = string.Empty;
+    public string? OrganizerUserId { get; set; }
 
     // Additional booking status timestamps
     public DateTime? PaidAt { get; set; }

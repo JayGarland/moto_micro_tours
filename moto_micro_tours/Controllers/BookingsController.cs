@@ -512,6 +512,7 @@ public class BookingsController : ControllerBase
                 MotardUserId = booking.TourMotard?.MotardUserId ?? string.Empty,
                 MotardName = booking.TourMotard?.Motard?.UserName ?? "Unknown",
                 PricePerSeat = booking.TourMotard?.PricePerSeat ?? 0,
+                OrganizerUserId = booking.Tour?.OrganizerUserId,
 
                 // Participant information
                 ParticipantId = Guid.Parse(booking.ParticipantUserId),

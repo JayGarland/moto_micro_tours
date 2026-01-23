@@ -96,6 +96,7 @@ export interface BookingDetail {
   motardUserId: string;
   motardName: string;
   pricePerSeat: number;
+  organizerUserId?: string;
 
   // Participant information
   participantId: string;

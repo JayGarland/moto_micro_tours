@@ -7,7 +7,7 @@ using moto_micro_tours.DTOs;
 using System.Security.Claims;
 
 namespace moto_micro_tours.Controllers;
-
+// TODO: For reviews, reviewer and target both side can edit their comment, like update, delete, etc
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
