@@ -170,6 +170,14 @@
       emptyIcon="📜"
     ></app-booking-section-list>
 
+    <!-- Cancelled Rides Section -->
+    <app-booking-section-list
+      title="Cancelled rides"
+      [bookings]="cancelledRides()"
+      emptyMessage="No cancelled rides"
+      emptyIcon="🚫"
+    ></app-booking-section-list>
+
     <!-- My Tours Section -->
     <section class="my-tours-section">
       <h2 class="section-title">My tours</h2>

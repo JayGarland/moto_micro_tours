@@ -78,6 +78,16 @@ export class MotardDashboardComponent implements OnInit {
       .sort((a, b) => new Date(b.tourStartAt).getTime() - new Date(a.tourStartAt).getTime());
   });
 
+  protected readonly cancelledRides = computed(() => {
+    return this.allBookings()
+      .filter(booking =>
+        booking.status === BookingStatus.Cancelled ||
+        booking.status === BookingStatus.CancelledExpired ||
+        booking.status === BookingStatus.Refunded
+      )
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  });
+
   protected readonly myTours = computed(() => {
     if (!this.currentUserId) return [];
 
