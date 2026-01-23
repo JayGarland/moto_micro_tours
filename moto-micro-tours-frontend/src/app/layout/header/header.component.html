@@ -12,6 +12,7 @@
     <!-- Navigation Links (when authenticated) -->
     @if (authService.getIsAuthenticated()) {
       <nav class="nav-links">
+        <!-- TODO: Future Option 3: add Organizer Dashboard / header button; restrict organizer visibility to a scoped admin view. -->
         <a mat-button routerLink="/tours" routerLinkActive="active">Tours</a>
 
         <!-- Messages Menu with Dropdown -->

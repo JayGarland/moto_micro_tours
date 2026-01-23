@@ -167,7 +167,7 @@ public class BookingsController : ControllerBase
     }
 
     /// <summary>
-    /// Approve a booking request (Stage F: Only the assigned motard can approve)
+    /// Approve a booking request (Stage F: Only the assigned motard or tour organizer can approve)
     /// Sets status to Approved and creates 6-hour payment window
     /// </summary>
     /// <param name="id">Booking ID</param>
@@ -245,18 +245,24 @@ public class BookingsController : ControllerBase
                 return Unauthorized(new { error = "You must be logged in to approve bookings" });
             }
 
-            // Only the assigned motard can approve their own bookings
-            if (booking.TourMotard.MotardUserId != currentUser.Id)
+            var isBookingMotard = booking.TourMotard.MotardUserId == currentUser.Id;
+            var isTourOrganizer = booking.Tour?.OrganizerUserId == currentUser.Id;
+
+            // Only the assigned motard or tour organizer can approve
+            if (!isBookingMotard && !isTourOrganizer)
             {
                 _logger.LogWarning(
-                    "User {UserId} attempted to approve booking {BookingId} assigned to motard {MotardUserId}",
-                    currentUser.Id, id, booking.TourMotard.MotardUserId);
+                    "User {UserId} attempted to approve booking {BookingId} but is neither the booking motard nor the tour organizer",
+                    currentUser.Id, id);
                 return Forbid(); // 403 Forbidden - user is authenticated but not authorized
             }
 
+            LogOrganizerAccessIfNotParty(nameof(ApproveBooking), booking, currentUser.Id);
+
+            var approverRole = isTourOrganizer ? "tour organizer" : "booking motard";
             _logger.LogInformation(
-                "Motard {MotardUserId} ({Username}) is authorized to approve booking {BookingId}",
-                currentUser.Id, currentUser.UserName, id);
+                "{Role} {UserId} ({Username}) is authorized to approve booking {BookingId}",
+                approverRole, currentUser.Id, currentUser.UserName, id);
 
             // Approve the booking
             booking.Status = BookingStatus.Approved;
@@ -303,7 +309,7 @@ public class BookingsController : ControllerBase
     }
 
     /// <summary>
-    /// Decline a booking request (Stage F7.1: Only the assigned motard can decline)
+    /// Decline a booking request (Stage F7.1: Only the assigned motard or tour organizer can decline)
     /// Sets status to Declined and optionally stores a decline reason
     /// </summary>
     /// <param name="id">Booking ID</param>
@@ -363,18 +369,24 @@ public class BookingsController : ControllerBase
                 return Unauthorized(new { error = "You must be logged in to decline bookings" });
             }
 
-            // Only the assigned motard can decline their own bookings
-            if (booking.TourMotard?.MotardUserId != currentUser.Id)
+            var isBookingMotard = booking.TourMotard?.MotardUserId == currentUser.Id;
+            var isTourOrganizer = booking.Tour?.OrganizerUserId == currentUser.Id;
+
+            // Only the assigned motard or tour organizer can decline
+            if (!isBookingMotard && !isTourOrganizer)
             {
                 _logger.LogWarning(
-                    "User {UserId} attempted to decline booking {BookingId} assigned to motard {MotardUserId}",
-                    currentUser.Id, id, booking.TourMotard?.MotardUserId);
+                    "User {UserId} attempted to decline booking {BookingId} but is neither the booking motard nor the tour organizer",
+                    currentUser.Id, id);
                 return Forbid(); // 403 Forbidden - user is authenticated but not authorized
             }
 
+            LogOrganizerAccessIfNotParty(nameof(DeclineBooking), booking, currentUser.Id);
+
+            var declinerRole = isTourOrganizer ? "tour organizer" : "booking motard";
             _logger.LogInformation(
-                "Motard {MotardUserId} ({Username}) is authorized to decline booking {BookingId}",
-                currentUser.Id, currentUser.UserName, id);
+                "{Role} {UserId} ({Username}) is authorized to decline booking {BookingId}",
+                declinerRole, currentUser.Id, currentUser.UserName, id);
 
             // Decline the booking
             booking.Status = BookingStatus.Declined;
@@ -452,7 +464,7 @@ public class BookingsController : ControllerBase
                 return NotFound(new { error = $"Booking with ID {id} not found" });
             }
 
-            // Authorization: Only participant or assigned motard can view booking details
+            // Authorization: Only participant, assigned motard, or tour organizer can view booking details
             var authResult = await _authorizationService.AuthorizeAsync(User, booking, "CanAccessBookingDetails");
             if (!authResult.Succeeded)
             {
@@ -462,6 +474,12 @@ public class BookingsController : ControllerBase
                     id);
                 // Return 404 instead of 403 to avoid leaking booking existence
                 return NotFound(new { error = $"Booking with ID {id} not found" });
+            }
+
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser != null)
+            {
+                LogOrganizerAccessIfNotParty(nameof(GetBookingById), booking, currentUser.Id);
             }
 
             // Lazy update: Check if booking has expired and update status
@@ -581,10 +599,11 @@ public class BookingsController : ControllerBase
 
             var roles = await _userManager.GetRolesAsync(currentUser);
             var isMotard = roles.Contains("Motard");
+            var isOrganizer = await _context.Tours.AnyAsync(t => t.OrganizerUserId == currentUser.Id);
 
             _logger.LogInformation(
-                "Retrieving bookings for user {UserId} (isMotard: {IsMotard})",
-                currentUser.Id, isMotard);
+                "Retrieving bookings for user {UserId} (isMotard: {IsMotard}, isOrganizer: {IsOrganizer})",
+                currentUser.Id, isMotard, isOrganizer);
 
             IQueryable<Booking> query = _context.Bookings
                 .Include(b => b.Tour)
@@ -593,10 +612,12 @@ public class BookingsController : ControllerBase
                 .Include(b => b.Participant);
 
             // Filter based on user role
-            if (isMotard)
+            if (isMotard || isOrganizer)
             {
-                // Motards see bookings for tours they're assigned to
-                query = query.Where(b => b.TourMotard!.MotardUserId == currentUser.Id);
+                // Motards see bookings for tours they're assigned to, organizers see bookings for tours they run
+                query = query.Where(b =>
+                    (isMotard && b.TourMotard!.MotardUserId == currentUser.Id) ||
+                    (isOrganizer && b.Tour != null && b.Tour.OrganizerUserId == currentUser.Id));
             }
             else
             {
@@ -607,6 +628,14 @@ public class BookingsController : ControllerBase
             var bookings = await query
                 .OrderByDescending(b => b.CreatedAt)
                 .ToListAsync();
+
+            if (isOrganizer)
+            {
+                foreach (var booking in bookings.Where(b => b.Tour?.OrganizerUserId == currentUser.Id))
+                {
+                    LogOrganizerAccessIfNotParty(nameof(GetBookings), booking, currentUser.Id);
+                }
+            }
 
             // Lazy update: Check for expired bookings and update their status
             var expiredBookings = bookings.Where(b =>
@@ -847,9 +876,9 @@ public class BookingsController : ControllerBase
     }
 
     /// <summary>
-    /// Refund a paid booking (Stage G: Motard only)
+    /// Refund a paid booking (Stage G: Motard or tour organizer)
     /// Rules:
-    /// - Only the assigned motard can refund their own bookings
+    /// - Only the assigned motard or tour organizer can refund
     /// - Booking must be in Paid status
     /// - Full refund (mock) is processed
     /// - Booking status changes to Refunded (not Cancelled)
@@ -903,14 +932,20 @@ public class BookingsController : ControllerBase
                 await _context.SaveChangesAsync();
             }
 
-            // Rule: Only the assigned motard can refund this booking
-            if (booking.TourMotard?.MotardUserId != currentUser.Id)
+            var isBookingMotard = booking.TourMotard?.MotardUserId == currentUser.Id;
+            var isTourOrganizer = booking.Tour?.OrganizerUserId == currentUser.Id;
+
+            // Rule: Only the assigned motard or tour organizer can refund this booking
+            if (!isBookingMotard && !isTourOrganizer)
             {
                 _logger.LogWarning(
-                    "User {UserId} attempted to refund booking {BookingId} assigned to motard {MotardUserId}",
-                    currentUser.Id, id, booking.TourMotard?.MotardUserId);
+                    "User {UserId} attempted to refund booking {BookingId} but is neither the booking motard nor the tour organizer",
+                    currentUser.Id, id);
                 return Forbid(); // 403 Forbidden
             }
+
+            LogOrganizerAccessIfNotParty(nameof(RefundBooking), booking, currentUser.Id);
+            var refundRole = isTourOrganizer ? "tour organizer" : "booking motard";
 
             // Rule: Can only refund Paid bookings
             if (booking.Status != BookingStatus.Paid)
@@ -966,8 +1001,8 @@ public class BookingsController : ControllerBase
             await _context.SaveChangesAsync();
 
             _logger.LogInformation(
-                "Booking {BookingId} refunded successfully by motard {UserId}",
-                booking.Id, currentUser.Id);
+                "Booking {BookingId} refunded successfully by {Role} {UserId}",
+                booking.Id, refundRole, currentUser.Id);
 
             var response = new BookingResponseDto
             {
@@ -1140,6 +1175,7 @@ public class BookingsController : ControllerBase
             }
 
             string approverRole = isTourOrganizer ? "tour organizer" : "booking motard";
+            LogOrganizerAccessIfNotParty(nameof(ApproveStartTime), booking, currentUser.Id);
             _logger.LogInformation(
                 "User {UserId} authorized as {Role} to approve start time for booking {BookingId}",
                 currentUser.Id, approverRole, id);
@@ -1375,6 +1411,27 @@ public class BookingsController : ControllerBase
         {
             _logger.LogError(ex, "Error completing booking {BookingId}", id);
             return StatusCode(500, new { error = "An error occurred while completing the booking" });
+        }
+    }
+
+    private static bool IsBookingParty(Booking booking, string userId)
+    {
+        return booking.ParticipantUserId == userId ||
+               booking.TourMotard?.MotardUserId == userId;
+    }
+
+    private static bool IsTourOrganizer(Booking booking, string userId)
+    {
+        return booking.Tour?.OrganizerUserId == userId;
+    }
+
+    private void LogOrganizerAccessIfNotParty(string actionName, Booking booking, string organizerUserId)
+    {
+        if (IsTourOrganizer(booking, organizerUserId) && !IsBookingParty(booking, organizerUserId))
+        {
+            _logger.LogInformation(
+                "Organizer booking access: Action={Action} BookingId={BookingId} TourId={TourId} OrganizerUserId={OrganizerUserId}",
+                actionName, booking.Id, booking.TourId, organizerUserId);
         }
     }
 
