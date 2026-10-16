@@ -2,6 +2,10 @@
 
 A full-stack web application for managing motorcycle tours, bookings, and communications between riders (motards) and tour organizers.
 
+📖 **Case study (中文)** — product walkthrough, business rules and engineering notes: [pengyujie.pages.dev/notes/moto-micro-tours-zh](https://pengyujie.pages.dev/notes/moto-micro-tours-zh)
+
+> **Note:** Payment, refund and rider payout are **simulated** flows for coursework — there is no real payment gateway integration.
+
 ## 📋 Table of Contents
 
 - [About](#about)
@@ -17,15 +21,17 @@ A full-stack web application for managing motorcycle tours, bookings, and commun
 
 ## 🚀 About
 
-Moto Micro Tours is a platform that connects motorcycle enthusiasts with tour organizers. It facilitates tour bookings, real-time chat communications, payment processing, and review systems.
+Moto Micro Tours is a platform that connects motorcycle enthusiasts with tour organizers. It facilitates tour bookings, real-time chat communications, simulated payment processing, and review systems.
+
+**Project status:** course project, built October 2025 – January 2026. In October 2026 the repository received a hardening and verification pass: authorization boundaries (payments, chat hubs), optimistic concurrency for seat booking, idempotency-key scoping, a fresh-database migration fix, and a restored test suite. See the git history for the exact changes.
 
 ## ✨ Features
 
 - **User Authentication** - Secure registration and login for riders and tour organizers
 - **Tour Management** - Create, browse, and manage motorcycle tours
-- **Booking System** - Complete booking workflow with approval/cancellation
+- **Booking System** - Complete booking workflow with approval, a six-hour payment window, two-sided completion confirmation, and gated reviews
 - **Real-time Chat** - Pre-booking and post-booking conversation system
-- **Payment Processing** - Integrated payment handling with refund support
+- **Payment Processing (simulated)** - Mock payment and refund flows; no real payment provider
 - **Review System** - Rate and review completed tours
 - **Authorization** - Role-based access control for different user types
 
@@ -140,8 +146,10 @@ The frontend is configured to use a proxy for API calls. Check `moto-micro-tours
 ```json
 {
   "/api": {
-    "target": "http://localhost:5000",
-    "secure": false
+    "target": "http://localhost:5256",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "info"
   }
 }
 ```
@@ -175,9 +183,9 @@ npm run start:proxy
 
 ### Access the Application
 
-- **Backend API:** http://localhost:5000 (or check your console output)
+- **Backend API:** http://localhost:5256 (or check your console output)
 - **Frontend:** http://localhost:4200
-- **Swagger UI:** http://localhost:5000/swagger
+- **Swagger UI:** http://localhost:5256/swagger (development environment only)
 
 ### **Critical**
 
@@ -225,7 +233,7 @@ Once the backend is running, visit the Swagger UI at `http://localhost:5000/swag
 - **Tours:** `/api/tours` - Tour management
 - **Bookings:** `/api/bookings` - Booking operations
 - **Chats:** `/api/chats` - Messaging system
-- **Payments:** `/api/payments` - Payment processing
+- **Payments:** `/api/payments` - Payment processing (simulated)
 - **Motards:** `/api/motards` - Rider profiles
 
 ### Testing Endpoints
@@ -285,7 +293,6 @@ The production build will be in the `dist/` folder.
 **Port Already in Use:**
 - Backend: Change port in `Properties/launchSettings.json`
 - Frontend: Use `ng serve --port 4201`
-- If you use Uwamp/Apache and port 80 is taken (IIS), change Apache to 8080 in `httpd.conf` and use `http://localhost:8080`
 
 **Migration Issues:**
 ```powershell
@@ -303,15 +310,11 @@ npm install
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## 👥 Contributing
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+This is a personal course project and is not actively accepting contributions. Feedback and bug reports are welcome via GitHub issues.
 
 ## 📧 Contact
 
