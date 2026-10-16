@@ -131,6 +131,19 @@ namespace moto_micro_tours
                 .HasForeignKey(b => b.ParticipantUserId)
                 .IsRequired();
 
+            // Optimistic concurrency: RowVersion is a client-managed token stamped
+            // in SaveChanges (see below). Every UPDATE carries
+            // "WHERE RowVersion = original", so a concurrent write to the same
+            // Booking/TourMotard row fails with DbUpdateConcurrencyException
+            // (e.g. two payments competing for the last seat). Works on MySQL,
+            // SQLite and the InMemory provider alike; no schema change needed.
+            modelBuilder.Entity<Booking>()
+                .Property(b => b.RowVersion)
+                .IsConcurrencyToken();
+            modelBuilder.Entity<TourMotard>()
+                .Property(tm => tm.RowVersion)
+                .IsConcurrencyToken();
+
             // Phase 1: Tour.Organizer navigation uses OrganizerUserId as FK
             modelBuilder.Entity<Tour>()
                 .HasOne(t => t.Organizer)
@@ -172,6 +185,41 @@ namespace moto_micro_tours
                 b.HasIndex(i => i.Key).IsUnique();
                 b.Property(i => i.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
             });
+        }
+
+        public override int SaveChanges(bool acceptAllChangesOnSuccess)
+        {
+            StampRowVersions();
+            return base.SaveChanges(acceptAllChangesOnSuccess);
+        }
+
+        public override Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
+        {
+            StampRowVersions();
+            return base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
+        }
+
+        /// <summary>
+        /// Stamp the concurrency token on every new or modified Booking/TourMotard.
+        /// Called centrally so no write path can forget it.
+        /// </summary>
+        private void StampRowVersions()
+        {
+            var now = DateTime.UtcNow;
+            foreach (var entry in ChangeTracker.Entries<Booking>())
+            {
+                if (entry.State == EntityState.Added || entry.State == EntityState.Modified)
+                {
+                    entry.Entity.RowVersion = now;
+                }
+            }
+            foreach (var entry in ChangeTracker.Entries<TourMotard>())
+            {
+                if (entry.State == EntityState.Added || entry.State == EntityState.Modified)
+                {
+                    entry.Entity.RowVersion = now;
+                }
+            }
         }
     }
 }

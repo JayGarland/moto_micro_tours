@@ -16,7 +16,9 @@ public class PaymentService : IPaymentService
     /// Example transactional payment flow. This demonstrates:
     /// - loading the booking and related TourMotard (to adjust seats)
     /// - creating a Payment and Payout
-    /// - using a database transaction and optimistic concurrency via RowVersion
+    /// - using a database transaction; RowVersion concurrency tokens
+    ///   (stamped in AppDbContext) reject concurrent writes to the same
+    ///   Booking/TourMotard, so two payments cannot take the same last seat
     /// </summary>
     public async Task<bool> ProcessPaymentAsync(Guid bookingId, decimal amount)
     {
@@ -27,6 +29,7 @@ public class PaymentService : IPaymentService
             // Load booking with related tour-motard and include RowVersion
             var booking = await _db.Bookings
                 .Include(b => b.TourMotard)
+                .Include(b => b.Tour)
                 .FirstOrDefaultAsync(b => b.Id == bookingId);
 
             if (booking == null) return false;
@@ -38,6 +41,11 @@ public class PaymentService : IPaymentService
             // Check expiry
             if (booking.ExpiresAt.HasValue && DateTime.UtcNow > booking.ExpiresAt.Value)
                 return false; // payment window expired
+
+            // The tour must still be published (e.g. a cancelled tour
+            // must not keep accepting payments for approved bookings)
+            if (booking.Tour == null || booking.Tour.Status != Domain.Enums.TourStatus.Published)
+                return false;
 
             var tourMotard = booking.TourMotard!;
             if (tourMotard.SeatsBooked >= tourMotard.CapacitySeats)
@@ -98,4 +106,3 @@ public class PaymentService : IPaymentService
 }
 
 // TODO: Consider implementing explicit FOR UPDATE locking for re-reading booking to ensure stronger consistency.
-// TODO: Ensure refund logic updates Payout status to Failed when applicable.

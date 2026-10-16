@@ -16,7 +16,9 @@ public class TourMotard
     public ICollection<Booking> Bookings { get; set; } = new List<Booking>();
 
     /// <summary>
-    /// RowVersion (DateTime) for optimistic concurrency control.
+    /// Optimistic concurrency token, stamped centrally in AppDbContext.SaveChanges
+    /// for every Added/Modified row. Configured with IsConcurrencyToken, so two
+    /// concurrent payments competing for the last seat cannot both succeed.
     /// </summary>
     public DateTime RowVersion { get; set; }
 }

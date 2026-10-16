@@ -77,4 +77,16 @@ public class PaymentServiceTests
         Assert.False(result);
     }
 
+    [Fact]
+    public async Task ProcessPaymentAsync_ShouldFail_IfTourNotPublished()
+    {
+        var db = GetDbContext();
+        var (_, tourMotard, booking) = await SeedApprovedBookingAsync(db, tourStatus: TourStatus.Cancelled);
+
+        var service = new PaymentService(db);
+        var result = await service.ProcessPaymentAsync(booking.Id, 100m);
+        Assert.False(result);
+        Assert.Equal(0, tourMotard.SeatsBooked);
+        Assert.False(await db.Payments.AnyAsync(p => p.BookingId == booking.Id));
+    }
 }

@@ -732,6 +732,7 @@ public class BookingsController : ControllerBase
                     .ThenInclude(tm => tm!.Motard)
                 .Include(b => b.Participant)
                 .Include(b => b.Payment)
+                .Include(b => b.Payout)
                 .FirstOrDefaultAsync(b => b.Id == id);
 
             if (booking == null)
@@ -835,6 +836,16 @@ public class BookingsController : ControllerBase
                 _logger.LogInformation(
                     "Payment {PaymentId} marked as refunded (mock)",
                     booking.Payment.Id);
+            }
+
+            // Keep the payout state consistent with the motard/organizer refund path:
+            // a refunded payment must never leave the rider's payout pending
+            if (needsRefund && booking.Payout != null)
+            {
+                booking.Payout.Status = PayoutStatus.Failed;
+                _logger.LogInformation(
+                    "Payout {PayoutId} status changed to Failed",
+                    booking.Payout.Id);
             }
 
             await _context.SaveChangesAsync();

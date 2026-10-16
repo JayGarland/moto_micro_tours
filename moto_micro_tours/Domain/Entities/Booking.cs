@@ -35,8 +35,9 @@ public class Booking
     public AppUser? ApprovedByUser { get; set; } // Navigation property
 
     /// <summary>
-    /// RowVersion (DateTime) for optimistic concurrency control. MySQL/TIMESTAMP
-    /// is used as a concurrency token with value generated on add or update.
+    /// Optimistic concurrency token, stamped centrally in AppDbContext.SaveChanges
+    /// for every Added/Modified row. Configured with IsConcurrencyToken, so a
+    /// concurrent write to the same row raises DbUpdateConcurrencyException.
     /// </summary>
     public DateTime RowVersion { get; set; }
 
