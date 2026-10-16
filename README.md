@@ -42,6 +42,7 @@ Moto Micro Tours is a platform that connects motorcycle enthusiasts with tour or
 - **Entity Framework Core 8.0** - ORM
 - **MySQL** - Database (via Pomelo.EntityFrameworkCore.MySql)
 - **ASP.NET Core Identity** - Authentication and authorization
+- **SignalR** - Real-time chat hubs (pre-booking and booking conversations)
 - **Swagger/OpenAPI** - API documentation
 
 ### Frontend
