@@ -1,14 +1,34 @@
 using Microsoft.AspNetCore.Http;
-using System.Threading.Tasks;
-using System;
-using System.Linq;
-using System.Text.Json;
+using Microsoft.EntityFrameworkCore;
+using System.Security.Cryptography;
+using System.Text;
 using moto_micro_tours.Domain.Entities;
 
 namespace moto_micro_tours.Middleware;
 
+/// <summary>
+/// Response caching for retried requests that carry an "Idempotency-Key" header.
+///
+/// Guarantees and limits (course-project scope):
+/// - Runs AFTER authentication/authorization, so a cache hit can never bypass
+///   the current request's auth checks. Resource-based checks inside a
+///   controller do not re-run on replay, but the cache is user-scoped, so a
+///   replay only ever returns the caller's own earlier response.
+/// - The stored key is a SHA-256 over (user, method, path, query, request body,
+///   client key): the same client key from another user, on another endpoint,
+///   or with a different body never hits this cache entry.
+/// - Only authenticated non-GET requests are cached; anonymous requests and
+///   safe methods pass straight through.
+/// - Atomicity: a claim row (StatusCode = 0) is inserted BEFORE the endpoint
+///   runs, so two concurrent first uses of the same key cannot both execute;
+///   the loser gets 409 Conflict. 5xx responses are not cached, so failed
+///   operations can be retried.
+/// </summary>
 public class IdempotencyKeyMiddleware
 {
+    private const string HeaderName = "Idempotency-Key";
+    private const int InFlightStatusCode = 0; // claim marker, never a real HTTP status
+
     private readonly RequestDelegate _next;
 
     public IdempotencyKeyMiddleware(RequestDelegate next)
@@ -18,227 +38,148 @@ public class IdempotencyKeyMiddleware
 
     public async Task InvokeAsync(HttpContext context, AppDbContext db)
     {
-        if (context.Request.Headers.TryGetValue("Idempotency-Key", out var key))
+        string? clientKey = null;
+        if (context.Request.Headers.TryGetValue(HeaderName, out var keyValues))
         {
-            var idempotencyKey = key.FirstOrDefault();
-            if (!string.IsNullOrEmpty(idempotencyKey))
+            clientKey = keyValues.FirstOrDefault();
+        }
+
+        var isCacheableMethod = context.Request.Method != HttpMethods.Get
+                                && context.Request.Method != HttpMethods.Head
+                                && context.Request.Method != HttpMethods.Options
+                                && context.Request.Method != HttpMethods.Trace;
+
+        if (string.IsNullOrEmpty(clientKey) || !isCacheableMethod || context.User.Identity?.IsAuthenticated != true)
+        {
+            await _next(context);
+            return;
+        }
+
+        var cacheKey = await BuildCacheKeyAsync(context, context.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)!.Value, clientKey);
+
+        // Replay path: an existing completed entry for this user/endpoint/key
+        var existing = await db.IdempotencyKeys.FindAsync(cacheKey);
+        if (existing != null)
+        {
+            if (existing.StatusCode == InFlightStatusCode)
             {
-                var entry = await db.IdempotencyKeys.FindAsync(idempotencyKey);
-                if (entry != null)
-                {
-                    // Return cached response
-                    context.Response.StatusCode = entry.StatusCode;
-                    context.Response.ContentType = entry.ContentType;
-                    await context.Response.WriteAsync(entry.ResponseBody);
-                    return;
-                }
-                // Buffer response
-                var originalBody = context.Response.Body;
-                using var memStream = new System.IO.MemoryStream();
-                context.Response.Body = memStream;
-                await _next(context);
-                memStream.Seek(0, System.IO.SeekOrigin.Begin);
-                var responseBody = new System.IO.StreamReader(memStream).ReadToEnd();
-                context.Response.Body = originalBody;
-                // Persist response
-                var newEntry = new IdempotencyKey
-                {
-                    Key = idempotencyKey,
-                    ResponseBody = responseBody,
-                    StatusCode = context.Response.StatusCode,
-                    ContentType = context.Response.ContentType ?? "application/json",
-                    CreatedAt = DateTime.UtcNow
-                };
-                db.IdempotencyKeys.Add(newEntry);
-                await db.SaveChangesAsync();
-                await context.Response.WriteAsync(responseBody);
+                // Same key already executing in another request
+                context.Response.StatusCode = StatusCodes.Status409Conflict;
+                context.Response.ContentType = "application/json";
+                await context.Response.WriteAsync("{\"error\":\"An identical request with this Idempotency-Key is already in progress\"}");
                 return;
             }
+
+            context.Response.StatusCode = existing.StatusCode;
+            context.Response.ContentType = existing.ContentType;
+            await context.Response.WriteAsync(existing.ResponseBody);
+            return;
         }
-        await _next(context);
+
+        // Claim path: insert first, so a concurrent request with the same key
+        // loses on the primary key instead of double-executing the endpoint
+        var claim = new IdempotencyKey
+        {
+            Key = cacheKey,
+            ResponseBody = string.Empty,
+            StatusCode = InFlightStatusCode,
+            ContentType = "application/json",
+            CreatedAt = DateTime.UtcNow
+        };
+        db.IdempotencyKeys.Add(claim);
+        try
+        {
+            await db.SaveChangesAsync();
+        }
+        catch (DbUpdateException)
+        {
+            // A concurrent request claimed the same key between our lookup and insert
+            db.ChangeTracker.Clear();
+            var winner = await db.IdempotencyKeys.FindAsync(cacheKey);
+            if (winner != null && winner.StatusCode != InFlightStatusCode)
+            {
+                // The other request already finished: replay its response
+                context.Response.StatusCode = winner.StatusCode;
+                context.Response.ContentType = winner.ContentType;
+                await context.Response.WriteAsync(winner.ResponseBody);
+            }
+            else
+            {
+                context.Response.StatusCode = StatusCodes.Status409Conflict;
+                context.Response.ContentType = "application/json";
+                await context.Response.WriteAsync("{\"error\":\"An identical request with this Idempotency-Key is already in progress\"}");
+            }
+            return;
+        }
+
+        // Read the request body (already consumed above for hashing) so the endpoint can bind it
+        context.Request.EnableBuffering();
+        context.Request.Body.Seek(0, SeekOrigin.Begin);
+
+        // Execute and buffer the response
+        var originalBody = context.Response.Body;
+        await using var memStream = new MemoryStream();
+        context.Response.Body = memStream;
+        try
+        {
+            await _next(context);
+        }
+        catch
+        {
+            // Release the claim so the client can retry the failed operation
+            context.Response.Body = originalBody;
+            db.IdempotencyKeys.Remove(claim);
+            await db.SaveChangesAsync();
+            throw;
+        }
+
+        memStream.Seek(0, SeekOrigin.Begin);
+        var responseBody = await new StreamReader(memStream).ReadToEndAsync();
+        context.Response.Body = originalBody;
+
+        // Only cache successful client-side outcomes; 5xx stays retryable
+        if (context.Response.StatusCode < 500 && !context.Response.HasStarted)
+        {
+            claim.StatusCode = context.Response.StatusCode;
+            claim.ContentType = context.Response.ContentType ?? "application/json";
+            claim.ResponseBody = responseBody;
+            await db.SaveChangesAsync();
+        }
+        else
+        {
+            db.IdempotencyKeys.Remove(claim);
+            await db.SaveChangesAsync();
+        }
+
+        await context.Response.WriteAsync(responseBody);
+    }
+
+    /// <summary>
+    /// Composite cache key: user + method + path + query + body + client key.
+    /// Hashed because the raw composite can exceed the key column length.
+    /// Public so tests can seed in-flight claim rows deterministically.
+    /// </summary>
+    public static async Task<string> BuildCacheKeyAsync(HttpContext context, string userId, string clientKey)
+    {
+        context.Request.EnableBuffering();
+        string body;
+        using (var reader = new StreamReader(
+                   context.Request.Body, Encoding.UTF8, detectEncodingFromByteOrderMarks: false,
+                   bufferSize: 1024, leaveOpen: true))
+        {
+            body = await reader.ReadToEndAsync();
+        }
+        context.Request.Body.Seek(0, SeekOrigin.Begin);
+
+        var composite = string.Join('\n',
+            userId,
+            context.Request.Method,
+            context.Request.Path.Value ?? string.Empty,
+            context.Request.QueryString.Value ?? string.Empty,
+            body,
+            clientKey);
+
+        var hash = SHA256.HashData(Encoding.UTF8.GetBytes(composite));
+        return Convert.ToHexString(hash);
     }
 }
-
-// Great question! Let me explain** Dependency Injection(DI) in Middleware** clearly:
-
-// ---
-
-// ## 🔑 **What is Middleware DI?**
-
-// ** Middleware** is code that runs in the request/response pipeline.In ASP.NET Core, middleware needs dependencies (like `DbContext`, services, etc.) through** Dependency Injection**.
-
-// ---
-
-// ## 📦 **Service Lifetimes in ASP.NET Core:**
-
-// There are 3 types of service lifetimes:
-
-// ### 1. **Singleton** 🌍
-// - Created** once** for the entire application
-// - Lives for the whole app lifetime
-// - Example: Configuration, Logging
-
-// ### 2. **Scoped** 🔄
-// - Created** once per HTTP request**
-// - Disposed after the request completes
-// - Example: `DbContext`, `AppDbContext`
-
-// ### 3. **Transient** ⚡
-// - Created** every time** it's requested
-// - Short-lived
-// - Example: Lightweight utilities
-
-// ---
-
-// ## ⚠️ **The Middleware Problem:**
-
-// ** Middleware itself is Singleton** (created once at app startup), but it often needs ** Scoped services** (like DbContext).
-
-// ### ❌ **WRONG WAY - Constructor Injection:**
-
-// ```csharp
-// public class IdempotencyKeyMiddleware
-// {
-//     private readonly RequestDelegate _next;
-//     private readonly AppDbContext _db;  // ❌ PROBLEM!
-
-//     // Constructor runs ONCE at startup
-//     public IdempotencyKeyMiddleware(RequestDelegate next, AppDbContext db)
-//     {
-//         _next = next;
-//         _db = db;  // ❌ Captures a single DbContext forever!
-//     }
-
-//     public async Task InvokeAsync(HttpContext context)
-//     {
-//         // ❌ Using the same DbContext for ALL requests
-//         var entry = await _db.IdempotencyKeys.FindAsync(key);
-//     }
-// }
-// ```
-
-// ** Why it fails:**
-// - Middleware is created** once** (singleton)
-// - `DbContext` is ** scoped** (per request)
-// - You can't inject a scoped service into a singleton - it violates lifetime rules!
-// - Even if allowed, you'd be using the **same DbContext** for all requests (thread-unsafe, data corruption risk)
-
-// ---
-
-// ## ✅ **CORRECT WAY - InvokeAsync Injection:**
-
-// ```csharp
-// public class IdempotencyKeyMiddleware
-// {
-//     private readonly RequestDelegate _next;
-//     // No DbContext field! ✅
-
-//     // Constructor runs ONCE - only inject singletons here
-//     public IdempotencyKeyMiddleware(RequestDelegate next)
-//     {
-//         _next = next;
-//     }
-
-//     // InvokeAsync runs ONCE PER REQUEST - inject scoped services here
-//     public async Task InvokeAsync(HttpContext context, AppDbContext db)
-//     {
-//         // ✅ Fresh DbContext for THIS request
-//         var entry = await db.IdempotencyKeys.FindAsync(key);
-
-//         await _next(context);
-//     }
-// }
-// ```
-
-// ** Why it works:**
-// - `InvokeAsync` is called** once per HTTP request**
-// - ASP.NET Core creates a ** new scope** for each request
-// - It injects a** fresh `DbContext`** for each request
-// - Each request gets its own isolated database context
-
-// ---
-
-// ## 📊 **Visual Comparison:**
-
-// ### Constructor Injection (Wrong):
-// ```
-// App Startup
-//     ↓
-// Middleware Created(ONCE) ← AppDbContext injected HERE
-//     ↓
-// Request 1 → Uses SAME DbContext ❌
-// Request 2 → Uses SAME DbContext ❌
-// Request 3 → Uses SAME DbContext ❌
-// ```
-
-// ### InvokeAsync Injection (Correct):
-// ```
-// App Startup
-//     ↓
-// Middleware Created(ONCE)
-//     ↓
-// Request 1 → InvokeAsync called → NEW AppDbContext ✅
-// Request 2 → InvokeAsync called → NEW AppDbContext ✅
-// Request 3 → InvokeAsync called → NEW AppDbContext ✅
-// ```
-
-// ---
-
-// ## 🎯 **The Rules:**
-
-// | Service Type | Constructor | InvokeAsync |
-// |--------------|-------------|-------------|
-// | Singleton(Logger, Config) | ✅ Yes | ✅ Yes |
-// | Scoped(DbContext) | ❌ NO | ✅ Yes |
-// | Transient | ❌ Avoid | ✅ Yes |
-
-// ---
-
-// ## 💡 **Real-World Example:**
-
-// ```csharp
-// public class MyMiddleware
-// {
-//     private readonly RequestDelegate _next;
-//     private readonly ILogger<MyMiddleware> _logger; // ✅ Singleton - OK in constructor
-
-//     public MyMiddleware(RequestDelegate next, ILogger<MyMiddleware> logger)
-//     {
-//         _next = next;
-//         _logger = logger; // ✅ Logger is singleton
-//     }
-
-//     // Parameters here are resolved PER REQUEST
-//     public async Task InvokeAsync(
-//         HttpContext context,
-//         AppDbContext db,           // ✅ Scoped - fresh per request
-//         IMyService service)        // ✅ Scoped - fresh per request
-//     {
-//         _logger.LogInformation("Processing request");
-
-//         // Use db and service safely - they're fresh for this request
-//         var data = await db.Users.FirstOrDefaultAsync();
-
-//         await _next(context);
-//     }
-// }
-// ```
-
-// ---
-
-// ## 🔧 **How ASP.NET Core Does It:**
-
-// 1. ** App starts** → Middleware constructor called once
-// 2. ** Request arrives** → ASP.NET creates a new ** scope**
-// 3. ** InvokeAsync called** → ASP.NET resolves parameters from that scope
-// 4. ** Request completes** → Scope disposed, DbContext disposed
-// 5. ** Next request** → New scope, new DbContext
-
-// ---
-
-// ## 🎓 **Key Takeaway:**
-
-// - ** Constructor**: Only for singleton dependencies(logger, config)
-// - ** InvokeAsync**: For scoped dependencies(DbContext, request-specific services)
-
-// This ensures ** thread safety** and ** proper resource management**! 

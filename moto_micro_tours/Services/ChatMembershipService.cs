@@ -12,8 +12,8 @@ namespace moto_micro_tours.Services;
 /// </summary>
 public interface IChatMembershipService
 {
-    Task<bool> CanJoinBookingGroupAsync(string userId, Guid bookingId);
-    Task<bool> CanJoinPreBookingGroupAsync(string userId, Guid conversationId);
+    Task<bool> CanJoinBookingGroupAsync(string? userId, Guid bookingId);
+    Task<bool> CanJoinPreBookingGroupAsync(string? userId, Guid conversationId);
 }
 
 public class ChatMembershipService : IChatMembershipService
@@ -26,7 +26,7 @@ public class ChatMembershipService : IChatMembershipService
     }
 
     /// <inheritdoc />
-    public async Task<bool> CanJoinBookingGroupAsync(string userId, Guid bookingId)
+    public async Task<bool> CanJoinBookingGroupAsync(string? userId, Guid bookingId)
     {
         if (string.IsNullOrEmpty(userId)) return false;
 
@@ -39,7 +39,7 @@ public class ChatMembershipService : IChatMembershipService
     }
 
     /// <inheritdoc />
-    public async Task<bool> CanJoinPreBookingGroupAsync(string userId, Guid conversationId)
+    public async Task<bool> CanJoinPreBookingGroupAsync(string? userId, Guid conversationId)
     {
         if (string.IsNullOrEmpty(userId)) return false;
 

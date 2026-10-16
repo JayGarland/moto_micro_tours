@@ -107,12 +107,14 @@ else
 // Enable CORS - must be before authentication/authorization
 app.UseCors("AllowAngularDev");
 
-// Add Idempotency middleware early in the pipeline
-app.UseMiddleware<moto_micro_tours.Middleware.IdempotencyKeyMiddleware>();
-
 // Enable authentication and authorization (Stage F)
 app.UseAuthentication();
 app.UseAuthorization();
+
+// Idempotency caching runs AFTER authentication/authorization: a cache hit
+// must never bypass the current request's auth checks, and cache keys are
+// scoped per user (see IdempotencyKeyMiddleware).
+app.UseMiddleware<moto_micro_tours.Middleware.IdempotencyKeyMiddleware>();
 
 app.MapControllers();
 app.MapHub<moto_micro_tours.Hubs.BookingChatHub>("/hubs/booking-chat");
