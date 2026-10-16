@@ -88,6 +88,7 @@ builder.Services.AddScoped<Microsoft.AspNetCore.Authorization.IAuthorizationHand
 // Register application services
 builder.Services.AddScoped<moto_micro_tours.Services.IPaymentService, moto_micro_tours.Services.PaymentService>();
 builder.Services.AddScoped<moto_micro_tours.Services.IMessageService, moto_micro_tours.Services.MessageService>();
+builder.Services.AddScoped<moto_micro_tours.Services.IChatMembershipService, moto_micro_tours.Services.ChatMembershipService>();
 
 var app = builder.Build();
 

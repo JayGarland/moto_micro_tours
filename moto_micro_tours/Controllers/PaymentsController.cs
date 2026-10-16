@@ -1,5 +1,8 @@
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using moto_micro_tours.Domain.Entities;
 using moto_micro_tours.DTOs;
 using moto_micro_tours.Services;
 
@@ -7,20 +10,24 @@ namespace moto_micro_tours.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize] // Payment is the booking participant's action; anonymous calls are rejected
 public class PaymentsController : ControllerBase
 {
     private readonly AppDbContext _context;
     private readonly IPaymentService _paymentService;
     private readonly ILogger<PaymentsController> _logger;
+    private readonly UserManager<AppUser> _userManager;
 
     public PaymentsController(
         AppDbContext context,
         IPaymentService paymentService,
-        ILogger<PaymentsController> logger)
+        ILogger<PaymentsController> logger,
+        UserManager<AppUser> userManager)
     {
         _context = context;
         _paymentService = paymentService;
         _logger = logger;
+        _userManager = userManager;
     }
 
     /// <summary>
@@ -36,6 +43,13 @@ public class PaymentsController : ControllerBase
         {
             _logger.LogInformation("Processing payment for booking {BookingId}", bookingId);
 
+            // Only the booking's participant may pay for it
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
+            {
+                return Unauthorized(new { error = "You must be logged in to pay for a booking" });
+            }
+
             // Load booking to get the amount to pay
             var booking = await _context.Bookings
                 .Include(b => b.TourMotard)
@@ -45,6 +59,14 @@ public class PaymentsController : ControllerBase
             {
                 _logger.LogWarning("Booking {BookingId} not found", bookingId);
                 return NotFound(new { error = $"Booking with ID {bookingId} not found" });
+            }
+
+            if (booking.ParticipantUserId != currentUser.Id)
+            {
+                _logger.LogWarning(
+                    "User {UserId} attempted to pay for booking {BookingId} owned by {ParticipantUserId}",
+                    currentUser.Id, bookingId, booking.ParticipantUserId);
+                return Forbid(); // 403 - not the booking's participant
             }
 
             if (booking.TourMotard == null)
