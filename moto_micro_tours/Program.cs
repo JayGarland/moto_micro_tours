@@ -121,3 +121,6 @@ app.MapHub<moto_micro_tours.Hubs.PreBookingChatHub>("/hubs/prebooking-chat");
 await moto_micro_tours.DbSeeder.SeedAsync(app.Services);
 
 app.Run();
+
+// Expose Program to integration tests (WebApplicationFactory<Program>)
+public partial class Program { }

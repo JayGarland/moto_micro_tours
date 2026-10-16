@@ -8,11 +8,11 @@ namespace moto_micro_tours.Tests;
 /// <summary>
 /// Stage F: Tests for cookie-based authentication
 /// </summary>
-public class AuthenticationTests : IClassFixture<WebApplicationFactory<Program>>
+public class AuthenticationTests : IClassFixture<MotoTestFactory>
 {
     private readonly HttpClient _client;
 
-    public AuthenticationTests(WebApplicationFactory<Program> factory)
+    public AuthenticationTests(MotoTestFactory factory)
     {
         _client = factory.CreateClient(new WebApplicationFactoryClientOptions
         {
@@ -27,7 +27,7 @@ public class AuthenticationTests : IClassFixture<WebApplicationFactory<Program>>
         // Arrange
         var loginRequest = new
         {
-            username = "organizer1",
+            emailOrUsername = "organizer1",
             password = "pass"
         };
 
@@ -53,7 +53,7 @@ public class AuthenticationTests : IClassFixture<WebApplicationFactory<Program>>
         // Arrange
         var loginRequest = new
         {
-            username = "wronguser",
+            emailOrUsername = "wronguser",
             password = "wrongpass"
         };
 
@@ -80,7 +80,7 @@ public class AuthenticationTests : IClassFixture<WebApplicationFactory<Program>>
         // Arrange - Login first
         var loginRequest = new
         {
-            username = "participant1",
+            emailOrUsername = "participant1",
             password = "pass"
         };
         await _client.PostAsJsonAsync("/api/auth/login", loginRequest);
@@ -117,7 +117,7 @@ public class AuthenticationTests : IClassFixture<WebApplicationFactory<Program>>
 
             var loginRequest = new
             {
-                username = user.Username,
+                emailOrUsername = user.Username,
                 password = "pass"
             };
 
@@ -142,7 +142,7 @@ public class AuthenticationTests : IClassFixture<WebApplicationFactory<Program>>
         // Arrange - Login first
         var loginRequest = new
         {
-            username = "motard1",
+            emailOrUsername = "motard1",
             password = "pass"
         };
         await _client.PostAsJsonAsync("/api/auth/login", loginRequest);

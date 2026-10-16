@@ -21,7 +21,18 @@ namespace moto_micro_tours
             var userManager = scope.ServiceProvider.GetRequiredService<UserManager<AppUser>>();
             var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
 
-            await db.Database.MigrateAsync();
+            // MySQL (production/dev) applies migrations; test providers
+            // (SQLite/InMemory) cannot run MySQL migrations, so create the
+            // schema directly instead.
+            if (db.Database.IsRelational()
+                && db.Database.ProviderName != "Microsoft.EntityFrameworkCore.Sqlite")
+            {
+                await db.Database.MigrateAsync();
+            }
+            else if (db.Database.IsRelational())
+            {
+                await db.Database.EnsureCreatedAsync();
+            }
 
             // Only seed if no tours exist (allow seeding even if users exist)
             if (await db.Tours.AnyAsync()) return;
@@ -126,7 +137,8 @@ namespace moto_micro_tours
                 StartLocationText = "Rouen Central Station",
                 EndLocationText = "Rouen Central Station",
                 Status = TourStatus.Published,
-                Notes = "Scenic coastal ride with stops at historic D-Day beaches and Mont-Saint-Michel. Lunch included. Bring warm gear!"
+                Notes = "Scenic coastal ride with stops at historic D-Day beaches and Mont-Saint-Michel. Lunch included. Bring warm gear!",
+                OrganizerUserId = organizer.Id
             };
             db.Tours.Add(tour);
             await db.SaveChangesAsync();
@@ -181,7 +193,8 @@ namespace moto_micro_tours
                 StartLocationText = "Tours Central Station",
                 EndLocationText = "Tours Central Station",
                 Status = TourStatus.Closed,
-                Notes = "Completed tour"
+                Notes = "Completed tour",
+                OrganizerUserId = organizer.Id
             };
             db.Tours.Add(pastTour);
             await db.SaveChangesAsync();

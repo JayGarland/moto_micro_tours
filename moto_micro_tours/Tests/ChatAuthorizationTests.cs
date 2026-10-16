@@ -1,3 +1,4 @@
+using moto_micro_tours.Tests;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.Data.Sqlite;
@@ -30,10 +31,14 @@ public class ChatAuthorizationTests
         var participantId = "participant@test";
         var motardId = "motard@test";
 
+        await TestData.SeedUsersAsync(db);
+        var tour = TestData.NewTour();
+        db.Tours.Add(tour);
+
         var conv = new PreBookingConversation
         {
             Id = System.Guid.NewGuid(),
-            TourId = System.Guid.NewGuid(),
+            TourId = tour.Id,
             MotardUserId = motardId,
             ParticipantUserId = participantId,
             CreatedAt = System.DateTime.UtcNow
@@ -59,10 +64,14 @@ public class ChatAuthorizationTests
         var participantId = "participant@test";
         var motardId = "motard@test";
 
+        await TestData.SeedUsersAsync(db);
+        var tour = TestData.NewTour();
+        db.Tours.Add(tour);
+
         var conv = new PreBookingConversation
         {
             Id = System.Guid.NewGuid(),
-            TourId = System.Guid.NewGuid(),
+            TourId = tour.Id,
             MotardUserId = motardId,
             ParticipantUserId = participantId,
             CreatedAt = System.DateTime.UtcNow
@@ -88,11 +97,15 @@ public class ChatAuthorizationTests
         var participantId = "participant@test";
         var motardId = "motard@test";
 
-        var tourMotard = new TourMotard { Id = System.Guid.NewGuid(), MotardUserId = motardId, CapacitySeats = 2, SeatsBooked = 0 };
+        await TestData.SeedUsersAsync(db);
+        var tour = TestData.NewTour();
+        db.Tours.Add(tour);
+
+        var tourMotard = new TourMotard { Id = System.Guid.NewGuid(), TourId = tour.Id, MotardUserId = motardId, CapacitySeats = 2, SeatsBooked = 0 };
         db.TourMotards.Add(tourMotard);
         await db.SaveChangesAsync();
 
-        var booking = new Booking { Id = System.Guid.NewGuid(), TourId = System.Guid.NewGuid(), TourMotardId = tourMotard.Id, TourMotard = tourMotard, ParticipantUserId = participantId, Status = Domain.Enums.BookingStatus.Approved };
+        var booking = new Booking { Id = System.Guid.NewGuid(), TourId = tour.Id, TourMotardId = tourMotard.Id, TourMotard = tourMotard, ParticipantUserId = participantId, Status = moto_micro_tours.Domain.Enums.BookingStatus.Approved };
         db.Bookings.Add(booking);
         await db.SaveChangesAsync();
 
@@ -123,11 +136,15 @@ public class ChatAuthorizationTests
         var participantId = "participant@test";
         var motardId = "motard@test";
 
-        var tourMotard = new TourMotard { Id = System.Guid.NewGuid(), MotardUserId = motardId, CapacitySeats = 2, SeatsBooked = 0 };
+        await TestData.SeedUsersAsync(db);
+        var tour = TestData.NewTour();
+        db.Tours.Add(tour);
+
+        var tourMotard = new TourMotard { Id = System.Guid.NewGuid(), TourId = tour.Id, MotardUserId = motardId, CapacitySeats = 2, SeatsBooked = 0 };
         db.TourMotards.Add(tourMotard);
         await db.SaveChangesAsync();
 
-        var booking = new Booking { Id = System.Guid.NewGuid(), TourId = System.Guid.NewGuid(), TourMotardId = tourMotard.Id, TourMotard = tourMotard, ParticipantUserId = participantId, Status = Domain.Enums.BookingStatus.Approved };
+        var booking = new Booking { Id = System.Guid.NewGuid(), TourId = tour.Id, TourMotardId = tourMotard.Id, TourMotard = tourMotard, ParticipantUserId = participantId, Status = moto_micro_tours.Domain.Enums.BookingStatus.Approved };
         db.Bookings.Add(booking);
         await db.SaveChangesAsync();
 

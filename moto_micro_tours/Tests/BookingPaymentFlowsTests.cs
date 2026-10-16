@@ -1,3 +1,4 @@
+using moto_micro_tours.Tests;
 using System;
 using System.Threading.Tasks;
 using Microsoft.Data.Sqlite;
@@ -36,20 +37,30 @@ public class BookingPaymentFlowsTests
         return context;
     }
 
+    /// <summary>Seed an FK-valid tour, motard and booking in one go.</summary>
+    private static async Task<(Tour Tour, TourMotard TourMotard, Booking Booking, Booking PendingBooking)> SeedAsync(
+        AppDbContext db, BookingStatus firstBookingStatus, int capacity = 5)
+    {
+        await TestData.SeedUsersAsync(db);
+        var tour = TestData.NewTour();
+        var tourMotard = TestData.NewTourMotard(tour.Id, capacity);
+        var booking = TestData.NewBooking(tour.Id, tourMotard.Id, firstBookingStatus);
+        booking.CreatedAt = DateTime.UtcNow;
+        var pending = TestData.NewBooking(tour.Id, tourMotard.Id, BookingStatus.Pending);
+        pending.CreatedAt = DateTime.UtcNow;
+        db.Tours.Add(tour);
+        db.TourMotards.Add(tourMotard);
+        db.Bookings.AddRange(booking, pending);
+        await db.SaveChangesAsync();
+        return (tour, tourMotard, booking, pending);
+    }
+
     [Fact]
     public async Task Approve_Pay_Confirm_Flow_Works()
     {
         // Arrange
         var db = GetDbContext();
-        var tourId = Guid.NewGuid();
-        var tour = new Tour { Id = tourId, Title = "Test Tour", StartAt = DateTime.UtcNow, StartLocationText = "A", EndLocationText = "B", Status = TourStatus.Published };
-        var tourMotard = new TourMotard { Id = Guid.NewGuid(), TourId = tourId, MotardUserId = "motard@test", CapacitySeats = 2, SeatsBooked = 0, RowVersion = DateTime.UtcNow };
-        var booking = new Booking { Id = Guid.NewGuid(), TourId = tourId, TourMotardId = tourMotard.Id, TourMotard = tourMotard, ParticipantUserId = "participant@test", Status = BookingStatus.Pending, RowVersion = DateTime.UtcNow, CreatedAt = DateTime.UtcNow };
-
-        db.Tours.Add(tour);
-        db.TourMotards.Add(tourMotard);
-        db.Bookings.Add(booking);
-        await db.SaveChangesAsync();
+        var (_, tourMotard, booking, _) = await SeedAsync(db, BookingStatus.Pending, capacity: 2);
 
         // Act: Approve
         booking.Status = BookingStatus.Approved;
@@ -81,15 +92,7 @@ public class BookingPaymentFlowsTests
     {
         // Arrange
         var db = GetDbContext();
-        var tourId = Guid.NewGuid();
-        var tour = new Tour { Id = tourId, Title = "Test Tour", StartAt = DateTime.UtcNow, StartLocationText = "A", EndLocationText = "B", Status = TourStatus.Published };
-        var tourMotard = new TourMotard { Id = Guid.NewGuid(), TourId = tourId, MotardUserId = "motard@test", CapacitySeats = 2, SeatsBooked = 0, RowVersion = DateTime.UtcNow };
-        var booking = new Booking { Id = Guid.NewGuid(), TourId = tourId, TourMotardId = tourMotard.Id, TourMotard = tourMotard, ParticipantUserId = "participant@test", Status = BookingStatus.Approved, RowVersion = DateTime.UtcNow };
-
-        db.Tours.Add(tour);
-        db.TourMotards.Add(tourMotard);
-        db.Bookings.Add(booking);
-        await db.SaveChangesAsync();
+        var (_, tourMotard, booking, _) = await SeedAsync(db, BookingStatus.Approved, capacity: 2);
 
         // Set ExpiresAt in the past
         booking.ApprovedAt = DateTime.UtcNow.AddHours(-10);
@@ -114,15 +117,7 @@ public class BookingPaymentFlowsTests
     {
         // Arrange: create and pay booking
         var db = GetDbContext();
-        var tourId = Guid.NewGuid();
-        var tour = new Tour { Id = tourId, Title = "Test Tour", StartAt = DateTime.UtcNow, StartLocationText = "A", EndLocationText = "B", Status = TourStatus.Published };
-        var tourMotard = new TourMotard { Id = Guid.NewGuid(), TourId = tourId, MotardUserId = "motard@test", CapacitySeats = 2, SeatsBooked = 0, RowVersion = DateTime.UtcNow };
-        var booking = new Booking { Id = Guid.NewGuid(), TourId = tourId, TourMotardId = tourMotard.Id, TourMotard = tourMotard, ParticipantUserId = "participant@test", Status = BookingStatus.Approved, RowVersion = DateTime.UtcNow, CreatedAt = DateTime.UtcNow };
-
-        db.Tours.Add(tour);
-        db.TourMotards.Add(tourMotard);
-        db.Bookings.Add(booking);
-        await db.SaveChangesAsync();
+        var (_, tourMotard, booking, _) = await SeedAsync(db, BookingStatus.Approved, capacity: 2);
 
         // Pay
         var paymentService = new PaymentService(db);
@@ -163,19 +158,7 @@ public class BookingPaymentFlowsTests
     public async Task Tour_Cancel_ShouldRefundPaid_AndCancelOthers()
     {
         var db = GetDbContext();
-        var tourId = Guid.NewGuid();
-        var tour = new Tour { Id = tourId, Title = "Test Tour", StartAt = DateTime.UtcNow, StartLocationText = "A", EndLocationText = "B", Status = TourStatus.Published };
-        var tourMotard = new TourMotard { Id = Guid.NewGuid(), TourId = tourId, MotardUserId = "motard@test", CapacitySeats = 5, SeatsBooked = 0, RowVersion = DateTime.UtcNow };
-
-        // Booking 1: will be paid
-        var bookingPaid = new Booking { Id = Guid.NewGuid(), TourId = tourId, TourMotardId = tourMotard.Id, TourMotard = tourMotard, ParticipantUserId = "p1@test", Status = BookingStatus.Approved, RowVersion = DateTime.UtcNow, CreatedAt = DateTime.UtcNow };
-        // Booking 2: will remain pending
-        var bookingPending = new Booking { Id = Guid.NewGuid(), TourId = tourId, TourMotardId = tourMotard.Id, TourMotard = tourMotard, ParticipantUserId = "p2@test", Status = BookingStatus.Pending, RowVersion = DateTime.UtcNow, CreatedAt = DateTime.UtcNow };
-
-        db.Tours.Add(tour);
-        db.TourMotards.Add(tourMotard);
-        db.Bookings.AddRange(bookingPaid, bookingPending);
-        await db.SaveChangesAsync();
+        var (tour, tourMotard, bookingPaid, bookingPending) = await SeedAsync(db, BookingStatus.Approved, capacity: 5);
 
         // Pay bookingPaid
         var paymentService = new PaymentService(db);
